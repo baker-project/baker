@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="2">
+	<name>baker_office_cleaning_application</name>
+	
+	<description>Contains control scripts for an office cleaning application.</description>
+	<!-- <url type="website">http://wiki.ros.org/baker_office_cleaning_application</url> -->
+	
+	<version>0.0.0</version>
+	<license>LGPL for academic and non-commercial use; for commercial use, please contact Fraunhofer IPA, Nobelstr. 12, 70569 Stuttgart, Germany</license>
+
+	<maintainer email="richard.bormann@ipa.fraunhofer.de">Richard Bormann</maintainer>
+	<author email="richard.bormann@ipa.fraunhofer.de">Richard Bormann</author>
+	<author email="yann.philippczyk@ipa.fraunhofer.de">Yann Philippczyk</author>
+
+	<buildtool_depend>catkin</buildtool_depend>
+	<depend>actionlib</depend>
+	<depend>actionlib_msgs</depend>
+	<depend>eigen_conversions</depend>
+	<depend>geometry_msgs</depend>
+	<depend>move_base_msgs</depend>
+	<depend>roscpp</depend>
+	<depend>rospy</depend>
+	<depend>scitos_msgs</depend>
+	<depend>std_msgs</depend>
+	<depend>tf</depend>
+
+</package>

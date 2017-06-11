@@ -1,0 +1,25 @@
+Version 0.11.1 (Release date: 2017-01-23)
+-----------------------------------------
+- added config SCITOS-mapping.xml for simulated mapping (when given a map).
+- added simulation of battery charging
+
+Version 0.11.0 (Release date: 2016-04-18)
+-----------------------------------------
+- added support for simulating Tory, WeRobots and X3
+- added simulator module for G5 heads
+- added support for simulating range finder reflectors
+- added method to simulate reading reading 124kHz RFID tags (user tags).
+- added variable 'localizationMap' to let the simulator localize on a different map than the given static map.
+- no longer using motion model to add an error to the otherwise undisturbed odometry - use odometry correction instead.
+
+Version 0.10.1 (Release date: 2015-02-03)
+----------------------------------------
+- moved changelog to separate changelog file
+
+Version 0.10.0 (Release date: 2015-01-12)
+----------------------------------------
+- adapted configs to use new CostMapper domain
+
+Version 0.9.0 (Release date: 2014-07-30)
+----------------------------------------
+- initial version
