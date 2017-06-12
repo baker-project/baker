@@ -306,6 +306,19 @@
                     <!--The width of the line-->
                     <Line_Width>0.10000000149</Line_Width>
                   </item>
+                  <item class="mira::navigation::TaskVisualization">
+                    <!--Is true if the visualization is enabled and visible-->
+                    <Enabled>true</Enabled>
+                    <!--The name that is shown to the user-->
+                    <Name>/navigation/Task</Name>
+                    <!--The channel to be visualized-->
+                    <Channel>
+                      <!--The ID of the channel-->
+                      <Channel>/navigation/Task</Channel>
+                    </Channel>
+                    <!--Frame to use as fallback for visualizing tasks without position-->
+                    <Fallback_Draw_Frame>/robot/RobotFrame</Fallback_Draw_Frame>
+                  </item>
                 </Visualizations>
                 <!--Update interval in ms-->
                 <Update>40</Update>
@@ -389,19 +402,19 @@ Background only = always select background, regardless of objects hit-->
                 <!--Camera view-->
                 <Camera>
                   <!--the position of the camera-->
-                  <X>-7.43161201477</X>
+                  <X>-4.76359891891</X>
                   <!--the position of the camera-->
-                  <Y>-0.802706301212</Y>
+                  <Y>1.3519961834</Y>
                   <!--the position of the camera-->
-                  <Z>22.9991359711</Z>
+                  <Z>16.8560123444</Z>
                   <!--the orientation of the camera-->
                   <Yaw>-1.95842909813</Yaw>
                   <!--the orientation of the camera-->
-                  <Pitch>68.5355529785</Pitch>
+                  <Pitch>68.5356521606</Pitch>
                   <!--the orientation of the camera-->
                   <Roll>0</Roll>
                   <!--the zoom or distance-->
-                  <Distance>24.7131614685</Distance>
+                  <Distance>18.1122760773</Distance>
                 </Camera>
                 <!--Background mode-->
                 <Background>1</Background>
@@ -487,9 +500,9 @@ Background only = always select background, regardless of objects hit-->
                     <!--The size of the text item-->
                     <Size>
                       <!--The width-->
-                      <Width>200</Width>
+                      <Width>302</Width>
                       <!--The height-->
-                      <Height>50</Height>
+                      <Height>62</Height>
                     </Size>
                     <String>
                       <!--The ID of the channel-->
@@ -504,9 +517,9 @@ Background only = always select background, regardless of objects hit-->
                     <!--The size of the text item-->
                     <Size>
                       <!--The width-->
-                      <Width>200</Width>
+                      <Width>302</Width>
                       <!--The height-->
-                      <Height>50</Height>
+                      <Height>218</Height>
                     </Size>
                     <Channel>
                       <!--The ID of the channel-->
@@ -521,9 +534,9 @@ Background only = always select background, regardless of objects hit-->
                     <!--The size of the text item-->
                     <Size>
                       <!--The width-->
-                      <Width>200</Width>
+                      <Width>302</Width>
                       <!--The height-->
-                      <Height>50</Height>
+                      <Height>310</Height>
                     </Size>
                     <Channel>
                       <!--The ID of the channel-->
@@ -538,9 +551,9 @@ Background only = always select background, regardless of objects hit-->
                     <!--The size of the text item-->
                     <Size>
                       <!--The width-->
-                      <Width>200</Width>
+                      <Width>302</Width>
                       <!--The height-->
-                      <Height>50</Height>
+                      <Height>181</Height>
                     </Size>
                     <Pose>
                       <!--The ID of the channel-->

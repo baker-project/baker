@@ -53,8 +53,8 @@ def simple_move():
 		goal_pose.pose.orientation.w = quaternion[3]
 		#goal_pose.header
 		goal1.target_poses.append(goal_pose)
-	goal1.path_tolerance = 0.1
-	goal1.goal_position_tolerance = 0.5
+	goal1.path_tolerance = 0.05
+	goal1.goal_position_tolerance = 0.05
 	goal1.goal_angle_tolerance = 0.085
 	print("Waiting for server")
 	sac.wait_for_server()

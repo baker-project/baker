@@ -50,7 +50,7 @@ def simple_move():
 				goal.target_poses[0].pose.orientation = goal_pose.pose.orientation
 			goal.target_poses.append(goal_pose)
 		goal.path_tolerance = 0.05
-		goal.goal_position_tolerance = 0.5
+		goal.goal_position_tolerance = 0.05
 		goal.goal_angle_tolerance = 0.085
 		print("Sending command")
 		sac.send_goal(goal)
