@@ -282,6 +282,30 @@
                     <!--The filter for showing bounding box / footprint collision geometries-->
                     <CollisionFilter/>
                   </item>
+                  <item class="mira::gui::PathPose2Visualization">
+                    <!--Is true if the visualization is enabled and visible-->
+                    <Enabled>true</Enabled>
+                    <!--The name that is shown to the user-->
+                    <Name>/navigation/FollowPath</Name>
+                    <!--The channel to be visualized-->
+                    <Path>
+                      <!--The ID of the channel-->
+                      <Channel>/navigation/FollowPath</Channel>
+                    </Path>
+                    <!--The color of the line-->
+                    <Color>
+                      <!--Red component (0-1)-->
+                      <Red>1</Red>
+                      <!--Green component (0-1)-->
+                      <Green>0</Green>
+                      <!--Blue component (0-1)-->
+                      <Blue>0</Blue>
+                      <!--Alpha (0=transparent, 1=opaque)-->
+                      <Alpha>1</Alpha>
+                    </Color>
+                    <!--The width of the line-->
+                    <Line_Width>0.10000000149</Line_Width>
+                  </item>
                 </Visualizations>
                 <!--Update interval in ms-->
                 <Update>40</Update>
@@ -365,19 +389,19 @@ Background only = always select background, regardless of objects hit-->
                 <!--Camera view-->
                 <Camera>
                   <!--the position of the camera-->
-                  <X>-3.6281671524</X>
+                  <X>-7.43161201477</X>
                   <!--the position of the camera-->
-                  <Y>-0.932761907578</Y>
+                  <Y>-0.802706301212</Y>
                   <!--the position of the camera-->
-                  <Z>13.3202619553</Z>
+                  <Z>22.9991359711</Z>
                   <!--the orientation of the camera-->
-                  <Yaw>-1.95842957497</Yaw>
+                  <Yaw>-1.95842909813</Yaw>
                   <!--the orientation of the camera-->
-                  <Pitch>68.5352706909</Pitch>
+                  <Pitch>68.5355529785</Pitch>
                   <!--the orientation of the camera-->
                   <Roll>0</Roll>
                   <!--the zoom or distance-->
-                  <Distance>14.3129692078</Distance>
+                  <Distance>24.7131614685</Distance>
                 </Camera>
                 <!--Background mode-->
                 <Background>1</Background>
