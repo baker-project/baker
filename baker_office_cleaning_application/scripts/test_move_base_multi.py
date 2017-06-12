@@ -51,7 +51,7 @@ def simple_move():
 			goal.target_poses.append(goal_pose)
 		goal.path_tolerance = 0.05
 		goal.goal_position_tolerance = 0.1
-		goal.goal_angle_tolerance = 0.087
+		goal.goal_angle_tolerance = 0.17
 		print("Sending command")
 		sac.send_goal(goal)
 		print("Waiting for result")
