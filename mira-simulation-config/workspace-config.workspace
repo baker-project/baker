@@ -319,6 +319,30 @@
                     <!--Frame to use as fallback for visualizing tasks without position-->
                     <Fallback_Draw_Frame>/robot/RobotFrame</Fallback_Draw_Frame>
                   </item>
+                  <item class="mira::gui::PathPoint2fVisualization">
+                    <!--Is true if the visualization is enabled and visible-->
+                    <Enabled>true</Enabled>
+                    <!--The name that is shown to the user-->
+                    <Name>/navigation/Path</Name>
+                    <!--The channel to be visualized-->
+                    <Path>
+                      <!--The ID of the channel-->
+                      <Channel>/navigation/Path</Channel>
+                    </Path>
+                    <!--The color of the line-->
+                    <Color>
+                      <!--Red component (0-1)-->
+                      <Red>0</Red>
+                      <!--Green component (0-1)-->
+                      <Green>0.666666686535</Green>
+                      <!--Blue component (0-1)-->
+                      <Blue>0</Blue>
+                      <!--Alpha (0=transparent, 1=opaque)-->
+                      <Alpha>1</Alpha>
+                    </Color>
+                    <!--The width of the line-->
+                    <Line_Width>0.10000000149</Line_Width>
+                  </item>
                 </Visualizations>
                 <!--Update interval in ms-->
                 <Update>40</Update>
@@ -402,19 +426,19 @@ Background only = always select background, regardless of objects hit-->
                 <!--Camera view-->
                 <Camera>
                   <!--the position of the camera-->
-                  <X>-4.76359891891</X>
+                  <X>-10.7055206299</X>
                   <!--the position of the camera-->
-                  <Y>1.3519961834</Y>
+                  <Y>-1.56680738926</Y>
                   <!--the position of the camera-->
-                  <Z>16.8560123444</Z>
+                  <Z>16.6153888702</Z>
                   <!--the orientation of the camera-->
-                  <Yaw>-1.95842909813</Yaw>
+                  <Yaw>13.8287534714</Yaw>
                   <!--the orientation of the camera-->
-                  <Pitch>68.5356521606</Pitch>
+                  <Pitch>53.3682250977</Pitch>
                   <!--the orientation of the camera-->
                   <Roll>0</Roll>
                   <!--the zoom or distance-->
-                  <Distance>18.1122760773</Distance>
+                  <Distance>20.7052536011</Distance>
                 </Camera>
                 <!--Background mode-->
                 <Background>1</Background>
@@ -477,9 +501,9 @@ Background only = always select background, regardless of objects hit-->
                 <!--The maximum corner-->
                 <MaxCorner>
                   <!--The x-coordinate-->
-                  <X>1167</X>
+                  <X>1334</X>
                   <!--The y-coordinate-->
-                  <Y>862</Y>
+                  <Y>973</Y>
                 </MaxCorner>
               </Geometry>
               <Activated>true</Activated>
@@ -587,9 +611,9 @@ Background only = always select background, regardless of objects hit-->
                 <!--The maximum corner-->
                 <MaxCorner>
                   <!--The x-coordinate-->
-                  <X>1167</X>
+                  <X>1334</X>
                   <!--The y-coordinate-->
-                  <Y>862</Y>
+                  <Y>973</Y>
                 </MaxCorner>
               </Geometry>
               <Activated>false</Activated>
@@ -598,13 +622,13 @@ Background only = always select background, regardless of objects hit-->
               <Docked>true</Docked>
             </item>
           </Editors>
-          <State>AAAA/wAAAAD9AAAAAwAAAAAAAAEtAAAEafwCAAAABPsAAAAQAEMAaABhAG4AbgBlAGwAcwEAAAAZAAABgAAAAHYA////+wAAACoAVgBpAHMAdQBhAGwAaQB6AGEAdABpAG8AbgAgAEMAbwBuAHQAcgBvAGwBAAABnwAAAc0AAACVAP////sAAAASAEQAcgBpAHYAZQBWAGkAZQB3AQAAA3IAAAEQAAABEAD////7AAAAKgBNAGkAbgBpAG0AaQB6AGUAZABEAG8AYwBrAEEAcgBlAGEATABlAGYAdAEAAAAZAAAEgQAAAAAAAAAAAAAAAQAAAXcAAARp/AIAAAAD+wAAABYAQQB1AHQAaABvAHIAaQB0AGkAZQBzAQAAABkAAAI/AAAAkQD////7AAAAFABQAHIAbwBwAGUAcgB0AGkAZQBzAQAAAl4AAAIkAAAAegD////7AAAALABNAGkAbgBpAG0AaQB6AGUAZABEAG8AYwBrAEEAcgBlAGEAUgBpAGcAaAB0AQAAABkAAASBAAAAAAAAAAAAAAADAAAEjwAAAOz8AQAAAAL8AAABMwAABI8AAAHiAP////oAAAAAAQAAAAT7AAAADgBMAG8AZwBWAGkAZQB3AQAAAAD/////AAABdAD////7AAAAFgBSAFAAQwAgAEMAbwBuAHMAbwBsAGUBAAAAAP////8AAABOAP////sAAAAMAFAAbABhAHkAZQByAQAAAAD/////AAABEwD////7AAAAEABSAGUAYwBvAHIAZABlAHIBAAAAAP////8AAAHiAP////sAAAAuAE0AaQBuAGkAbQBpAHoAZQBkAEQAbwBjAGsAQQByAGUAYQBCAG8AdAB0AG8AbQEAAAEzAAAE0AAAAAAAAAAAAAAEjwAAA3cAAAABAAAAAgAAAAEAAAAC/AAAAAA=</State>
+          <State>AAAA/wAAAAD9AAAAAwAAAAAAAAFhAAAEafwCAAAABPsAAAAQAEMAaABhAG4AbgBlAGwAcwEAAAAZAAAB8wAAAHYA////+wAAACoAVgBpAHMAdQBhAGwAaQB6AGEAdABpAG8AbgAgAEMAbwBuAHQAcgBvAGwBAAACEgAAAVoAAACVAP////sAAAASAEQAcgBpAHYAZQBWAGkAZQB3AQAAA3IAAAEQAAABEAD////7AAAAKgBNAGkAbgBpAG0AaQB6AGUAZABEAG8AYwBrAEEAcgBlAGEATABlAGYAdAAAAAN+AAABBAAAAAMA///+AAAAAQAAAJwAAARp/AIAAAAD+wAAABYAQQB1AHQAaABvAHIAaQB0AGkAZQBzAQAAABkAAAEgAAAAkQD////7AAAAFABQAHIAbwBwAGUAcgB0AGkAZQBzAQAAAT8AAANDAAAAegD////7AAAALABNAGkAbgBpAG0AaQB6AGUAZABEAG8AYwBrAEEAcgBlAGEAUgBpAGcAaAB0AAAAAwYAAAF8AAAAAwD///4AAAADAAAFNgAAAH38AQAAAAL8AAABZwAABTYAAAHiAP////oAAAAAAQAAAAT7AAAADgBMAG8AZwBWAGkAZQB3AQAAAAD/////AAABdAD////7AAAAFgBSAFAAQwAgAEMAbwBuAHMAbwBsAGUBAAAAAP////8AAABOAP////sAAAAMAFAAbABhAHkAZQByAQAAAAD/////AAABEwD////7AAAAEABSAGUAYwBvAHIAZABlAHIBAAAAAP////8AAAHiAP////sAAAAuAE0AaQBuAGkAbQBpAHoAZQBkAEQAbwBjAGsAQQByAGUAYQBCAG8AdAB0AG8AbQAAAAOoAAAC9QAAAAQA////AAAFNgAAA+YAAAABAAAAAgAAAAEAAAAC/AAAAAA=</State>
         </State>
       </item>
     </Perspectives>
     <CurrentPerspective>0</CurrentPerspective>
     <!--Binary Qt state, do not edit!-->
-    <Geometry>AdnQywABAAAAAABBAAAAGAAAB38AAASvAAAAAAAAAAAAAAd/AAAErwAAAAECAA==</Geometry>
+    <Geometry>AdnQywABAAAAAABBAAAAGAAAB38AAASvAAAAAAAAACwAAAd/AAAE2wAAAAECAA==</Geometry>
     <RemoteFrameworkHistory/>
   </MIRACenter>
 </root>
