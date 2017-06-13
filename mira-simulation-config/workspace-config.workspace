@@ -343,6 +343,50 @@
                     <!--The width of the line-->
                     <Line_Width>0.10000000149</Line_Width>
                   </item>
+                  <item class="mira::gui::Pose2Visualization">
+                    <!--Is true if the visualization is enabled and visible-->
+                    <Enabled>true</Enabled>
+                    <!--The name that is shown to the user-->
+                    <Name>/robot/RobotFrame</Name>
+                    <!--The length of the axes in m-->
+                    <Length>0.600000023842</Length>
+                    <!--The radius of the axes in m-->
+                    <Radius>0.00999999977648</Radius>
+                    <!--Should arrows be shown-->
+                    <ShowArrows>true</ShowArrows>
+                    <Pose>
+                      <!--The ID of the channel-->
+                      <Channel>/robot/RobotFrame</Channel>
+                    </Pose>
+                    <!--Should the name be shown-->
+                    <Show_Name>true</Show_Name>
+                    <!--Should Y axis be visualized (for 2d poses)-->
+                    <ShowYAxis>true</ShowYAxis>
+                    <!--Type of the transform that is rendered-->
+                    <TransformType>2</TransformType>
+                    <!--The sigma of the shown surface-->
+                    <Sigma>0.5</Sigma>
+                    <!--Settings for the trail-->
+                    <Trail>
+                      <!--The trail length (0 to disable)-->
+                      <Length>1000</Length>
+                      <!--Interval between two trail samples (in seconds)-->
+                      <Interval>0.20000000298</Interval>
+                      <!--Visualize trail as path, axis or both-->
+                      <TrailVisualization>2</TrailVisualization>
+                    </Trail>
+                    <!--Settings for the path-->
+                    <Path>
+                      <!--The line width of the path visualization-->
+                      <LineWidth>0.10000000149</LineWidth>
+                      <!--Velocity which gets minimum color of palette-->
+                      <MinVelocity>0</MinVelocity>
+                      <!--Velocity which gets maximum color of palette-->
+                      <MaxVelocity>3</MaxVelocity>
+                      <!--The color palette-->
+                      <Colormap>mira::RedBlueColormap</Colormap>
+                    </Path>
+                  </item>
                 </Visualizations>
                 <!--Update interval in ms-->
                 <Update>40</Update>
@@ -426,19 +470,19 @@ Background only = always select background, regardless of objects hit-->
                 <!--Camera view-->
                 <Camera>
                   <!--the position of the camera-->
-                  <X>-10.7055206299</X>
+                  <X>-5.43878316879</X>
                   <!--the position of the camera-->
-                  <Y>-1.56680738926</Y>
+                  <Y>-1.52556300163</Y>
                   <!--the position of the camera-->
-                  <Z>16.6153888702</Z>
+                  <Z>11.8461084366</Z>
                   <!--the orientation of the camera-->
                   <Yaw>13.8287534714</Yaw>
                   <!--the orientation of the camera-->
-                  <Pitch>53.3682250977</Pitch>
+                  <Pitch>53.3682327271</Pitch>
                   <!--the orientation of the camera-->
                   <Roll>0</Roll>
                   <!--the zoom or distance-->
-                  <Distance>20.7052536011</Distance>
+                  <Distance>14.7622203827</Distance>
                 </Camera>
                 <!--Background mode-->
                 <Background>1</Background>
@@ -622,7 +666,7 @@ Background only = always select background, regardless of objects hit-->
               <Docked>true</Docked>
             </item>
           </Editors>
-          <State>AAAA/wAAAAD9AAAAAwAAAAAAAAFhAAAEafwCAAAABPsAAAAQAEMAaABhAG4AbgBlAGwAcwEAAAAZAAAB8wAAAHYA////+wAAACoAVgBpAHMAdQBhAGwAaQB6AGEAdABpAG8AbgAgAEMAbwBuAHQAcgBvAGwBAAACEgAAAVoAAACVAP////sAAAASAEQAcgBpAHYAZQBWAGkAZQB3AQAAA3IAAAEQAAABEAD////7AAAAKgBNAGkAbgBpAG0AaQB6AGUAZABEAG8AYwBrAEEAcgBlAGEATABlAGYAdAAAAAN+AAABBAAAAAMA///+AAAAAQAAAJwAAARp/AIAAAAD+wAAABYAQQB1AHQAaABvAHIAaQB0AGkAZQBzAQAAABkAAAEgAAAAkQD////7AAAAFABQAHIAbwBwAGUAcgB0AGkAZQBzAQAAAT8AAANDAAAAegD////7AAAALABNAGkAbgBpAG0AaQB6AGUAZABEAG8AYwBrAEEAcgBlAGEAUgBpAGcAaAB0AAAAAwYAAAF8AAAAAwD///4AAAADAAAFNgAAAH38AQAAAAL8AAABZwAABTYAAAHiAP////oAAAAAAQAAAAT7AAAADgBMAG8AZwBWAGkAZQB3AQAAAAD/////AAABdAD////7AAAAFgBSAFAAQwAgAEMAbwBuAHMAbwBsAGUBAAAAAP////8AAABOAP////sAAAAMAFAAbABhAHkAZQByAQAAAAD/////AAABEwD////7AAAAEABSAGUAYwBvAHIAZABlAHIBAAAAAP////8AAAHiAP////sAAAAuAE0AaQBuAGkAbQBpAHoAZQBkAEQAbwBjAGsAQQByAGUAYQBCAG8AdAB0AG8AbQAAAAOoAAAC9QAAAAQA////AAAFNgAAA+YAAAABAAAAAgAAAAEAAAAC/AAAAAA=</State>
+          <State>AAAA/wAAAAD9AAAAAwAAAAAAAAFhAAAEafwCAAAABPsAAAAQAEMAaABhAG4AbgBlAGwAcwEAAAAZAAABvQAAAHYA////+wAAACoAVgBpAHMAdQBhAGwAaQB6AGEAdABpAG8AbgAgAEMAbwBuAHQAcgBvAGwBAAAB3AAAAW8AAACVAP////sAAAASAEQAcgBpAHYAZQBWAGkAZQB3AQAAA1EAAAExAAABEAD////7AAAAKgBNAGkAbgBpAG0AaQB6AGUAZABEAG8AYwBrAEEAcgBlAGEATABlAGYAdAAAAAN+AAABBAAAAAMA///+AAAAAQAAAJwAAARp/AIAAAAD+wAAABYAQQB1AHQAaABvAHIAaQB0AGkAZQBzAQAAABkAAAEgAAAAkQD////7AAAAFABQAHIAbwBwAGUAcgB0AGkAZQBzAQAAAT8AAANDAAAAegD////7AAAALABNAGkAbgBpAG0AaQB6AGUAZABEAG8AYwBrAEEAcgBlAGEAUgBpAGcAaAB0AAAAAwYAAAF8AAAAAwD///4AAAADAAAFNgAAAH38AQAAAAL8AAABZwAABTYAAAHiAP////oAAAAAAQAAAAT7AAAADgBMAG8AZwBWAGkAZQB3AQAAAAD/////AAABdAD////7AAAAFgBSAFAAQwAgAEMAbwBuAHMAbwBsAGUBAAAAAP////8AAABOAP////sAAAAMAFAAbABhAHkAZQByAQAAAAD/////AAABEwD////7AAAAEABSAGUAYwBvAHIAZABlAHIBAAAAAP////8AAAHiAP////sAAAAuAE0AaQBuAGkAbQBpAHoAZQBkAEQAbwBjAGsAQQByAGUAYQBCAG8AdAB0AG8AbQAAAAOoAAAC9QAAAAQA////AAAFNgAAA+YAAAABAAAAAgAAAAEAAAAC/AAAAAA=</State>
         </State>
       </item>
     </Perspectives>
