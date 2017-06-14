@@ -58,6 +58,7 @@
 				</else>
 				<item>
 					<Objective class="mira::pilot::PathFollowObjective">
+						 <HeadingSmoothAngle>10</HeadingSmoothAngle>
 					</Objective>
 				</item>
 				<item>

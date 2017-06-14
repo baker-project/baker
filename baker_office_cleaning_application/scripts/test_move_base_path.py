@@ -40,7 +40,7 @@ def simple_move():
 			goal_pose.pose.position.x = 12.4
 		if i>=42:
 			goal_pose.pose.position.x = 12.4 - 0.4*(i-42)
-		goal_pose.pose.position.y = 0.6*math.sin(i*0.15)
+		goal_pose.pose.position.y = 0.6*math.sin(i*0.5)
 		#goal_pose.pose.position.x = poses[i%8][0]
 		#goal_pose.pose.position.y = poses[i%8][1]
 		angle = 0
@@ -53,9 +53,11 @@ def simple_move():
 		goal_pose.pose.orientation.w = quaternion[3]
 		#goal_pose.header
 		goal1.target_poses.append(goal_pose)
-	goal1.path_tolerance = 0.05
+		if i==1:
+			goal1.target_poses[0].pose.orientation = goal1.target_poses[1].pose.orientation
+	goal1.path_tolerance = 0.1
 	goal1.goal_position_tolerance = 0.1
-	goal1.goal_angle_tolerance = 0.17
+	goal1.goal_angle_tolerance = 0.087
 	print("Waiting for server")
 	sac.wait_for_server()
 	print("Sending command")
