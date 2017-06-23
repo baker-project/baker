@@ -12,10 +12,13 @@ find_package(catkin REQUIRED COMPONENTS
 	actionlib_msgs
 	eigen_conversions
 	geometry_msgs
+	ipa_building_msgs
 	move_base_msgs
+	nav_msgs
 	roscpp
 	rospy
 	scitos_msgs
+	sensor_msgs
 	std_msgs
 	tf
 )
