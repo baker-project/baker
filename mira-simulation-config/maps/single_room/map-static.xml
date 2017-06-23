@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+	<Map>
+		<Image>map-static.png</Image>
+		<CellSize>0.05</CellSize>
+		<Offset>
+			<X>200</X>
+			<Y>300</Y>
+		</Offset>
+	</Map>
+</root>

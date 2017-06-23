@@ -56,9 +56,13 @@
 				<else>
 					<include file="${find ${pathPlanner}.xml}"/>
 				</else>
-				<item>
+				<!-- item>
 					<Objective class="mira::pilot::PathFollowObjective">
 						 <HeadingSmoothAngle>10</HeadingSmoothAngle>
+					</Objective>
+				</item -->
+				<item>
+					<Objective class="mira::pilot::SmoothPathFollow">
 					</Objective>
 				</item>
 				<item>
