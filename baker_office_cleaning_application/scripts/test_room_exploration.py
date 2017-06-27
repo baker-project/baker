@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
-import actionlib
-import numpy
 import roslib
+roslib.load_manifest('baker_office_cleaning_application')
+import actionlib
 import rospy
 import tf
 
 #move_base_msgs
+from baker_msgs.srv import *
 from ipa_building_msgs.msg import *
 from nav_msgs.msg import OccupancyGrid
 from geometry_msgs.msg import PoseStamped, Pose2D, Point32
@@ -23,11 +24,14 @@ class SeqControl():
 	def explore(self):
 		rospy.init_node('exploration_node')
 
-		# subscribe to map topic
-		rospy.Subscriber("/map", OccupancyGrid, self.mapCallback)
-		self.map_received = False
-		while self.map_received == False:
-			rospy.sleep(0.5)
+		print "Waiting for service '/baker/get_map_image' to become available ..."
+		rospy.wait_for_service('/baker/get_map_image')
+		try:
+			get_map = rospy.ServiceProxy('/baker/get_map_image', GetMap)
+			self.map_data = get_map()
+		except rospy.ServiceException, e:
+			print "Service call failed: %s" % e
+		print "Map received."
 
 		# compute exploration path
 		#planning_mode = 2 # viewpoint planning
@@ -37,42 +41,36 @@ class SeqControl():
 		fov_points = [Point32(x=-0.3, y=0.3), Point32(x=-0.3, y=-0.3), Point32(x=0.3, y=-0.3), Point32(x=0.3, y=0.3)] # this is the working area of a vacuum cleaner with 60 cm width
 
 		exploration_goal = RoomExplorationGoal()
-		exploration_goal.input_map = self.map;
-		exploration_goal.map_resolution = self.map_resolution
-		exploration_goal.map_origin = self.map_origin
+		exploration_goal.input_map = self.map_data.map;
+		exploration_goal.map_resolution = self.map_data.map_resolution
+		exploration_goal.map_origin = self.map_data.map_origin
 		exploration_goal.robot_radius = 0.3
 		exploration_goal.coverage_radius = 0.3
 		exploration_goal.field_of_view = fov_points
-		exploration_goal.starting_position = Pose2D(x=0., y=0., theta=0.)
+		exploration_goal.starting_position = Pose2D(x=1., y=0., theta=0.)
 		exploration_goal.planning_mode = planning_mode
-		
+
+		print "Waiting for action '/room_exploration/room_exploration_server' to become available ..."
 		exploration_client = actionlib.SimpleActionClient('/room_exploration/room_exploration_server', RoomExplorationAction)
 		exploration_client.wait_for_server()
 		exploration_client.send_goal(exploration_goal)
 		exploration_client.wait_for_result()
-		print exploration_client.get_result()
+		exploration_result = exploration_client.get_result()
+		print exploration_result
 
 		# command robot movement
-	
-	def mapCallback(self, msg):
-		# convert to image message
-		print ("Reading map ...")
-		# read the data from msg.data and convert it from [0,100] to [0,255], furthermore, set the image properties
-		self.map = Image()
-		self.map.header = msg.header
-		self.map.height = msg.info.height
-		self.map.width = msg.info.width
-		self.map.encoding = "mono8"
-		self.map.step = msg.info.width
-		self.map.data = []
-		for value in msg.data:
-			self.map.data.append(numpy.uint8(255./100. * value)) # todo: this is buggy and lets the receiving program crash on applying cv_bridge
+		move_base_path_goal = MoveBasePathGoal()
+		move_base_path_goal.target_poses = exploration_result.coverage_path_pose_stamped
+		move_base_path_goal.path_tolerance = 0.1
+		move_base_path_goal.goal_position_tolerance = 0.1
+		move_base_path_goal.goal_angle_tolerance = 0.087
 
-		self.map_resolution = msg.info.resolution
-		self.map_origin = Pose2D(x=msg.info.origin.position.x, y=msg.info.origin.position.y, theta=0.)
-
-		self.map_received = True
-		print("Map received.")
+		print "Waiting for action 'move_base_path' to become available ..."
+		move_base_path = actionlib.SimpleActionClient('/move_base_path', MoveBasePathAction)
+		move_base_path.wait_for_server()
+		move_base_path.send_goal(move_base_path_goal)
+		move_base_path.wait_for_result()
+		print move_base_path.get_result()
 
 if __name__ == '__main__':
 	try:

@@ -15,6 +15,7 @@
 	<buildtool_depend>catkin</buildtool_depend>
 	<depend>actionlib</depend>
 	<depend>actionlib_msgs</depend>
+	<depend>baker_msgs</depend>
 	<depend>cmake_modules</depend>
 	<depend>cv_bridge</depend>
 	<depend>eigen_conversions</depend>

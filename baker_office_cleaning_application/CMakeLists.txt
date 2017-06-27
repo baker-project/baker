@@ -4,6 +4,7 @@ project(baker_office_cleaning_application)
 set(catkin_RUN_PACKAGES
 	actionlib
 	actionlib_msgs
+	baker_msgs
 	cv_bridge
 	eigen_conversions
 	geometry_msgs
