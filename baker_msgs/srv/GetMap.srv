@@ -1,0 +1,2 @@
+---
+sensor_msgs/Image map			# the 2d map used for navigation and localization, converted to a black and white 8bit single-channel image, which is 0 (black) for obstacles and 255 (white) for free space
