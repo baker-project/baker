@@ -53,21 +53,23 @@ class SeqControl():
 		print "Waiting for action '/room_exploration/room_exploration_server' to become available ..."
 		exploration_client = actionlib.SimpleActionClient('/room_exploration/room_exploration_server', RoomExplorationAction)
 		exploration_client.wait_for_server()
+		print "Sending goal ..."
 		exploration_client.send_goal(exploration_goal)
 		exploration_client.wait_for_result()
 		exploration_result = exploration_client.get_result()
-		print exploration_result
+		print "Exploration path received." #exploration_result
 
 		# command robot movement
 		move_base_path_goal = MoveBasePathGoal()
 		move_base_path_goal.target_poses = exploration_result.coverage_path_pose_stamped
-		move_base_path_goal.path_tolerance = 0.1
+		move_base_path_goal.path_tolerance = 0.2 #0.1
 		move_base_path_goal.goal_position_tolerance = 0.1
 		move_base_path_goal.goal_angle_tolerance = 0.087
 
 		print "Waiting for action 'move_base_path' to become available ..."
 		move_base_path = actionlib.SimpleActionClient('/move_base_path', MoveBasePathAction)
 		move_base_path.wait_for_server()
+		print "Sending goal ..."
 		move_base_path.send_goal(move_base_path_goal)
 		move_base_path.wait_for_result()
 		print move_base_path.get_result()
