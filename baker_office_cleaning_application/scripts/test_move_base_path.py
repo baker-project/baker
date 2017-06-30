@@ -18,17 +18,40 @@ def simple_move():
 	rospy.init_node('move_node')
 	sac = actionlib.SimpleActionClient('move_base_path', MoveBasePathAction )
 	goal1 = MoveBasePathGoal()
-	#goal2 = MoveBaseGoal()
+	goal2 = MoveBasePathGoal()
 
 	poses = [[-1.,-3.5],
-		 [-0.99,-3.5],
-		 [1.,-3.5],
-		 [1.,-3.51],
-		 [1.,-5.5],
-		 [0.99,-5.5],
-		 [-1.,-5.5],
-		 [-1.,-5.49]
+			 [-0.99,-3.5],
+			 [1.,-3.5],
+			 [1.,-3.51],
+			 [1.,-5.5],
+			 [0.99,-5.5],
+			 [-1.,-5.5],
+			 [-1.,-5.49]#,
+			# [-1.,-3.5],
+			# [-1.5,-3.8],
+			# [-3.2,0.0],
+			# [10.,0.]
 		]
+	for i in range(0, 17):
+		goal_pose = PoseStamped()
+		goal_pose.pose.position.x = poses[i%len(poses)][0]
+		goal_pose.pose.position.y = poses[i%len(poses)][1]
+		angle = 0
+		if i!=0:
+			angle = math.atan2(goal_pose.pose.position.y-goal2.target_poses[-1].pose.position.y, goal_pose.pose.position.x-goal2.target_poses[-1].pose.position.x)
+		quaternion = tf.transformations.quaternion_from_euler(angle, 0., 0., 'rzyx')#1.57)
+		goal_pose.pose.orientation.x = quaternion[0]
+		goal_pose.pose.orientation.y = quaternion[1]
+		goal_pose.pose.orientation.z = quaternion[2]
+		goal_pose.pose.orientation.w = quaternion[3]
+		#goal_pose.header
+		goal2.target_poses.append(goal_pose)
+	
+	goal2.path_tolerance = 0.1
+	goal2.goal_position_tolerance = 0.1
+	goal2.goal_angle_tolerance = 0.087
+
 
 	#set goal
 	for i in range(0, 80):
@@ -61,7 +84,7 @@ def simple_move():
 	print("Waiting for server")
 	sac.wait_for_server()
 	print("Sending command")
-	sac.send_goal(goal1)
+	sac.send_goal(goal2)		# goal1
 	print("Waiting for result")
 	sac.wait_for_result()
 	print sac.get_result()
