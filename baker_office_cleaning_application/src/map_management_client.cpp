@@ -66,6 +66,8 @@ protected:
 					map_.at<unsigned char>(v, u) = 0;
 			}
 		}
+		cv::Mat temp = map_;
+		cv::flip(temp, map_, 0);
 //		cv::imshow("map", map_);
 //		cv::waitKey();
 

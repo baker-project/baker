@@ -7,6 +7,7 @@ This file describes the usage of the Mira simulator together with a ROS interfac
 # simple map
 miracenter SCITOSSimulator:etc/SCITOS-application.xml -v MCFFile=~/Downloads/simple_map/map.mcf,robot=SCITOS-G5,useDocking=false -p1234
            -> configuration file                         -> map file                            -> robot type                    -> port number
+(miracenter SCITOSSimulator:etc/SCITOS-application.xml -v MCFFile=~/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/single_room/map.mcf,robot=SCITOS-G5,useDocking=false -p1234)
 
 # AVH map with additional nogo, speed, and oneway maps
 miracenter SCITOSSimulator:etc/SCITOS-application.xml -v MCFFile=~/Downloads/AVH/map.mcf,robot=SCITOS-G5,useDocking=false -p1234
@@ -88,6 +89,10 @@ miracd <package name>   --> jump to package location
 
 /opt/MIRA-commercial/domains/robot/SCITOSSimulator/
 
+~/opt/BakerTest/domains/navigation/SmoothTransitionPathObjective
+
+/opt/MIRA-commercial/domains/navigation/Pilot/etc
+
 ~/Downloads/AVH  --> Karte
 
 
@@ -126,3 +131,6 @@ goal:
         w: 0.0"
 
 
+
+RPC console im miracenter:
+/robot/Robot.getRobotModel
