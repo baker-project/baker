@@ -1,9 +1,14 @@
 <root>
-	<var MCFFile="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/lab_ipa/map.mcf"/>
-	<var robot="SCITOS-G5"/>
+	<var MCFFile="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/ipa_biolab/map.mcf"/>
 	<var useDocking="false"/>
 
 	<var pathPlanner="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/SmoothPathPlanner.xml"/>
+
+	<!--var robot="SCITOS-G5"/-->
+	<var robot="BakeR-Simulation"/>
+	<var robotConfigFile="${findpkg BakeRConfig}/etc/${robot}.xml"/>
+	<var frontLaser="SickS300"/>
+	<var rearLaser="none"/>
 
 	<include file="${findpkg SCITOSSimulator}/etc/SCITOS-application.xml"/>
 
