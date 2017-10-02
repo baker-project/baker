@@ -44,11 +44,12 @@ class SeqControl():
 		# todo:
 
 		# compute exploration path
-		#planning_mode = 2 # viewpoint planning
+		planning_mode = 2 # viewpoint planning
+		fov_points = [Point32(x=0.15, y=0.35), Point32(x=0.15, y=-0.35), Point32(x=1.15, y=-0.65), Point32(x=1.15, y=0.65)] # this field of view represents the off-center iMop floor wiping device
 		#fov_points = [Point32(x=0.15, y=0.35), Point32(x=0.15, y=-0.35), Point32(x=1.15, y=-0.65), Point32(x=1.15, y=0.65)] # this field of view fits a Asus Xtion sensor mounted at 0.63m height (camera center) pointing downwards to the ground in a respective angle
 		# ... or ...
-		planning_mode = 1 # footprint planning
-		fov_points = [Point32(x=-0.3, y=0.3), Point32(x=-0.3, y=-0.3), Point32(x=0.3, y=-0.3), Point32(x=0.3, y=0.3)] # this is the working area of a vacuum cleaner with 60 cm width
+		#planning_mode = 1 # footprint planning
+		#fov_points = [Point32(x=-0.3, y=0.3), Point32(x=-0.3, y=-0.3), Point32(x=0.3, y=-0.3), Point32(x=0.3, y=0.3)] # this is the working area of a vacuum cleaner with 60 cm width
 		exploration_goal = RoomExplorationGoal()
 		exploration_goal.input_map = self.map_data.map
 		exploration_goal.map_resolution = self.map_data.map_resolution
@@ -72,7 +73,7 @@ class SeqControl():
 		move_base_path_goal.target_poses = exploration_result.coverage_path_pose_stamped
 		move_base_path_goal.path_tolerance = 0.2 #0.1
 		move_base_path_goal.goal_position_tolerance = 0.5 #0.25 #0.1
-		move_base_path_goal.goal_angle_tolerance = 3.14 #0.7 #0.087
+		move_base_path_goal.goal_angle_tolerance = 1.57 #0.7 #0.087
 		print "Waiting for action 'move_base_path' to become available ..."
 		move_base_path = actionlib.SimpleActionClient('/move_base_path', MoveBasePathAction)
 		move_base_path.wait_for_server()
