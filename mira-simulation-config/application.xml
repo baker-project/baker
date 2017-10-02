@@ -1,0 +1,38 @@
+<root>
+	<var MCFFile="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/lab_ipa/map.mcf"/>
+	<var robot="SCITOS-G5"/>
+	<var useDocking="false"/>
+
+	<var pathPlanner="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/SmoothPathPlanner.xml"/>
+
+	<include file="${findpkg SCITOSSimulator}/etc/SCITOS-application.xml"/>
+
+	<namespace name="navigation">
+		<parameter name="Pilot.Planner.Objectives[?].item.Objective{mira::pilot::SmoothTransitionPathObjective}.Planner">
+			<PersistentDoubleBuffer>true</PersistentDoubleBuffer>
+		</parameter>
+
+		<parameter name="Pilot.Planner.Objectives[?].item.Objective{mira::pilot::DirectionObjective}">
+			<AvoidTurnNearGoal>false</AvoidTurnNearGoal>
+		</parameter>
+
+		<parameter name="Pilot.Planner.Objectives[+end]">
+			<item>
+				<Objective class="mira::pilot::WallDistanceObjective">
+				</Objective>
+				<!--If true, the objective is disabled-->
+				<Disabled>false</Disabled>
+				<!--The weight for this objective-->
+				<Weight>1.0</Weight>
+			</item>
+		</parameter>
+	</namespace>
+
+	<namespace name="robot">
+		<parameter name="Robot.RobotModelProvider.Model">
+			<MaxForwardVelocity>0.5</MaxForwardVelocity>
+			<MaxBackwardVelocity>-0.3</MaxBackwardVelocity>
+			<MaxRotVelocity>60</MaxRotVelocity>
+		</parameter>
+	</namespace>
+</root>
