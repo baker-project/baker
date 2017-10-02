@@ -45,7 +45,7 @@ class SeqControl():
 
 		# compute exploration path
 		planning_mode = 2 # viewpoint planning
-		fov_points = [Point32(x=0.15, y=0.35), Point32(x=0.15, y=-0.35), Point32(x=1.15, y=-0.65), Point32(x=1.15, y=0.65)] # this field of view represents the off-center iMop floor wiping device
+		fov_points = [Point32(x=0.04035, y=0.136), Point32(x=0.04035, y=-0.364), Point32(x=0.54035, y=-0.364), Point32(x=0.54035, y=0.136)] # this field of view represents the off-center iMop floor wiping device
 		#fov_points = [Point32(x=0.15, y=0.35), Point32(x=0.15, y=-0.35), Point32(x=1.15, y=-0.65), Point32(x=1.15, y=0.65)] # this field of view fits a Asus Xtion sensor mounted at 0.63m height (camera center) pointing downwards to the ground in a respective angle
 		# ... or ...
 		#planning_mode = 1 # footprint planning
