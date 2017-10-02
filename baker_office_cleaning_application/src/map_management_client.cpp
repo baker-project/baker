@@ -54,7 +54,8 @@ protected:
 		map_header_ = map_msg_data->header;
 		map_resolution_ = map_msg_data->info.resolution;
 		map_origin_ = map_msg_data->info.origin;
-		ROS_INFO_STREAM("MapManagementClient::mapDataCallback: map resolution: " << map_msg_data->info.resolution);
+		ROS_INFO_STREAM("MapManagementClient::mapDataCallback: map resolution: " << map_msg_data->info.resolution
+				<< "    map_origin: (" << map_origin_.position.x << ", " << map_origin_.position.y << ")");
 
 		// create original map
 		map_ = 255 * cv::Mat::ones(map_msg_data->info.height, map_msg_data->info.width, CV_8UC1);
@@ -67,7 +68,7 @@ protected:
 			}
 		}
 		cv::Mat temp = map_;
-		cv::flip(temp, map_, 0);
+		//cv::flip(temp, map_, 0);
 //		cv::imshow("map", map_);
 //		cv::waitKey();
 

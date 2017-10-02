@@ -38,7 +38,7 @@ class SeqControl():
 			self.map_data = get_map()
 		except rospy.ServiceException, e:
 			print "Service call failed: %s" % e
-		print "Map received."
+		print "Map received with resolution: ", self.map_data.map_resolution, "   and origin: ", self.map_data.map_origin
 		
 		# compute map division into rooms
 		# todo:
@@ -71,8 +71,8 @@ class SeqControl():
 		move_base_path_goal = MoveBasePathGoal()
 		move_base_path_goal.target_poses = exploration_result.coverage_path_pose_stamped
 		move_base_path_goal.path_tolerance = 0.2 #0.1
-		move_base_path_goal.goal_position_tolerance = 0.25 #0.1
-		move_base_path_goal.goal_angle_tolerance = 0.7 #0.087
+		move_base_path_goal.goal_position_tolerance = 0.5 #0.25 #0.1
+		move_base_path_goal.goal_angle_tolerance = 3.14 #0.7 #0.087
 		print "Waiting for action 'move_base_path' to become available ..."
 		move_base_path = actionlib.SimpleActionClient('/move_base_path', MoveBasePathAction)
 		move_base_path.wait_for_server()
