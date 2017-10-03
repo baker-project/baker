@@ -68,7 +68,7 @@ class SeqControl():
 		exploration_result = exploration_client.get_result()
 		print "Exploration path received with length ", len(exploration_result.coverage_path_pose_stamped)
 
-		# command robot movement
+		# command path follow movement
 		move_base_path_goal = MoveBasePathGoal()
 		move_base_path_goal.target_poses = exploration_result.coverage_path_pose_stamped
 		move_base_path_goal.path_tolerance = 0.2 #0.1
@@ -76,6 +76,20 @@ class SeqControl():
 		move_base_path_goal.goal_angle_tolerance = 1.57 #0.7 #0.087
 		print "Waiting for action 'move_base_path' to become available ..."
 		move_base_path = actionlib.SimpleActionClient('/move_base_path', MoveBasePathAction)
+		move_base_path.wait_for_server()
+		print "Sending goal ..."
+		move_base_path.send_goal(move_base_path_goal)
+		move_base_path.wait_for_result()
+		print move_base_path.get_result()
+		
+		# command wall following movement
+		move_base_path_goal = MoveBasePathGoal()
+		move_base_path_goal.target_poses = exploration_result.coverage_path_pose_stamped
+		move_base_path_goal.path_tolerance = 0.2 #0.1
+		move_base_path_goal.goal_position_tolerance = 0.4 #0.25 #0.1
+		move_base_path_goal.goal_angle_tolerance = 3.14 #0.7 #0.087
+		print "Waiting for action 'move_base_path' to become available ..."
+		move_base_path = actionlib.SimpleActionClient('/move_base_wall_follow', MoveBasePathAction)
 		move_base_path.wait_for_server()
 		print "Sending goal ..."
 		move_base_path.send_goal(move_base_path_goal)
