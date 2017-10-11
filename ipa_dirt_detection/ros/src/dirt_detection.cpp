@@ -12,9 +12,9 @@
 * \note
 * Project name: care-o-bot
 * \note
-* ROS stack name: autopnp
+* ROS stack name: baker
 * \note
-* ROS package name: autopnp_dirt_detection
+* ROS package name: ipa_dirt_detection
 *
 * \author
 * Author: Richard Bormann
@@ -58,8 +58,8 @@
 ****************************************************************/
 
 
-#include <autopnp_dirt_detection/dirt_detection.h>
-#include <autopnp_dirt_detection/timer.h>
+#include <ipa_dirt_detection/dirt_detection.h>
+#include <ipa_dirt_detection/timer.h>
 
 #include <pcl_ros/point_cloud.h>
 #include <pcl/ModelCoefficients.h>
@@ -198,7 +198,7 @@ void DirtDetection::init()
 	std::cout << "showDirtGrid = " << debug_["showDirtGrid"] << std::endl;
 
 	// dynamic reconfigure
-	dynamic_reconfigure::Server<autopnp_dirt_detection::DirtDetectionConfig>::CallbackType dynamic_reconfigure_callback_type;
+	dynamic_reconfigure::Server<ipa_dirt_detection::DirtDetectionConfig>::CallbackType dynamic_reconfigure_callback_type;
 	dynamic_reconfigure_callback_type = boost::bind(&DirtDetection::dynamicReconfigureCallback, this, _1, _2);
 	dynamic_reconfigure_server_.setCallback(dynamic_reconfigure_callback_type);
 
@@ -275,7 +275,7 @@ void DirtDetection::init()
 }
 
 
-void DirtDetection::dynamicReconfigureCallback(autopnp_dirt_detection::DirtDetectionConfig &config, uint32_t level)
+void DirtDetection::dynamicReconfigureCallback(ipa_dirt_detection::DirtDetectionConfig &config, uint32_t level)
 {
 	//ROS_INFO("Reconfigure Request: %d %f %s %s %d",	config.int_param, config.double_param, config.str_param.c_str(), config.bool_param?"True":"False", config.size);
 	dirtThreshold_ = config.dirtThreshold;
@@ -305,7 +305,7 @@ void DirtDetection::floorPlanCallback(const nav_msgs::OccupancyGridConstPtr& map
 	ROS_INFO("Map received.");
 }
 
-bool DirtDetection::activateDirtDetection(autopnp_dirt_detection::ActivateDirtDetection::Request &req, autopnp_dirt_detection::ActivateDirtDetection::Response &res)
+bool DirtDetection::activateDirtDetection(ipa_dirt_detection::ActivateDirtDetection::Request &req, ipa_dirt_detection::ActivateDirtDetection::Response &res)
 {
 	ROS_INFO("Activating dirt detection.");
 	dirtDetectionCallbackActive_ = true;
@@ -314,7 +314,7 @@ bool DirtDetection::activateDirtDetection(autopnp_dirt_detection::ActivateDirtDe
 }
 
 
-bool DirtDetection::deactivateDirtDetection(autopnp_dirt_detection::DeactivateDirtDetection::Request &req, autopnp_dirt_detection::DeactivateDirtDetection::Response &res)
+bool DirtDetection::deactivateDirtDetection(ipa_dirt_detection::DeactivateDirtDetection::Request &req, ipa_dirt_detection::DeactivateDirtDetection::Response &res)
 {
 	ROS_INFO("Deactivating dirt detection.");
 	dirtDetectionCallbackActive_ = false;
@@ -323,7 +323,7 @@ bool DirtDetection::deactivateDirtDetection(autopnp_dirt_detection::DeactivateDi
 }
 
 
-bool DirtDetection::getDirtMap(autopnp_dirt_detection::GetDirtMap::Request &req, autopnp_dirt_detection::GetDirtMap::Response &res)
+bool DirtDetection::getDirtMap(ipa_dirt_detection::GetDirtMap::Request &req, ipa_dirt_detection::GetDirtMap::Response &res)
 {
 	ROS_INFO("Received request for sending the dirt map.");
 #ifdef WITH_MAP
@@ -339,7 +339,7 @@ bool DirtDetection::getDirtMap(autopnp_dirt_detection::GetDirtMap::Request &req,
 }
 
 
-bool DirtDetection::validateCleaningResult(autopnp_dirt_detection::ValidateCleaningResult::Request &req, autopnp_dirt_detection::ValidateCleaningResult::Response &res)
+bool DirtDetection::validateCleaningResult(ipa_dirt_detection::ValidateCleaningResult::Request &req, ipa_dirt_detection::ValidateCleaningResult::Response &res)
 {
 	ROS_INFO("Starting validation of cleaning.");
 #ifdef WITH_MAP
@@ -477,8 +477,8 @@ void DirtDetection::databaseTest()
 
 	// read in file with information about the bag files to use
 	// read in individual gridOrigin
-//	std::string statsFilename = ros::package::getPath("autopnp_dirt_detection") + "/common/files/apartment/stats.txt";
-//	std::string statsFilenameMatlab = ros::package::getPath("autopnp_dirt_detection") + "/common/files/apartment/stats_matlab.txt";
+//	std::string statsFilename = ros::package::getPath("ipa_dirt_detection") + "/common/files/apartment/stats.txt";
+//	std::string statsFilenameMatlab = ros::package::getPath("ipa_dirt_detection") + "/common/files/apartment/stats_matlab.txt";
 	std::string databaseFilename = experimentFolder_ + "dirt_database.txt";
 	std::ifstream dbFile(databaseFilename.c_str());
 	if (dbFile.is_open()==false)
@@ -504,9 +504,9 @@ void DirtDetection::databaseTest()
 		dbFile >> dy;
 		gridOrigin_.x = dx;
 		gridOrigin_.y = dy;
-	//	std::string bagFilename = ros::package::getPath("autopnp_dirt_detection") + "/common/files/apartment/linoleum_apartment_paper_slam_2012-09-07-09-37-13.bag";
+	//	std::string bagFilename = ros::package::getPath("ipa_dirt_detection") + "/common/files/apartment/linoleum_apartment_paper_slam_2012-09-07-09-37-13.bag";
 	//	std::string path = "/media/SAMSUNG/rmb/dirt_detection/apartment/kitchen-clean.bag";
-	//	std::string xmlFilename = ros::package::getPath("autopnp_dirt_detection") + "/common/files/apartment/linoleum_apartment_paper_slam_2012-09-07-09-37-13.xml";
+	//	std::string xmlFilename = ros::package::getPath("ipa_dirt_detection") + "/common/files/apartment/linoleum_apartment_paper_slam_2012-09-07-09-37-13.xml";
 		std::cout << "Reading messages from bag file " << bagFilename << " ..." << std::endl;
 
 		// load ground truth for the current bag file
@@ -647,10 +647,10 @@ void DirtDetection::databaseTest()
 			// write result as image file (only black and white)
 //			cv::Mat temp;
 //			cv::normalize(groundTruthGrid, temp, 0., 255*256., cv::NORM_MINMAX);
-//			std::string nameGt = ros::package::getPath("autopnp_dirt_detection") + "/common/files/results/" + experimentSubFolder_ + "/" + filename + "_gt.png";
+//			std::string nameGt = ros::package::getPath("ipa_dirt_detection") + "/common/files/results/" + experimentSubFolder_ + "/" + filename + "_gt.png";
 //			cv::imwrite(nameGt, temp);
 //			cv::normalize(gridPositiveVotes_, temp, 0., 255*256., cv::NORM_MINMAX);
-//			std::string nameDet = ros::package::getPath("autopnp_dirt_detection") + "/common/files/results/" + experimentSubFolder_ + "/" + filename + "_det.png";
+//			std::string nameDet = ros::package::getPath("ipa_dirt_detection") + "/common/files/results/" + experimentSubFolder_ + "/" + filename + "_det.png";
 //			cv::imwrite(nameDet, temp);
 
 			// save matlab readable outputs
@@ -2293,7 +2293,7 @@ void DirtDetection::Image_Postprocessing_C1_rmb(const cv::Mat& C1_saliency_image
 
 	//determine ros package path
 	// todo: learning part
-//	std::string svmpath = ros::package::getPath("autopnp_dirt_detection") + "/common/files/svm/Teppich1.tepp";
+//	std::string svmpath = ros::package::getPath("ipa_dirt_detection") + "/common/files/svm/Teppich1.tepp";
 //	ofstream teppichfile;
 //	teppichfile.open (svmpath.c_str(), ios::out| ios::app);
 //	teppichfile << dirtThreshold_ << "\t\t" << minv << "\t\t" << maxv << "\t\t" << mean.val[0] << "\t\t" << stdDev.val[0] << "\n";
@@ -3505,7 +3505,7 @@ void DirtDetection::SVMExampleCode()
 					CvSVM::get_default_grid(CvSVM::DEGREE)	);
 
     //determine ros package path
-    std::string svmpath = ros::package::getPath("autopnp_dirt_detection") + "/common/files/svm/surface.svm";
+    std::string svmpath = ros::package::getPath("ipa_dirt_detection") + "/common/files/svm/surface.svm";
 //    std::cout << svmpath << std::endl;
     //save SVM parameters to file
     SVM.save(svmpath.c_str());
@@ -3714,7 +3714,7 @@ int main(int argc, char **argv)
 
 
 	//file path to carpet files
-	std::string filepath = ros::package::getPath("autopnp_dirt_detection") + "/common/files/TeppichFiles/";
+	std::string filepath = ros::package::getPath("ipa_dirt_detection") + "/common/files/TeppichFiles/";
 
 	std::string name;
 	//vector of carpet file names

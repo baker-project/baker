@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 <package>
-	<name>autopnp_dirt_detection</name>
+	<name>ipa_dirt_detection</name>
 	<version>0.1.0</version>
 	<description>
-		This component is part of the cleaning scenario of the AutoPnP project. It provides an algorithm for dirt detection at the floor and the mapping of dirty areas.
+		This component is part of the cleaning scenario of the BakeR project. It provides an algorithm for dirt detection at the floor and the mapping of dirty areas.
 	</description>
 	<author email="richard.bormann@ipa.fraunhofer.de">Richard Bormann</author>
 	<maintainer email="richard.bormann@ipa.fraunhofer.de">Richard Bormann</maintainer>
-	<license>LGPL for academic and non-commercial use; for commercial use, please contact Fraunhofer IPA</license>
-	<url>http://ros.org/wiki/autopnp_dirt_detection</url>
+	<license>Free for academic and non-commercial use; for commercial use, please contact Fraunhofer IPA</license>
+	<url>http://ros.org/wiki/ipa_dirt_detection</url>
 
 	<buildtool_depend>catkin</buildtool_depend>
 

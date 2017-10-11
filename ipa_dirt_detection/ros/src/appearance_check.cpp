@@ -12,9 +12,9 @@
 * \note
 * Project name: care-o-bot
 * \note
-* ROS stack name: autopnp
+* ROS stack name: baker
 * \note
-* ROS package name: autopnp_dirt_detection
+* ROS package name: ipa_dirt_detection
 *
 * \author
 * Author: Richard Bormann
@@ -88,7 +88,7 @@ public:
 
 	void databaseTest()
 	{
-		std::string filename = ros::package::getPath("autopnp_dirt_detection") + "/common/files/ac_database/images.txt";
+		std::string filename = ros::package::getPath("ipa_dirt_detection") + "/common/files/ac_database/images.txt";
 		std::ifstream f(filename.c_str(), std::fstream::in);
 		if(!f.is_open())
 		{
@@ -106,8 +106,8 @@ public:
 				break;
 
 			std::stringstream patchFileS, referenceFileS;
-			patchFileS << ros::package::getPath("autopnp_dirt_detection") << "/common/files/ac_database/" << patchFile;
-			referenceFileS << ros::package::getPath("autopnp_dirt_detection") << "/common/files/ac_database/" << referenceFile;
+			patchFileS << ros::package::getPath("ipa_dirt_detection") << "/common/files/ac_database/" << patchFile;
+			referenceFileS << ros::package::getPath("ipa_dirt_detection") << "/common/files/ac_database/" << referenceFile;
 			cv::Mat patch = cv::imread(patchFileS.str());
 			cv::Mat referencePatch = cv::imread(referenceFileS.str());
 

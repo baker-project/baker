@@ -12,7 +12,7 @@
 // Copyright (c) 2003 Song Ho Ahn
 //////////////////////////////////////////////////////////////////////////////
 
-#include "autopnp_dirt_detection/timer.h"
+#include "ipa_dirt_detection/timer.h"
 
 #include <stdlib.h>
 

@@ -12,9 +12,9 @@
 * \note
 * Project name: care-o-bot
 * \note
-* ROS stack name: autopnp
+* ROS stack name: baker
 * \note
-* ROS package name: autopnp_dirt_detection
+* ROS package name: ipa_dirt_detection
 *
 * \author
 * Author: Richard Bormann
@@ -80,7 +80,7 @@
 
 // dynamic reconfigure
 #include <dynamic_reconfigure/server.h>
-#include <autopnp_dirt_detection/DirtDetectionConfig.h>
+#include <ipa_dirt_detection/DirtDetectionConfig.h>
 
 // ROS message includes
 #include <sensor_msgs/Image.h>
@@ -93,10 +93,10 @@
 
 // services
 #include <std_srvs/Empty.h>
-#include <autopnp_dirt_detection/ActivateDirtDetection.h>
-#include <autopnp_dirt_detection/DeactivateDirtDetection.h>
-#include <autopnp_dirt_detection/GetDirtMap.h>
-#include <autopnp_dirt_detection/ValidateCleaningResult.h>
+#include <ipa_dirt_detection/ActivateDirtDetection.h>
+#include <ipa_dirt_detection/DeactivateDirtDetection.h>
+#include <ipa_dirt_detection/GetDirtMap.h>
+#include <ipa_dirt_detection/ValidateCleaningResult.h>
 
 // topics
 #include <image_transport/image_transport.h>
@@ -130,7 +130,7 @@
 #include <boost/thread/mutex.hpp>
 
 #include <time.h>
-#include "autopnp_dirt_detection/label_box.h"
+#include "ipa_dirt_detection/label_box.h"
 
 
 namespace ipa_DirtDetection {
@@ -152,7 +152,7 @@ protected:
 	ros::NodeHandle node_handle_;
 
 	/// dynamic reconfigure
-	dynamic_reconfigure::Server<autopnp_dirt_detection::DirtDetectionConfig> dynamic_reconfigure_server_;
+	dynamic_reconfigure::Server<ipa_dirt_detection::DirtDetectionConfig> dynamic_reconfigure_server_;
 
 	/**
 	 * services
@@ -163,14 +163,14 @@ protected:
 	ros::ServiceServer validate_cleaning_result_service_server_;	/// server for validating cleaning results
 	ros::ServiceServer reset_maps_service_server_;					/// server for resetting dirt maps
 
-	bool activateDirtDetection(autopnp_dirt_detection::ActivateDirtDetection::Request &req, autopnp_dirt_detection::ActivateDirtDetection::Response &res);
+	bool activateDirtDetection(ipa_dirt_detection::ActivateDirtDetection::Request &req, ipa_dirt_detection::ActivateDirtDetection::Response &res);
 
-	bool deactivateDirtDetection(autopnp_dirt_detection::DeactivateDirtDetection::Request &req, autopnp_dirt_detection::DeactivateDirtDetection::Response &res);
+	bool deactivateDirtDetection(ipa_dirt_detection::DeactivateDirtDetection::Request &req, ipa_dirt_detection::DeactivateDirtDetection::Response &res);
 
-	bool getDirtMap(autopnp_dirt_detection::GetDirtMap::Request &req, autopnp_dirt_detection::GetDirtMap::Response &res);
+	bool getDirtMap(ipa_dirt_detection::GetDirtMap::Request &req, ipa_dirt_detection::GetDirtMap::Response &res);
 
 	// this function assumes that all positions to check are visible at the moment the function is called
-	bool validateCleaningResult(autopnp_dirt_detection::ValidateCleaningResult::Request &req, autopnp_dirt_detection::ValidateCleaningResult::Response &res);
+	bool validateCleaningResult(ipa_dirt_detection::ValidateCleaningResult::Request &req, ipa_dirt_detection::ValidateCleaningResult::Response &res);
 
 	bool resetDirtMaps(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
 
@@ -339,7 +339,7 @@ public:
 
 
 	// dynamic reconfigure
-	void dynamicReconfigureCallback(autopnp_dirt_detection::DirtDetectionConfig &config, uint32_t level);
+	void dynamicReconfigureCallback(ipa_dirt_detection::DirtDetectionConfig &config, uint32_t level);
 
 
 

@@ -2,17 +2,17 @@
 #include "tf/tf.h"
 
 // services - here you have to include the header file with exactly the same name as your message in the /srv folder (the Message.h is automatically generated from your Message.srv file during compilation)
-#include <autopnp_dirt_detection/ActivateDirtDetection.h>
-#include <autopnp_dirt_detection/DeactivateDirtDetection.h>
-#include <autopnp_dirt_detection/GetDirtMap.h>
-#include <autopnp_dirt_detection/ValidateCleaningResult.h>
+#include <ipa_dirt_detection/ActivateDirtDetection.h>
+#include <ipa_dirt_detection/DeactivateDirtDetection.h>
+#include <ipa_dirt_detection/GetDirtMap.h>
+#include <ipa_dirt_detection/ValidateCleaningResult.h>
 
 
 void activateDirtDetection()
 {
 	// prepare the request and response messages
-	autopnp_dirt_detection::ActivateDirtDetection::Request req;
-	autopnp_dirt_detection::ActivateDirtDetection::Response res;
+	ipa_dirt_detection::ActivateDirtDetection::Request req;
+	ipa_dirt_detection::ActivateDirtDetection::Response res;
 
 	// this calls the service server to process our request message and put the result into the response message
 	// this call is blocking, i.e. this program will not proceed until the service server sends the response
@@ -27,8 +27,8 @@ void activateDirtDetection()
 void deactivateDirtDetection()
 {
 	// prepare the request and response messages
-	autopnp_dirt_detection::DeactivateDirtDetection::Request req;
-	autopnp_dirt_detection::DeactivateDirtDetection::Response res;
+	ipa_dirt_detection::DeactivateDirtDetection::Request req;
+	ipa_dirt_detection::DeactivateDirtDetection::Response res;
 
 	// this calls the service server to process our request message and put the result into the response message
 	// this call is blocking, i.e. this program will not proceed until the service server sends the response
@@ -43,8 +43,8 @@ void deactivateDirtDetection()
 void getDirtMap()
 {
 	// prepare the request and response messages
-	autopnp_dirt_detection::GetDirtMap::Request req;
-	autopnp_dirt_detection::GetDirtMap::Response res;
+	ipa_dirt_detection::GetDirtMap::Request req;
+	ipa_dirt_detection::GetDirtMap::Response res;
 
 	// this calls the service server to process our request message and put the result into the response message
 	// this call is blocking, i.e. this program will not proceed until the service server sends the response
@@ -69,8 +69,8 @@ void getDirtMap()
 void validateCleaningResult()
 {
 	// prepare the request and response messages
-	autopnp_dirt_detection::ValidateCleaningResult::Request req;
-	autopnp_dirt_detection::ValidateCleaningResult::Response res;
+	ipa_dirt_detection::ValidateCleaningResult::Request req;
+	ipa_dirt_detection::ValidateCleaningResult::Response res;
 
 	std::vector<tf::Vector3> dirtList;
 	dirtList.push_back(tf::Vector3(3.1, -9.9, 0.));

@@ -1,4 +1,4 @@
-#include "autopnp_dirt_detection/label_box.h"
+#include "ipa_dirt_detection/label_box.h"
 
 int labelImage::input_text(cv::Mat img, std::string winName, std::string * text, cv::Rect rect)
 {
