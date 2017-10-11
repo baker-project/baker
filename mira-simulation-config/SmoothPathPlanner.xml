@@ -1,0 +1,43 @@
+<root>
+	<item>
+		<Objective class="mira::pilot::SmoothTransitionPathObjective">
+			<!--The identifier of the used cost map-->
+			<CostMap>PlannerMap</CostMap>
+			<!--The global path planner-->
+			<include file="${findpkg Pilot}/etc/EstarPlanner.xml" />
+			<!--The update interval for debug info-->
+			<DbgUpdateInterval>1000</DbgUpdateInterval>
+			<!--Compute costs using the navigation function relative to the current position instead of using the absolute values of the navigation function. This actually should be the better choice for a generic navigation framework, but unfortunately causes undesired effects in practice. Therefore, the default value is false.-->
+			<UseRelativeCosts>true</UseRelativeCosts>
+			<!--Is interpolation between the cell values in the planner map enabled-->
+			<UseFilteredValue>true</UseFilteredValue>
+			<!--Costs that are returned for an action, that leads to robot to an yet unplanned region within the navigation function. If <=0, the action is DENIED (the default)-->
+			<NoPlanCosts>0</NoPlanCosts>
+			<!--Time until objective is dissatisfied with current progress-->
+			<DissatisfactionTime>5000</DissatisfactionTime>
+			<!--Maximum time without considerable translational progress until objective is dissatisfied with current progress-->
+			<OscillationTimeout>20000</OscillationTimeout>
+			<!--Minimum x or y drive distance robot has to drive during oscillation timeout, otherwise objective is dissatisfied-->
+			<OscillationTranslationThreshold>2.0</OscillationTranslationThreshold>
+			<!--If enabled, the path is sub-sampled and checked for collisions. In case a collision is detected, the robot stops for a certain time. When the path is blocked longer than MaxPathBlockedTime, the planner map is updated and a replanning is triggered.-->
+			<CollisionTestEnabled>false</CollisionTestEnabled>
+			<!--Time the robot stops if CollisionTestEnabled is true and the path is blocked. After that time replanning is triggered.-->
+			<MaxPathBlockedTime>1000</MaxPathBlockedTime>
+			<!--Model for collision testing-->
+			<CollisionTest>
+				<!--Resolution of the collision map [m]-->
+				<CellSize>0.02</CellSize>
+				<!--Size of the collision LUT (360 deg is divided in #segments)-->
+				<Segments>360</Segments>
+				<!--Occupancy grid values above this threshold are counted as obstacles-->
+				<ObstacleThreshold>140</ObstacleThreshold>
+			</CollisionTest>
+			<!--Distance to look ahead of the robot for checking collisions along the planned path.-->
+			<PathCollisionLookAhead>1.0</PathCollisionLookAhead>
+		</Objective>
+		<!--If true, the objective is disabled-->
+		<Disabled>false</Disabled>
+		<!--The weight for this objective-->
+		<Weight>1.0</Weight>
+	</item>
+</root>

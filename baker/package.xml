@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+	<name>baker</name>
+	<version>0.0.0</version>
+
+	<description>
+		This meta-package includes open source software for office cleaning applications.
+	</description>
+
+	<maintainer email="richard.bormann@ipa.fraunhofer.de">Richard Bormann</maintainer>
+
+	<license>LGPL for academic and non-commercial use; for commercial use, please contact Fraunhofer IPA, Nobelstr. 12, 70569 Stuttgart, Germany</license>
+	<url type="website">http://ros.org/wiki/baker</url>
+
+	<buildtool_depend>catkin</buildtool_depend>
+
+	<exec_depend>baker_office_cleaning_application</exec_depend>
+
+	<export>
+		<metapackage />
+	</export>
+</package>

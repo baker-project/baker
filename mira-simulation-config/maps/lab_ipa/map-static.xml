@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+	<Map>
+		<Image>lab_ipa.png</Image>
+		<CellSize>0.05</CellSize>
+		<Offset>
+			<X>0</X>
+			<Y>0</Y>
+		</Offset>
+	</Map>
+</root>

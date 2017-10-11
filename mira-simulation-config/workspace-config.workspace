@@ -1,0 +1,763 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <MIRACenter>
+    <Preferences>
+      <AutosaveWorkspace>true</AutosaveWorkspace>
+      <AutosaveWorkspaceInterval>10</AutosaveWorkspaceInterval>
+      <HideEditorWindowDecorations>false</HideEditorWindowDecorations>
+      <Corners>
+        <item>true</item>
+        <item>true</item>
+        <item>true</item>
+        <item>true</item>
+      </Corners>
+      <LockWorkspace>false</LockWorkspace>
+    </Preferences>
+    <Perspectives>
+      <item>
+        <Name>Development</Name>
+        <State>
+          <Views>
+            <item>
+              <Name>Visualization Control</Name>
+              <Part class="mira::VisualizationControl">
+                <HideFilterBarAct>false</HideFilterBarAct>
+              </Part>
+            </item>
+            <item>
+              <Name>Channels</Name>
+              <Part class="mira::ChannelView">
+                <!--Show data type-->
+                <ShowType>true</ShowType>
+                <!--Show if channel is typed-->
+                <ShowIsTyped>false</ShowIsTyped>
+                <!--Show update count-->
+                <ShowUpdateCount>false</ShowUpdateCount>
+                <!--Show slot count-->
+                <ShowSlotCount>false</ShowSlotCount>
+                <!--Show last update time-->
+                <ShowLastUpdate>false</ShowLastUpdate>
+                <!--Show publishers/subscribers-->
+                <ShowPublisherSubscriber>false</ShowPublisherSubscriber>
+                <!--Automatically hide the filter bar-->
+                <HideFilterBarAct>false</HideFilterBarAct>
+              </Part>
+            </item>
+            <item>
+              <Name>Properties</Name>
+              <Part class="mira::PropertyView">
+                <HideFilterBarAct>false</HideFilterBarAct>
+              </Part>
+            </item>
+            <item>
+              <Name>Authorities</Name>
+              <Part class="mira::AuthorityView">
+                <!--Should hidden authorities be displayed-->
+                <ShowHidden>false</ShowHidden>
+                <!--Automatically hide the filter bar-->
+                <HideFilterBarAct>false</HideFilterBarAct>
+              </Part>
+            </item>
+            <item>
+              <Name>LogView</Name>
+              <Part class="mira::LogView">
+                <Namespace/>
+                <ClassName/>
+                <ThreadID/>
+                <Severity>5</Severity>
+              </Part>
+            </item>
+            <item>
+              <Name>RPC Console</Name>
+              <Part class="mira::RPCConsole">
+                <!--The command history-->
+                <History>
+                  <item>/robot/Robot.getRobotModel</item>
+                </History>
+              </Part>
+            </item>
+            <item>
+              <Name>Player</Name>
+              <Part class="mira::TapePlayerView">
+                <!--Last opened tapes-->
+                <LastTapes/>
+                <!--Use the timestamp from file-->
+                <UseOriginalTimestamp>false</UseOriginalTimestamp>
+                <!--The namespace prefix for opened tapes-->
+                <NamespacePrefix/>
+              </Part>
+            </item>
+            <item>
+              <Name>Recorder</Name>
+              <Part class="mira::TapeRecorderView">
+                <!--Config of recorded channels and options-->
+                <RecordingConfig>
+                  <!--Channels to record-->
+                  <Channels/>
+                  <!--Record transform frames to tape-->
+                  <RecordTransforms>false</RecordTransforms>
+                  <!--Save transform tree to extra file-->
+                  <SaveTransformsFile>false</SaveTransformsFile>
+                </RecordingConfig>
+              </Part>
+            </item>
+            <item>
+              <Name>DriveView</Name>
+              <Part class="mira::robot::DriveView">
+                <!--Increment for velocity in [m/s]-->
+                <VelocityIncrement>0.10000000149</VelocityIncrement>
+                <!--Watchdog for stopping when no commands are signaled for a given time-->
+                <WatchdogTimeout>5000</WatchdogTimeout>
+                <!--Service used for driving-->
+                <DriveService/>
+              </Part>
+            </item>
+          </Views>
+          <Editors>
+            <item>
+              <Name>3D</Name>
+              <Part class="mira::Visualization3DView">
+                <!--The assigned visualizations-->
+                <Visualizations>
+                  <item class="mira::AxesVisualization">
+                    <!--Is true if the visualization is enabled and visible-->
+                    <Enabled>false</Enabled>
+                    <!--The name that is shown to the user-->
+                    <Name>Axes</Name>
+                    <!--The length of the axes in m-->
+                    <Length>1</Length>
+                    <!--The radius of the axes in m-->
+                    <Radius>0.0250000003725</Radius>
+                    <!--Should arrows be shown-->
+                    <ShowArrows>true</ShowArrows>
+                  </item>
+                  <item class="mira::maps::OccupancyGridVisualization">
+                    <!--Is true if the visualization is enabled and visible-->
+                    <Enabled>true</Enabled>
+                    <!--The name that is shown to the user-->
+                    <Name>/maps/static/Map</Name>
+                    <Map>
+                      <!--The ID of the channel-->
+                      <Channel>/maps/static/Map</Channel>
+                    </Map>
+                    <!--The alpha factor-->
+                    <Alpha>0.800000011921</Alpha>
+                    <!--The color palette-->
+                    <Colormap>mira::GrayscaleColormap</Colormap>
+                    <!--Min. value in the image (only valid for float and uint16 images)-->
+                    <Min>0</Min>
+                    <!--Max. value in the image (only valid for float and uint16 images)-->
+                    <Max>-1</Max>
+                    <!--Enables mipmapping. Recommended for static maps only-->
+                    <Enable_Mipmapping>false</Enable_Mipmapping>
+                  </item>
+                  <item class="mira::model::RigidModelVisualization3D">
+                    <!--Is true if the visualization is enabled and visible-->
+                    <Enabled>true</Enabled>
+                    <!--The name that is shown to the user-->
+                    <Name>Rigid Model</Name>
+                    <!--The service that provides us with a rigid model-->
+                    <ModelProvider/>
+                    <!--Enable/disable visualization of collision links-->
+                    <Show_Collision>false</Show_Collision>
+                    <!--Enable/disable visualization of visual links-->
+                    <Show_Visual>false</Show_Visual>
+                    <!--Enable/disable visualization of footprint-->
+                    <Show_Footprint>true</Show_Footprint>
+                    <!--Enable/disable visualization of the outer and inner circles (encircle and incircle)-->
+                    <Show_Footprint_Circles>false</Show_Footprint_Circles>
+                    <!--Enable/disable visualization of bounding boxes-->
+                    <Show_Bounding_Boxes>false</Show_Bounding_Boxes>
+                    <!--The frame, the bounding boxes are shown in-->
+                    <Frame_for_Bounding_Boxes/>
+                    <!--The filter for showing bounding box / footprint collision geometries-->
+                    <CollisionFilter/>
+                  </item>
+                  <item class="mira::robot::RangeScanVisualization3D">
+                    <!--Is true if the visualization is enabled and visible-->
+                    <Enabled>false</Enabled>
+                    <!--The name that is shown to the user-->
+                    <Name>/robot/frontLaser/Laser</Name>
+                    <!--The channel to be visualized-->
+                    <Range>
+                      <!--The ID of the channel-->
+                      <Channel>/robot/frontLaser/Laser</Channel>
+                    </Range>
+                    <!--Specify the render mode-->
+                    <RenderMode>1</RenderMode>
+                    <!--Specify the color mode-->
+                    <ColorMode>2</ColorMode>
+                    <!--The color-->
+                    <Color>
+                      <!--Red component (0-1)-->
+                      <Red>0.20000000298</Red>
+                      <!--Green component (0-1)-->
+                      <Green>0.5</Green>
+                      <!--Blue component (0-1)-->
+                      <Blue>0.699999988079</Blue>
+                      <!--Alpha (0=transparent, 1=opaque)-->
+                      <Alpha>1</Alpha>
+                    </Color>
+                    <!--The color for invalid values.-->
+                    <ColorInvalid>
+                      <!--Red component (0-1)-->
+                      <Red>0</Red>
+                      <!--Green component (0-1)-->
+                      <Green>0</Green>
+                      <!--Blue component (0-1)-->
+                      <Blue>0</Blue>
+                      <!--Alpha (0=transparent, 1=opaque)-->
+                      <Alpha>1</Alpha>
+                    </ColorInvalid>
+                    <!--The color for user defined invalid values.-->
+                    <ColorInvalidUser>
+                      <!--Red component (0-1)-->
+                      <Red>1</Red>
+                      <!--Green component (0-1)-->
+                      <Green>0</Green>
+                      <!--Blue component (0-1)-->
+                      <Blue>0</Blue>
+                      <!--Alpha (0=transparent, 1=opaque)-->
+                      <Alpha>1</Alpha>
+                    </ColorInvalidUser>
+                    <!--The color for values above maximum.-->
+                    <ColorAboveMax>
+                      <!--Red component (0-1)-->
+                      <Red>1</Red>
+                      <!--Green component (0-1)-->
+                      <Green>1</Green>
+                      <!--Blue component (0-1)-->
+                      <Blue>0</Blue>
+                      <!--Alpha (0=transparent, 1=opaque)-->
+                      <Alpha>1</Alpha>
+                    </ColorAboveMax>
+                    <!--The color for values below minimum.-->
+                    <ColorBelowMin>
+                      <!--Red component (0-1)-->
+                      <Red>0</Red>
+                      <!--Green component (0-1)-->
+                      <Green>1</Green>
+                      <!--Blue component (0-1)-->
+                      <Blue>1</Blue>
+                      <!--Alpha (0=transparent, 1=opaque)-->
+                      <Alpha>1</Alpha>
+                    </ColorBelowMin>
+                    <!--The color for masked values.-->
+                    <ColorMasked>
+                      <!--Red component (0-1)-->
+                      <Red>1</Red>
+                      <!--Green component (0-1)-->
+                      <Green>1</Green>
+                      <!--Blue component (0-1)-->
+                      <Blue>1</Blue>
+                      <!--Alpha (0=transparent, 1=opaque)-->
+                      <Alpha>1</Alpha>
+                    </ColorMasked>
+                    <!--The color palette for 'Reflectance' and 'Certainty'-->
+                    <Colormap>mira::GrayscaleColormap</Colormap>
+                    <!--The max. range that is visualized. The transparency is increased up to this range to fade the scan out (disabled if <=0)-->
+                    <Max_Range>0</Max_Range>
+                    <!--Select a single scan to highlight-->
+                    <Highlight>
+                      <!--Activate selection of an element-->
+                      <Enable>false</Enable>
+                      <!--The index of the selected element-->
+                      <Index>0</Index>
+                      <!--The color for drawing the element-->
+                      <Color>
+                        <!--Red component (0-1)-->
+                        <Red>1</Red>
+                        <!--Green component (0-1)-->
+                        <Green>0</Green>
+                        <!--Blue component (0-1)-->
+                        <Blue>1</Blue>
+                        <!--Alpha (0=transparent, 1=opaque)-->
+                        <Alpha>1</Alpha>
+                      </Color>
+                      <!--The size for the details text-->
+                      <Text_Size>0.10000000149</Text_Size>
+                    </Highlight>
+                    <!--The alpha factor used for controlling the opacity of the range scan-->
+                    <Alpha>0.5</Alpha>
+                    <Colors>
+                      <!--The ID of the channel-->
+                      <Channel/>
+                    </Colors>
+                  </item>
+                  <item class="mira::gui::Pose2Visualization">
+                    <!--Is true if the visualization is enabled and visible-->
+                    <Enabled>true</Enabled>
+                    <!--The name that is shown to the user-->
+                    <Name>/robot/RobotFrame</Name>
+                    <!--The length of the axes in m-->
+                    <Length>0.10000000149</Length>
+                    <!--The radius of the axes in m-->
+                    <Radius>0.00999999977648</Radius>
+                    <!--Should arrows be shown-->
+                    <ShowArrows>true</ShowArrows>
+                    <Pose>
+                      <!--The ID of the channel-->
+                      <Channel>/robot/RobotFrame</Channel>
+                    </Pose>
+                    <!--Should the name be shown-->
+                    <Show_Name>true</Show_Name>
+                    <!--Should Y axis be visualized (for 2d poses)-->
+                    <ShowYAxis>false</ShowYAxis>
+                    <!--Type of the transform that is rendered-->
+                    <TransformType>2</TransformType>
+                    <!--The sigma of the shown surface-->
+                    <Sigma>0.5</Sigma>
+                    <!--Settings for the trail-->
+                    <Trail>
+                      <!--The trail length (0 to disable)-->
+                      <Length>10000</Length>
+                      <!--Interval between two trail samples (in seconds)-->
+                      <Interval>0.20000000298</Interval>
+                      <!--Visualize trail as path, axis or both-->
+                      <TrailVisualization>2</TrailVisualization>
+                    </Trail>
+                    <!--Settings for the path-->
+                    <Path>
+                      <!--The line width of the path visualization-->
+                      <LineWidth>0.10000000149</LineWidth>
+                      <!--Velocity which gets minimum color of palette-->
+                      <MinVelocity>0</MinVelocity>
+                      <!--Velocity which gets maximum color of palette-->
+                      <MaxVelocity>3</MaxVelocity>
+                      <!--The color palette-->
+                      <Colormap>mira::RedBlueColormap</Colormap>
+                    </Path>
+                  </item>
+                  <item class="mira::gui::PathPoint2fVisualization">
+                    <!--Is true if the visualization is enabled and visible-->
+                    <Enabled>true</Enabled>
+                    <!--The name that is shown to the user-->
+                    <Name>/navigation/Path</Name>
+                    <!--The channel to be visualized-->
+                    <Path>
+                      <!--The ID of the channel-->
+                      <Channel>/navigation/Path</Channel>
+                    </Path>
+                    <!--The color of the line-->
+                    <Color>
+                      <!--Red component (0-1)-->
+                      <Red>0</Red>
+                      <!--Green component (0-1)-->
+                      <Green>1</Green>
+                      <!--Blue component (0-1)-->
+                      <Blue>0</Blue>
+                      <!--Alpha (0=transparent, 1=opaque)-->
+                      <Alpha>1</Alpha>
+                    </Color>
+                    <!--The width of the line-->
+                    <Line_Width>0.10000000149</Line_Width>
+                  </item>
+                  <item class="mira::navigation::TaskVisualization">
+                    <!--Is true if the visualization is enabled and visible-->
+                    <Enabled>true</Enabled>
+                    <!--The name that is shown to the user-->
+                    <Name>/navigation/Task</Name>
+                    <!--The channel to be visualized-->
+                    <Channel>
+                      <!--The ID of the channel-->
+                      <Channel>/navigation/Task</Channel>
+                    </Channel>
+                    <!--Frame to use as fallback for visualizing tasks without position-->
+                    <Fallback_Draw_Frame>/robot/RobotFrame</Fallback_Draw_Frame>
+                    <!--Enable/disable drawing of orientation covariance-->
+                    <Show_Orientation_Tolerance>true</Show_Orientation_Tolerance>
+                  </item>
+                  <item class="mira::maps::GridMap64F1Visualization">
+                    <!--Is true if the visualization is enabled and visible-->
+                    <Enabled>true</Enabled>
+                    <!--The name that is shown to the user-->
+                    <Name>/maps/cost/PlannerMap_FinalCostMap</Name>
+                    <Map>
+                      <!--The ID of the channel-->
+                      <Channel>/maps/cost/PlannerMap_FinalCostMap</Channel>
+                    </Map>
+                    <!--The alpha factor-->
+                    <Alpha>0.800000011921</Alpha>
+                    <!--The color palette-->
+                    <Colormap>mira::GrayscaleColormap</Colormap>
+                    <!--Min. value in the image (only valid for float and uint16 images)-->
+                    <Min>0</Min>
+                    <!--Max. value in the image (only valid for float and uint16 images)-->
+                    <Max>-1</Max>
+                    <!--Enables mipmapping. Recommended for static maps only-->
+                    <Enable_Mipmapping>false</Enable_Mipmapping>
+                  </item>
+                  <item class="mira::pilot::TrajectoryFamilyVisualization">
+                    <!--Is true if the visualization is enabled and visible-->
+                    <Enabled>false</Enabled>
+                    <!--The name that is shown to the user-->
+                    <Name>/navigation/debug/Trajectories</Name>
+                    <!--The channel to be visualized-->
+                    <Trajectories>
+                      <!--The ID of the channel-->
+                      <Channel>/navigation/debug/Trajectories</Channel>
+                    </Trajectories>
+                    <!--Hide all trajectories (except highlight)-->
+                    <Hide_all>false</Hide_all>
+                    <!--Hide unreachable trajectories-->
+                    <Hide_not_reachable>true</Hide_not_reachable>
+                    <!--Hide not admissible trajectories-->
+                    <Hide_not_admissible>true</Hide_not_admissible>
+                    <!--raise trajectories above map-->
+                    <ZOffset>0.00999999977648</ZOffset>
+                    <!--Select a single trajectory to highlight-->
+                    <Highlight>
+                      <!--Activate selection of an element-->
+                      <Enable>false</Enable>
+                      <!--The index of the selected element-->
+                      <Index>0</Index>
+                      <!--The color for drawing the element-->
+                      <Color>
+                        <!--Red component (0-1)-->
+                        <Red>1</Red>
+                        <!--Green component (0-1)-->
+                        <Green>0</Green>
+                        <!--Blue component (0-1)-->
+                        <Blue>1</Blue>
+                        <!--Alpha (0=transparent, 1=opaque)-->
+                        <Alpha>1</Alpha>
+                      </Color>
+                      <!--The size for the details text-->
+                      <Text_Size>0.10000000149</Text_Size>
+                    </Highlight>
+                  </item>
+                </Visualizations>
+                <!--Update interval in ms-->
+                <Update>40</Update>
+                <!--Title of window-->
+                <WindowTitle>3D</WindowTitle>
+                <!--Hide tool bar with tools-->
+                <HideTools>false</HideTools>
+                <!--State of the last used tools-->
+                <ToolsState>
+                  <Orbit class="mira::CameraOrbitTool3D"/>
+                  <Fly class="mira::CameraFlyTool"/>
+                  <Interact class="mira::InteractionTool"/>
+                  <Localize class="mira::navigation::LocalizeTool">
+                    <!--Objects only = select first object hit or nothing
+Prefer objects = select background if no object hit
+Background only = always select background, regardless of objects hit-->
+                    <Background_mode>0</Background_mode>
+                    <!--Height of (virtual) background plane to assume for determining coordinates clicked on background-->
+                    <Background_height>0</Background_height>
+                    <!--The smallest allowed position variance.-->
+                    <MinPositionVariance>0.10000000149</MinPositionVariance>
+                    <!--The smallest allowed orientation variance.-->
+                    <MinOrientationVariance>0.25</MinOrientationVariance>
+                    <!--Service used for localization-->
+                    <LocalizationService/>
+                  </Localize>
+                  <Goal class="mira::navigation::BasicGoalTool">
+                    <!--Objects only = select first object hit or nothing
+Prefer objects = select background if no object hit
+Background only = always select background, regardless of objects hit-->
+                    <Background_mode>0</Background_mode>
+                    <!--Height of (virtual) background plane to assume for determining coordinates clicked on background-->
+                    <Background_height>0</Background_height>
+                    <!--The smallest allowed position variance.-->
+                    <MinPositionVariance>0.10000000149</MinPositionVariance>
+                    <!--The smallest allowed orientation variance.-->
+                    <MinOrientationVariance>0.25</MinOrientationVariance>
+                    <!--Service used for sending task to-->
+                    <NavigationService/>
+                    <!--The task where only the PositionTask and OrientationTask is added as subtask-->
+                    <BaseTask>{"SubTasks" : [ { "@class" : "mira::navigation::PreferredDirectionTask", "Direction" : 1, "WrongDirectionCost" : 0.5 } ] }</BaseTask>
+                  </Goal>
+                  <MoveFrame class="mira::mapping::MoveFrameTool">
+                    <!--Objects only = select first object hit or nothing
+Prefer objects = select background if no object hit
+Background only = always select background, regardless of objects hit-->
+                    <Background_mode>0</Background_mode>
+                    <!--Height of (virtual) background plane to assume for determining coordinates clicked on background-->
+                    <Background_height>0</Background_height>
+                    <!--The frame to move-->
+                    <Frame>
+                      <!--The ID of the channel-->
+                      <Channel/>
+                    </Frame>
+                    <!--Persistent storage of all the frames set by this MoveFrameTool-->
+                    <FramePoses/>
+                  </MoveFrame>
+                  <Measure class="mira::MeasureTool">
+                    <!--Objects only = select first object hit or nothing
+Prefer objects = select background if no object hit
+Background only = always select background, regardless of objects hit-->
+                    <Background_mode>0</Background_mode>
+                    <!--Height of (virtual) background plane to assume for determining coordinates clicked on background-->
+                    <Background_height>0</Background_height>
+                  </Measure>
+                  <Path class="mira::navigation::PathGoalTool">
+                    <!--Objects only = select first object hit or nothing
+Prefer objects = select background if no object hit
+Background only = always select background, regardless of objects hit-->
+                    <Background_mode>0</Background_mode>
+                    <!--Height of (virtual) background plane to assume for determining coordinates clicked on background-->
+                    <Background_height>0</Background_height>
+                  </Path>
+                </ToolsState>
+                <!--The reference frame used to denote the world frame. Should not be moving (e.g. map frame, etc.)-->
+                <Fixed_Frame>/GlobalFrame</Fixed_Frame>
+                <!--The frame where all other frames are transformed to for displaying the data-->
+                <Camera_Frame>/GlobalFrame</Camera_Frame>
+                <!--The view mode of the camera-->
+                <Camera_Mode>0</Camera_Mode>
+                <!--Camera view-->
+                <Camera>
+                  <!--the position of the camera-->
+                  <X>24.6130046844</X>
+                  <!--the position of the camera-->
+                  <Y>10.4417896271</Y>
+                  <!--the position of the camera-->
+                  <Z>14.9301042557</Z>
+                  <!--the orientation of the camera-->
+                  <Yaw>90.1122665405</Yaw>
+                  <!--the orientation of the camera-->
+                  <Pitch>66.539276123</Pitch>
+                  <!--the orientation of the camera-->
+                  <Roll>0</Roll>
+                  <!--the zoom or distance-->
+                  <Distance>16.4557170868</Distance>
+                </Camera>
+                <!--Background mode-->
+                <Background>1</Background>
+                <!--Solid background color / Top gradient color-->
+                <Background_Color>
+                  <!--Red component (0-1)-->
+                  <Red>0.77999997139</Red>
+                  <!--Green component (0-1)-->
+                  <Green>0.860000014305</Green>
+                  <!--Blue component (0-1)-->
+                  <Blue>1</Blue>
+                  <!--Alpha (0=transparent, 1=opaque)-->
+                  <Alpha>1</Alpha>
+                </Background_Color>
+                <!--Bottom gradient color-->
+                <Background_Gradient_Color>
+                  <!--Red component (0-1)-->
+                  <Red>0.899999976158</Red>
+                  <!--Green component (0-1)-->
+                  <Green>0.939999997616</Green>
+                  <!--Blue component (0-1)-->
+                  <Blue>1</Blue>
+                  <!--Alpha (0=transparent, 1=opaque)-->
+                  <Alpha>1</Alpha>
+                </Background_Gradient_Color>
+                <!--The view mode of the camera-->
+                <Render_Mode>0</Render_Mode>
+                <!--The view mode of the camera-->
+                <Stereo_Mode>0</Stereo_Mode>
+                <!--in meter, >0 for cross view, <0 for parallel view-->
+                <Stereo_Eye_Distance>0.20000000298</Stereo_Eye_Distance>
+                <!--Show bounding boxes of all objects (for debugging)-->
+                <Show_Bounding_Boxes>false</Show_Bounding_Boxes>
+                <!--The color of the default light-->
+                <Light_Color>
+                  <!--Red component (0-1)-->
+                  <Red>1</Red>
+                  <!--Green component (0-1)-->
+                  <Green>1</Green>
+                  <!--Blue component (0-1)-->
+                  <Blue>1</Blue>
+                  <!--Alpha (0=transparent, 1=opaque)-->
+                  <Alpha>1</Alpha>
+                </Light_Color>
+                <!--The azimuth of the light source [deg]-->
+                <Light_Azimuth>-135</Light_Azimuth>
+                <!--The height of the light source [deg]-->
+                <Light_Height>45</Light_Height>
+                <!--The strength of the ambient light-->
+                <Ambient_Light>0.300000011921</Ambient_Light>
+              </Part>
+              <Geometry>
+                <!--The minimum corner-->
+                <MinCorner>
+                  <!--The x-coordinate-->
+                  <X>0</X>
+                  <!--The y-coordinate-->
+                  <Y>0</Y>
+                </MinCorner>
+                <!--The maximum corner-->
+                <MaxCorner>
+                  <!--The x-coordinate-->
+                  <X>1125</X>
+                  <!--The y-coordinate-->
+                  <Y>697</Y>
+                </MaxCorner>
+              </Geometry>
+              <Activated>true</Activated>
+              <Minimized>false</Minimized>
+              <Maximized>true</Maximized>
+              <Docked>true</Docked>
+            </item>
+            <item>
+              <Name>Text View</Name>
+              <Part class="mira::VisualizationTextView">
+                <!--The assigned visualizations-->
+                <Visualizations>
+                  <item class="mira::DefaultTextVisualization">
+                    <!--Is true if the visualization is enabled and visible-->
+                    <Enabled>true</Enabled>
+                    <!--The name that is shown to the user-->
+                    <Name>/navigation/Task</Name>
+                    <!--The size of the text item-->
+                    <Size>
+                      <!--The width-->
+                      <Width>566</Width>
+                      <!--The height-->
+                      <Height>486</Height>
+                    </Size>
+                    <Channel>
+                      <!--The ID of the channel-->
+                      <Channel>/navigation/Task</Channel>
+                    </Channel>
+                  </item>
+                  <item class="mira::gui::StringTextVisualization">
+                    <!--Is true if the visualization is enabled and visible-->
+                    <Enabled>true</Enabled>
+                    <!--The name that is shown to the user-->
+                    <Name>/navigation/PilotEvent</Name>
+                    <!--The size of the text item-->
+                    <Size>
+                      <!--The width-->
+                      <Width>566</Width>
+                      <!--The height-->
+                      <Height>50</Height>
+                    </Size>
+                    <String>
+                      <!--The ID of the channel-->
+                      <Channel>/navigation/PilotEvent</Channel>
+                    </String>
+                  </item>
+                  <item class="mira::gui::BoolTextVisualization">
+                    <!--Is true if the visualization is enabled and visible-->
+                    <Enabled>true</Enabled>
+                    <!--The name that is shown to the user-->
+                    <Name>/robot/Bumper</Name>
+                    <!--The size of the text item-->
+                    <Size>
+                      <!--The width-->
+                      <Width>566</Width>
+                      <!--The height-->
+                      <Height>50</Height>
+                    </Size>
+                    <Bool>
+                      <!--The ID of the channel-->
+                      <Channel>/robot/Bumper</Channel>
+                    </Bool>
+                  </item>
+                </Visualizations>
+                <!--Update interval in ms-->
+                <Update>40</Update>
+                <!--Title of window-->
+                <WindowTitle>Text View</WindowTitle>
+                <!--Hide tool bar with tools-->
+                <HideTools>false</HideTools>
+                <!--State of the last used tools-->
+                <ToolsState/>
+                <!--The reference frame used to denote the world frame. Should not be moving (e.g. map frame, etc.)-->
+                <Fixed_Frame>/GlobalFrame</Fixed_Frame>
+                <!--The frame where all other frames are transformed to for displaying the data-->
+                <Camera_Frame>/GlobalFrame</Camera_Frame>
+              </Part>
+              <Geometry>
+                <!--The minimum corner-->
+                <MinCorner>
+                  <!--The x-coordinate-->
+                  <X>0</X>
+                  <!--The y-coordinate-->
+                  <Y>0</Y>
+                </MinCorner>
+                <!--The maximum corner-->
+                <MaxCorner>
+                  <!--The x-coordinate-->
+                  <X>1125</X>
+                  <!--The y-coordinate-->
+                  <Y>697</Y>
+                </MaxCorner>
+              </Geometry>
+              <Activated>false</Activated>
+              <Minimized>false</Minimized>
+              <Maximized>true</Maximized>
+              <Docked>true</Docked>
+            </item>
+            <item>
+              <Name>Text Trace View</Name>
+              <Part class="mira::VisualizationTextTraceView">
+                <!--The assigned visualizations-->
+                <Visualizations>
+                  <item class="mira::DefaultTextTraceVisualization">
+                    <!--Is true if the visualization is enabled and visible-->
+                    <Enabled>true</Enabled>
+                    <!--The name that is shown to the user-->
+                    <Name>/navigation/Task</Name>
+                    <Channel>
+                      <!--The ID of the channel-->
+                      <Channel>/navigation/Task</Channel>
+                    </Channel>
+                  </item>
+                </Visualizations>
+                <!--Update interval in ms-->
+                <Update>40</Update>
+                <!--Title of window-->
+                <WindowTitle>Text Trace View</WindowTitle>
+                <!--Hide tool bar with tools-->
+                <HideTools>false</HideTools>
+                <!--State of the last used tools-->
+                <ToolsState/>
+                <!--The reference frame used to denote the world frame. Should not be moving (e.g. map frame, etc.)-->
+                <Fixed_Frame>/GlobalFrame</Fixed_Frame>
+                <!--The frame where all other frames are transformed to for displaying the data-->
+                <Camera_Frame>/GlobalFrame</Camera_Frame>
+                <!--Default values for row heights-->
+                <Default_Row_Heights>
+                  <item>284</item>
+                </Default_Row_Heights>
+                <!--Column widths-->
+                <Column_Widths>
+                  <item>100</item>
+                  <item>704</item>
+                </Column_Widths>
+                <!--Automatically scroll to any new item-->
+                <Auto_Scroll>false</Auto_Scroll>
+                <!--Resizing a row affects all rows (with content in that column)-->
+                <Resize_All_Rows>true</Resize_All_Rows>
+                <!--Maximum history of the trace in milliseconds (0 means infinite)-->
+                <MaxHistory>0</MaxHistory>
+              </Part>
+              <Geometry>
+                <!--The minimum corner-->
+                <MinCorner>
+                  <!--The x-coordinate-->
+                  <X>-210</X>
+                  <!--The y-coordinate-->
+                  <Y>33</Y>
+                </MinCorner>
+                <!--The maximum corner-->
+                <MaxCorner>
+                  <!--The x-coordinate-->
+                  <X>-50</X>
+                  <!--The y-coordinate-->
+                  <Y>56</Y>
+                </MaxCorner>
+              </Geometry>
+              <Activated>false</Activated>
+              <Minimized>true</Minimized>
+              <Maximized>false</Maximized>
+              <Docked>true</Docked>
+            </item>
+          </Editors>
+          <State>AAAA/wAAAAD9AAAAAwAAAAAAAAEtAAAD8fwCAAAAA/sAAAAQAEMAaABhAG4AbgBlAGwAcwEAAAAZAAABbgAAAHYA////+wAAACoAVgBpAHMAdQBhAGwAaQB6AGEAdABpAG8AbgAgAEMAbwBuAHQAcgBvAGwBAAABjQAAAWcAAACVAP////sAAAASAEQAcgBpAHYAZQBWAGkAZQB3AQAAAvoAAAEQAAABEAD///8AAAABAAABoQAAA/H8AgAAAAL7AAAAFgBBAHUAdABoAG8AcgBpAHQAaQBlAHMBAAAAGQAAAgwAAACRAP////sAAAAUAFAAcgBvAHAAZQByAHQAaQBlAHMBAAACKwAAAd8AAAB6AP///wAAAAMAAARlAAABDPwBAAAAAfwAAAEzAAAEZQAAAeIA////+gAAAAABAAAABPsAAAAWAFIAUABDACAAQwBvAG4AcwBvAGwAZQEAAAAA/////wAAAE4A////+wAAAA4ATABvAGcAVgBpAGUAdwEAAAAA/////wAAAXQA////+wAAAAwAUABsAGEAeQBlAHIBAAAAAP////8AAAETAP////sAAAAQAFIAZQBjAG8AcgBkAGUAcgEAAAAA/////wAAAeIA////AAAEZQAAAt8AAAABAAAAAgAAAAEAAAAC/AAAAAA=</State>
+        </State>
+      </item>
+    </Perspectives>
+    <CurrentPerspective>0</CurrentPerspective>
+    <!--Binary Qt state, do not edit!-->
+    <Geometry>AdnQywABAAAAAABBAAAAGAAAB38AAAQ3AAAE8QAAACwAAAd/AAABGgAAAAACAA==</Geometry>
+    <RemoteFrameworkHistory/>
+  </MIRACenter>
+</root>

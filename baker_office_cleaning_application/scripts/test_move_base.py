@@ -16,8 +16,8 @@ def simple_move():
 	
 	#set goal
 	goal.target_pose.header.frame_id = 'base_link'
-	goal.target_pose.pose.position.x = 0.  #-1.0
-	goal.target_pose.pose.position.y = 0.  #-3.5
+	goal.target_pose.pose.position.x = 0 #-2.3
+	goal.target_pose.pose.position.y = 0  #-3.5
 	goal.target_pose.pose.orientation.w = 0.0
 	goal.target_pose.header.stamp = rospy.Time.now()
 	print("Waiting for server")

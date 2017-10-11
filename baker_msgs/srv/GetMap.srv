@@ -1,0 +1,4 @@
+---
+sensor_msgs/Image map			# the 2d map used for navigation and localization, converted to a black and white 8bit single-channel image, which is 0 (black) for obstacles and 255 (white) for free space
+geometry_msgs/Pose map_origin	# the origin of the map, in [m,m,rad]
+float32 map_resolution			# in [m/cell]

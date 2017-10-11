@@ -1,6 +1,29 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(baker_office_cleaning_application)
 
+set(catkin_RUN_PACKAGES
+	actionlib
+	actionlib_msgs
+	baker_msgs
+	cv_bridge
+	eigen_conversions
+	geometry_msgs
+	ipa_building_msgs
+	move_base_msgs
+	nav_msgs
+	roscpp
+	rospy
+	scitos_msgs
+	sensor_msgs
+	std_msgs
+	tf
+)
+
+set(catkin_BUILD_PACKAGES
+	${catkin_RUN_PACKAGES}
+	cmake_modules
+)
+
 ## Add support for C++11, supported in ROS Kinetic and newer
 # add_definitions(-std=c++11)
 
@@ -8,18 +31,10 @@ project(baker_office_cleaning_application)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-	actionlib
-	actionlib_msgs
-	eigen_conversions
-	geometry_msgs
-	move_base_msgs
-	roscpp
-	rospy
-	scitos_msgs
-	std_msgs
-	tf
+	${catkin_BUILD_PACKAGES}
 )
 
+find_package(OpenCV REQUIRED)
 
 ###################################
 ## catkin specific configuration ##
@@ -31,10 +46,12 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#	INCLUDE_DIRS
-#	LIBRARIES
-#	CATKIN_DEPENDS
-#	DEPENDS
+INCLUDE_DIRS
+LIBRARIES
+CATKIN_DEPENDS
+	${catkin_RUN_PACKAGES}
+DEPENDS
+	OpenCV
 )
 
 ###########
@@ -48,6 +65,18 @@ include_directories(
 	${catkin_INCLUDE_DIRS}
 )
 
+# map management client
+add_executable(map_management_client
+	src/map_management_client.cpp
+)
+target_link_libraries(map_management_client
+	${catkin_LIBRARIES} 
+	${OpenCV_LIBS}
+)
+add_dependencies(map_management_client 
+	${catkin_EXPORTED_TARGETS}
+#	${${PROJECT_NAME}_EXPORTED_TARGETS}
+)
 
 #############
 ## Install ##

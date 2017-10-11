@@ -1,0 +1,56 @@
+Änderungen, um mira lauffähig zu machen (tw. nur zum Test und nicht wirklich zur Lösung beitragend)
+
+-----------------------------------------------------------------------------------------------------
+1. Problem: offenbar Abhängigkeiten zu Qt5 - Konflikt mit Qt4 (Segfault beim Start)
+
+sudo apt-get remove qt5* 
+sudo apt-get remove libopencv-highgui-dev
+hilft nicht, nun schlägt nur direkt das Öffnen von libs fehl, weil die Qt5-Libs gar nicht gefunden werden
+
+Das eigentliche Problem:
+opencv ist zwei mal installiert:
+/usr/lib/x86_64-linux-gnu/libopencv...
+/usr/local/lib/libopencv... --> diese ist gegen Qt5 gelinkt und wird zur Laufzeit bevorzugt. vermutlich lokal übersetzt.
+Warum OpenCV 2.4 nochmal installiert wurde, ist unklar.
+
+> ldconfig -p | grep highgui
+	libopencv_highgui.so.2.4 (libc6,x86-64) => /usr/local/lib/libopencv_highgui.so.2.4
+	libopencv_highgui.so.2.4 (libc6,x86-64) => /usr/lib/x86_64-linux-gnu/libopencv_highgui.so.2.4
+	libopencv_highgui.so (libc6,x86-64) => /usr/local/lib/libopencv_highgui.so
+	libopencv_highgui.so (libc6,x86-64) => /usr/lib/x86_64-linux-gnu/libopencv_highgui.so
+
+Workaround: 
+> export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH
+(eigentlich sollte man wohl mit ldconfig dafür sorgen, dass die System-OpenCV bevorzugt wird, das ist mir aber nicht gelungen)
+
+-----------------------------------------------------------------------------------------------------
+2. Problem: Öffnen jeglicher Visualisierung führt zu einem Crash mit Fehlermeldung:
+
+[ERROR   ] 2017-Apr-25 09:45:23.685457 Failed to load visualization 
+'mira::UInt32PlotVisualization': Failed to load library '/opt/MIRA/lib/libGUIPlotVisualization.so' :libqwt-qt4.so.5: cannot open shared object file: No such file or directory 
+
+Ursache: anscheinend falsche Qwt-Version installiert (die Mira-Binär-Pakete erwarten etwas anderes als bei Befolgung der Dependency-Liste installiert wird)
+
+Behoben durch:
+> sudo apt-get install libqwt5-qt4-dev
+
+-----------------------------------------------------------------------------------------------------
+3. Problem: Öffnen eines 3D-View führt zu Crash:
+
+[ERROR   ] 2017-Apr-25 09:47:04.635941 Segmentation fault!
+[CALLSTACK]:
+#0  0x7ffb80a86123 in Ogre::RenderSystem::_createRenderWindows(std::vector<Ogre::RenderWindowDescription, Ogre::STLAllocator<Ogre::RenderWindowDescription, Ogre::CategorisedAllocPolicy<(Ogre::MemoryCategory)0> > > const&, std::vector<Ogre::RenderWindow*, Ogre::STLAllocator<Ogre::RenderWindow*, Ogre::CategorisedAllocPolicy<(Ogre::MemoryCategory)0> > >&) from libOgreMain.so.1.9.0 
+
+Ursache: Ogre 1.8 und 1.9 parallel installiert
+
+Behoben durch:
+> sudo apt-get remove libogre-1.8.0
+
+-----------------------------------------------------------------------------------------------------
+
+Ergebnis: miracenter + Simulator läuft:
+
+> cd ~/Downloads
+> miracenter SCITOSSimulator:etc/SCITOS-application.xml -v MCFFile=AVH/map.mcf,robot=SCITOS-G5,useDocking=false
+
+(License-File ist hinterlegt, wird beim Start als Konsolenausgabe auch angezeigt)

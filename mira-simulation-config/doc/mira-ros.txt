@@ -1,0 +1,136 @@
+This file describes the usage of the Mira simulator together with a ROS interface.
+
+##############################################################################
+
+1. Start MIRA Simulator (the command assumes that the AVH folder is located within the current working directory):
+
+# simple map
+miracenter SCITOSSimulator:etc/SCITOS-application.xml -v MCFFile=~/Downloads/simple_map/map.mcf,robot=SCITOS-G5,useDocking=false -p1234
+           -> configuration file                         -> map file                            -> robot type                    -> port number
+(miracenter SCITOSSimulator:etc/SCITOS-application.xml -v MCFFile=~/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/single_room/map.mcf,robot=SCITOS-G5,useDocking=false -p1234)
+
+# AVH map with additional nogo, speed, and oneway maps
+miracenter SCITOSSimulator:etc/SCITOS-application.xml -v MCFFile=~/Downloads/AVH/map.mcf,robot=SCITOS-G5,useDocking=false -p1234
+           -> configuration file                         -> map file                     -> robot type                    -> port number
+
+
+
+For visualization, drag and drop following channels from the channel list to the central display:
+
+/maps/static/Map
+/robot/frontLaser/Laser
+Click on the green '+' and select "Rigid Model"
+
+The "Goal" button below the 3D display can be used to move the robot directly in the simulator view (similar to the 2D nav goal in rviz)
+
+##############################################################################
+
+2. Start ROS-MIRA Bridge:
+
+roslaunch scitos_mira scitos_mira.launch
+
+a) Configure the port to be the one used when starting the simulator, e.g. by adapting launch file scitos_drivers/launch/scitos_mira.launch:
+
+<node pkg="scitos_mira" type="scitos_node" name="scitos_node" output="screen" respawn="true" args="-k127.0.0.1:1234">
+                                                                                                   -> This argument establishes the connection to a mira authority using port 1234
+
+b) Test the connection:
+
+   i. Subscribe:
+
+rostopic echo /mileage
+
+   ii. Publish movement command:
+
+rostopic pub /cmd_vel geometry_msgs/Twist "linear:
+  x: -0.5
+  y: 0.0
+  z: 0.0
+angular:
+  x: 0.0
+  y: 0.0
+  z: 0.0"
+
+   iii. For continuous movement, the command must be looped (with a frequency of 10hz in the following example):
+
+rostopic pub -r 10 /cmd_vel geometry_msgs/Twist "linear:
+  x: 1.0
+  y: 0.0
+  z: 0.0
+angular:
+  x: 0.0
+  y: 0.0
+  z: 0.0"
+
+##############################################################################
+
+3. Hints
+
+Reset robot pose
+----------------
+set values to 0 in ~/Downloads/SimulatorPose0/1.xml and ~/Downloads/InitialPose0/1.xml
+(the ~/Downloads folder depends on the folder in which miracenter was started)
+
+
+Reset bumber
+------------
+In miracenter -> window -> showview: open a DriveView, click "Reset Motorstop"
+
+
+##############################################################################
+
+4. Commands:
+
+miracd <package name>   --> jump to package location
+
+##############################################################################
+
+5. Important paths:
+
+/opt/MIRA-commercial/domains/robot/SCITOSSimulator/
+
+~/opt/BakerTest/domains/navigation/SmoothTransitionPathObjective
+
+/opt/MIRA-commercial/domains/navigation/Pilot/etc
+
+~/Downloads/AVH  --> Karte
+
+
+##############################################################################
+
+6. The Ros-Mira Bridge has been extended to accept move_base commands, e.g.:
+
+rostopic pub /move_base/goal move_base_msgs/MoveBaseActionGoal "header:
+  seq: 0
+  stamp:
+    secs: 0
+    nsecs: 0
+  frame_id: ''
+goal_id:
+  stamp:
+    secs: 0
+    nsecs: 0
+  id: ''
+goal:
+  target_pose:
+    header:
+      seq: 0
+      stamp:
+        secs: 0
+        nsecs: 0
+      frame_id: ''
+    pose:
+      position:
+        x: 3.0
+        y: 0.0
+        z: 0.0
+      orientation:
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 0.0"
+
+
+
+RPC console im miracenter:
+/robot/Robot.getRobotModel
