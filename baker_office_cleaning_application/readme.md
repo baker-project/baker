@@ -1,0 +1,4 @@
+# Start floor wiping
+
+roslaunch baker_office_cleaning_application office_cleaning_application.launch
+rosrun baker_office_cleaning_application test_room_exploration.py
