@@ -1,4 +1,4 @@
-/home/rmb-jx/apartment/
+/please_insert_path_to_the_dirt_database/common/files/dirt_database/
 50
 carpet-clean 1.0 -4.5
 carpet-food 0.0 -2.0
