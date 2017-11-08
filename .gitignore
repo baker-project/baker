@@ -41,3 +41,8 @@ qtcreator-*
 # Catkin custom files
 CATKIN_IGNORE
 
+# result files
+*.map
+
+# Kdev
+*.kdev4
