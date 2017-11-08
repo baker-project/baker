@@ -12,7 +12,7 @@ spectralResidualNormalizationHighestMaxValue: 1500.0
 
 # dirt threshold (in [0,1])
 # double
-dirtThreshold: 0.2 #0.09 #0.2  #0.35 #0.5
+dirtThreshold: 0.25 #0.09 #0.2  #0.35 #0.5 #0.2
 
 # number of time steps used for the detection history logging (in [1,10000])
 # int
@@ -38,13 +38,22 @@ warpImage: true
 # double
 birdEyeResolution: 300.0
 
+# scales: 5
+detectScales: 5
+
+# bird eye base resolution
+birdEyeBaseResolution: 300.0
+
+# bird eye start resolution
+birdEyeStartResolution: 75.0
+
 # only those points which are close enough to the camera are displayed in the bird's eye view [max distance in m]
 # double
 maxDistanceToCamera: 3.00
 
 # if true, strong lines in the image will not produce dirt responses
 # bool
-removeLines: true
+removeLines: false
 
 # spatial resolution of the dirt detection grid in [cells/m], do not use too many cells per meter unless your localization is extremely accurate, 10-20 cells per meter are appropriate if your localization is as accurate as +/-5 cm
 # if set <0 then the grid resolution of the navigation map is used if available
@@ -85,13 +94,13 @@ experimentSubFolder: test
 # all flags are of type bool
 
 # displays the original source image that comes with the point cloud data
-showOriginalImage: false #true
+showOriginalImage: true #true
 
 # shows only the part of the color image that belongs to the plane, the remainder is masked black
 showPlaneColorImage: false #true
 
 # shows the warped color image of the plane
-showWarpedOriginalImage: true
+showWarpedOriginalImage: false
 
 # displays the saliency image before rescaling
 showSaliencyBadScale: false
@@ -120,3 +129,6 @@ showObservationsGrid: false
 # displays the grid that illustrates the dirt detections at each floor cell (the image might be displayed rotated)
 showDirtGrid: false
 ##### end debug display section
+
+# to save the intermidiate data
+SaveDataForTest: false
