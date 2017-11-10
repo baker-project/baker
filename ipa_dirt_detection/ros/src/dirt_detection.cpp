@@ -70,6 +70,7 @@
 #include <set>
 #include <math.h>
 #include <time.h>
+#include <functional>
 
 using namespace ipa_DirtDetection;
 using namespace std;

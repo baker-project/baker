@@ -33,7 +33,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(OpenCV REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem system)
-
+find_package(PCL 1.3 REQUIRED)
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -128,6 +128,7 @@ include_directories(
 	${catkin_INCLUDE_DIRS}
 	${OpenCV_INCLUDE_DIRS}
 	${Boost_INCLUDE_DIRS}
+	${PCL_INCLUDE_DIRS}
 )
 
 
@@ -139,6 +140,7 @@ target_link_libraries(dirt_detection
 	${catkin_LIBRARIES}
 	${OpenCV_LIBRARIES}
 	${Boost_LIBRARIES}
+	${PCL_INCLUDE_DIRS}
 )
 add_dependencies(dirt_detection ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
@@ -158,6 +160,16 @@ target_link_libraries(appearance_check
 	${catkin_LIBRARIES}
 )
 add_dependencies(appearance_check ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
+
+#dataset create
+add_executable(dataset_create  ros/src/dataset_create.cpp)
+target_link_libraries(dataset_create
+	${catkin_LIBRARIES}
+	${OpenCV_LIBRARIES}
+	${Boost_LIBRARIES}
+	${PCL_INCLUDE_DIRS}
+)
+add_dependencies(dataset_create ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 
 #############
