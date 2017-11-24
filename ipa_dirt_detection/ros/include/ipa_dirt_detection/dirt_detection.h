@@ -71,6 +71,7 @@
 #include <deque>
 #include <time.h>
 #include <math.h>
+#include <sstream>
 
 // ROS includes
 #include <ros/ros.h>
@@ -233,6 +234,9 @@ protected:
 	bool dirtDetectionActivatedOnStartup_;	// for normal operation mode, specifies whether dirt detection is on right from the beginning
 	std::string dirtMappingMaskFilename_;	// if not an empty string, this enables using a mask that defines areas in the map where dirt detections are valid (i.e. this mask can be used to exclude areas from dirt mapping, white=detection area, black=do not detect)
 	bool useDirtMappingMask_;
+	std::string birdeyeresolution;
+	int frame_num_bag;
+	std::string framenumbag;
 
 	std::string experimentFolder_;		// storage location of the database index file and writing location for the results of an experiment
 	std::string labelingFilePath_;		// path to labeling file storage
@@ -248,6 +252,14 @@ protected:
 	int minPlanePoints_;		// minimum number of points that are necessary to find the floor plane
 	double planeNormalMaxZ_;	// maximum z-value of the plane normal (ensures to have an floor plane)
 	double planeMaxHeight_;		// maximum height of the detected plane above the mapped ground
+	
+	// multiscale search
+	int detectScales;                 // Number of detection scales
+	double birdEyeBaseResolution_;    // base resolution of perspective transformation
+	double birdEyeStartResolution_;   // smallest resolution for perspective transform
+	cv::Mat MultiscaleScores;         // scores for different scale detection
+	cv::Size baseSize;                // resoltion of 2D projection under base resoltion
+	double image_scaling;
 
 	// further
 	ros::Time lastIncomingMessage_;
@@ -360,6 +372,8 @@ public:
 	 *
 	 */
 	void dirtDetectionCallback(const sensor_msgs::PointCloud2ConstPtr& point_cloud2_rgb_msg);
+	
+	void MultiScaledirtDetectionCallback(const sensor_msgs::PointCloud2ConstPtr& point_cloud2_rgb_msg);
 
 	void planeLabelingCallback(const sensor_msgs::PointCloud2ConstPtr& point_cloud2_rgb_msg);
 
