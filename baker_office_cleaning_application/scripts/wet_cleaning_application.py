@@ -34,7 +34,6 @@ class TestClass():
 #class SeqControl(simple_script_server.script):
 class SeqControl():
 	def explore(self):
-		rospy.init_node('exploration_node')
 
 		# receive the navigation map in sensor_msgs/Image format
 		print "Waiting for service '/baker/get_map_image' to become available ..."
@@ -101,10 +100,10 @@ class SeqControl():
 		for current_room in range(1, len(room_sequence_result.checkpoints)):
 
 			# move to the room center of the current room
-			current_room_coordinates = room_sequence_result.checkpoints[current_room].checkpoint_position_in_meter
+			current_room_coordinates = Point32(x=-100, y=-100, z=-100)
 			print "Moving to room %i ..." % current_room
 			move_base_goal = MoveBaseGoal()
-			move_base_goal.target_pose.pose.position = current_room_coordinates
+			move_base_goal.target_pose.pose.position = Point32(x=0, y=0, z=0)
 			move_base_goal.target_pose.pose.orientation = Quaternion(x=0., y=0., z=0., w=0.)
 			move_base_goal.target_pose.header.frame_id = 'base_link'
 			move_base_goal.target_pose.header.stamp = rospy.Time.now()
@@ -180,6 +179,7 @@ class SeqControl():
 
 if __name__ == '__main__':
 	try:
+		rospy.init_node('exploration_node')
 		command = 'script_1 = TestClass()'
 		exec(command)
 		script_1.explore()
