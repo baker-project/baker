@@ -89,11 +89,12 @@ class TestApplication(application_container.ApplicationContainer):
 	
 if __name__ == '__main__':
 	try:
+		rospy.init_node('exploration_node')
 		# Initialize and start interruptor
-		#application_test_interruptor.initialize()
-		#thread.start_new_thread(application_test_interruptor.interrupt, ())
+		application_test_interruptor.initialize()
+		thread.start_new_thread(application_test_interruptor.interrupt, ())
 		# Initialize and start test application
 		app = TestApplication("interrupt_test_app")
-		#app.executeCustomBehavior()
+		app.executeCustomBehavior()
 	except rospy.ROSInterruptException:
 		print "Keyboard Interrupt"
