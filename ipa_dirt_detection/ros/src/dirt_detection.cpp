@@ -259,7 +259,7 @@ void DirtDetection::init()
 
 	if (modeOfOperation_ == 0)	// detection
 	{
-		camera_depth_points_sub_ =  node_handle_.subscribe<sensor_msgs::PointCloud2>("colored_point_cloud", 1, &DirtDetection::MultiScaledirtDetectionCallback, this);
+		camera_depth_points_sub_ =  node_handle_.subscribe<sensor_msgs::PointCloud2>("colored_point_cloud", 1, &DirtDetection::dirtDetectionCallback, this);
 		detection_map_pub_ = node_handle_.advertise<nav_msgs::OccupancyGrid>("detection_map", 1);
 	}
 	else if (modeOfOperation_ == 1)		// labeling
@@ -268,7 +268,7 @@ void DirtDetection::init()
 	}
 	else if (modeOfOperation_ == 2)		// database evaluation
 	{
-		camera_depth_points_sub_ =  node_handle_.subscribe<sensor_msgs::PointCloud2>("colored_point_cloud", 5, &DirtDetection::MultiScaledirtDetectionCallback, this);
+		camera_depth_points_sub_ =  node_handle_.subscribe<sensor_msgs::PointCloud2>("colored_point_cloud", 5, &DirtDetection::dirtDetectionCallback, this);
 		camera_depth_points_from_bag_pub_ = node_handle_.advertise<sensor_msgs::PointCloud2>("colored_point_cloud_bagpub", 1);
 		clock_pub_ = node_handle_.advertise<rosgraph_msgs::Clock>("/clock", 1);
 		ground_truth_map_pub_ = node_handle_.advertise<nav_msgs::OccupancyGrid>("ground_truth_map", 1);
@@ -845,7 +845,7 @@ void DirtDetection::dirtDetectionCallback(const sensor_msgs::PointCloud2ConstPtr
 #endif
 	pcl::PointCloud<pcl::PointXYZRGB>::Ptr input_cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
 	convertPointCloudMessageToPointCloudPcl(point_cloud2_rgb_msg, input_cloud);
-
+        std::cout << input_cloud -> size();
 	// todo: new mode which can delete dirt
 	// reset results (these two lines were not called with the old mode of operation)
 	gridPositiveVotes_ = cv::Mat::zeros(gridDimensions_.y, gridDimensions_.x, CV_32SC1);

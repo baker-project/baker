@@ -131,7 +131,6 @@ include_directories(
 	${PCL_INCLUDE_DIRS}
 )
 
-
 # dirt_detection
 add_executable(dirt_detection  ros/src/dirt_detection.cpp
 				common/src/timer.cpp
@@ -162,7 +161,7 @@ target_link_libraries(appearance_check
 add_dependencies(appearance_check ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 #dataset create
-add_executable(dataset_create  ros/src/dataset_create.cpp)
+add_executable(dataset_create  ros/src/dataset_create.cpp)                  
 target_link_libraries(dataset_create
 	${catkin_LIBRARIES}
 	${OpenCV_LIBRARIES}
@@ -170,6 +169,17 @@ target_link_libraries(dataset_create
 	${PCL_INCLUDE_DIRS}
 )
 add_dependencies(dataset_create ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
+
+# filter bank create
+add_executable(filterbank_create  ros/src/filterbank_create.cpp
+                                  ros/src/feature_extract.cpp)           # ros/src/feature_extract.cpp
+target_link_libraries(filterbank_create
+	${catkin_LIBRARIES}
+	${OpenCV_LIBRARIES}
+	${Boost_LIBRARIES}
+	${PCL_INCLUDE_DIRS}
+)
+add_dependencies(filterbank_create ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 
 #############

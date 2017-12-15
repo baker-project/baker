@@ -45,6 +45,8 @@ void DatasetCreate::init()
   std::cout << "RGB Image save path is " << rgbImageSavePath_ << std::endl;
   node_handle_.param<std::string>("dataset_create/dirtObjectSavePath", dirtObjectSavePath_, "test_data");
   std::cout << "Dirt Objects save path is " << dirtObjectSavePath_ << std::endl;
+  node_handle_.param("dataset_create/groundSegmentation", groundSegmentation_, false);
+  std::cout << "If with ground segmentation ? " << groundSegmentation_ << std::endl;
   
   double gox, goy;
   node_handle_.param("dataset_create/gridOrigin_x", gox, 0.0);
@@ -66,8 +68,22 @@ void DatasetCreate::init()
   std::cout << "The distance between camera and object = " << distanceToCamera_ << std::endl;
   
   frame_counter_ = 0;
-  camera_depth_points_sub_ = node_handle_.subscribe<sensor_msgs::PointCloud2>("colored_point_cloud", 1, &DatasetCreate::datasetCreateCallback, this);
+  camera_depth_points_sub_ = node_handle_.subscribe<sensor_msgs::PointCloud2>("colored_point_cloud", 5, &DatasetCreate::datasetCreateCallback, this);
 }
+
+/*
+ void imageCallback(const sensor_msgs::ImageConstPtr& msg) {
+    try {
+        cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(msg, "bgr8");
+        cv::imwrite("rgb.bmp", cv_ptr->image);
+        cv::imshow("view", cv_bridge::toCvShare(msg, "bgr8")->image);
+        cv::waitKey(30);
+    } catch (cv_bridge::Exception& e) {
+        ROS_ERROR("Could not convert from '%s' to 'bgr8'.",
+                msg->encoding.c_str());
+    }
+}
+ */
 
 
 void ipa_DatasetCreate::DatasetCreate::datasetCreateCallback(const sensor_msgs::PointCloud2ConstPtr& point_cloud2_rgb_msg)
@@ -77,16 +93,18 @@ void ipa_DatasetCreate::DatasetCreate::datasetCreateCallback(const sensor_msgs::
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr input_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
   pointcloudRosTOPointcloudPcl(point_cloud2_rgb_msg, input_cloud);
   
+  cv::Mat plane_color_image = cv::Mat::zeros(input_cloud->height, input_cloud->width, CV_8UC3);;
+  cv::Mat plane_mask;
+  pcl::ModelCoefficients plane_model;
+  
+  if (groundSegmentation_)
+  {
   // get tf between camera and map
   tf::StampedTransform transformMapCamera;
   transformMapCamera.setIdentity();
   
   gridPositiveVotes_ = cv::Mat::zeros(gridDimensions_.y, gridDimensions_.x, CV_32SC1);
   gridNumberObservations_ = cv::Mat::zeros(gridPositiveVotes_.rows, gridPositiveVotes_.cols, CV_32SC1);
-  
-  cv::Mat plane_color_image;
-  cv::Mat plane_mask;
-  pcl::ModelCoefficients plane_model;
   bool found_plane = planeSegmentation(input_cloud, plane_color_image, plane_mask, plane_model, transformMapCamera, gridNumberObservations_);
   
   if (found_plane == true)
@@ -95,13 +113,46 @@ void ipa_DatasetCreate::DatasetCreate::datasetCreateCallback(const sensor_msgs::
     cv::imshow("plane_color_image", plane_color_image);
     cv::waitKey(10);
     frame_counter_ ++;
-    cv::imwrite(rgbImageSavePath_ + '/' + string(frame_counter_) + '.jpg', plane_color_image);
+    //cv::imwrite(rgbImageSavePath_ + '/' + string(frame_counter_) + '.jpg', plane_color_image);   // TODO save the images
   }
   else
   {
      std::cout << "no plane found " << std::endl;
   }
-  
+  }
+  else
+  {
+   int index = 0;
+   std::cout  << "No plane segmentation." << input_cloud -> size() << std::endl;
+   for (int v=0; v<(int)input_cloud->height; v++)
+   {
+     for (int u=0; u<(int)input_cloud->width; u++, index++)
+     {
+       //std::cout << v << ' ' << u << ' ' << index;
+       pcl::PointXYZRGB point = (*input_cloud)[index];
+       bgr bgr_ = {point.b, point.g, point.r};
+       plane_color_image.at<bgr>(v, u) = bgr_;
+     }
+   }
+    //std::cout << "size of the image is " << plane_color_image.cols << std::endl;
+    cv::imshow("Current Captured Image", plane_color_image);
+    int key = 0;
+    key = cv::waitKey(300);
+    std::cout << key << std::endl;
+    if (key>0)        // do something, save the image
+    {
+      std::cout << key << std::endl;
+      cv::imwrite("/home/rmb-jx/dataset/" + patch::to_string(frame_counter_) + ".bmp", plane_color_image);
+      frame_counter_++;
+      cv::destroyAllWindows();
+    }
+    //else
+    //{
+    //  cv::imwrite("/home/rmb-jx/dataset/" + patch::to_string(frame_counter_) + ".jpg", plane_color_image);
+    //  frame_counter_++;
+    //  cv::destroyAllWindows();
+    //}
+  }
   
 }
 

@@ -2,15 +2,15 @@
 <launch>
 
   <!-- send parameters to parameter server -->
-  <rosparam command="load" ns="dirt_detection/dirt_detection" file="$(find ipa_dirt_detection)/ros/launch/dirt_detection.yaml"/>
+  <!--rosparam command="load" ns="" file="$(find ipa_dirt_detection)/ros/launch/dataset_create.yaml"/-->
 
 
   <!--  -->
-  <node pkg="ipa_dirt_detection" ns="dirt_detection" type="dirt_detection" name="dirt_detection" output="screen">	<!-- ns=namespace (arbitrary), type=name of executable, name=node name (arbitrary) -->
+  <node pkg="ipa_dirt_detection" ns="filterbank_create/filterbank_create" type="filterbank_create" name="filterbank_create" output="screen">	<!-- ns=namespace (arbitrary), type=name of executable, name=node name (arbitrary) -->
 	<!--launch-prefix="/usr/bin/gdb"-->
 	<!--remap from="image_color" to="/camera/rgb/image"/-->
-	<remap from="colored_point_cloud" to="/camera/depth_registered/points"/>
-	<remap from="image_color" to="/camera/rgb/image_raw"/>
+	<!--remap from="colored_point_cloud" to="/camera/depth_registered/points"/-->
+	<!--remap from="image_color" to="/camera/rgb/image_rect_color"/-->
 	<!--remap from="colored_point_cloud" to="/cam3d/depth_registered/points"/-->
 	<!--remap from="colored_point_cloud" to="/cam3d/rgb/points"/-->
 	<!--remap from="colored_point_cloud" to="/camera/rgb/points"/-->

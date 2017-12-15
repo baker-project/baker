@@ -59,7 +59,8 @@ namespace ipa_DatasetCreate
     cv::Point2i gridDimensions_;	// number of grid cells in x and y direction = width and height [in number grid cells]
     cv::Mat gridPositiveVotes_;		// grid map that counts the positive votes for dirt
     int minPlanePoints_;
-    float distanceToCamera_;
+    double distanceToCamera_;
+    bool groundSegmentation_;
     
   private:
     	struct bgr
@@ -70,6 +71,16 @@ namespace ipa_DatasetCreate
 	};
         int frame_counter_;
   };
+};
+
+namespace patch
+{
+    template < typename T > std::string to_string( const T& n )
+    {
+        std::ostringstream stm ;
+        stm << n ;
+        return stm.str() ;
+    }
 };
 
 
