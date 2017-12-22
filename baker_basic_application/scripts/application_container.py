@@ -13,10 +13,10 @@ from baker_basic_application.msg import InterruptActionGoal
 from baker_basic_application.msg import InterruptActionResult
 
 class ApplicationContainer:
-    # Make an abstract class out of it
     __metaclass__ = ABCMeta
     # Status of the application. 0=OK, 1=Paused, 2=Cancelled
-    # using a vector because a single int number cannot be passed by reference, but this apparently works to automatically get the changed number also into the client behaviors
+    # using a vector because a single int number cannot be passed by reference, 
+    # but this apparently works to automatically get the changed number also into the client behaviors
     application_status = [0]
 
     # Constructor
@@ -28,12 +28,12 @@ class ApplicationContainer:
 
     # Callback function for interrupt
     def interruptCallback(self, goal):
-        self.application_status[0] = self.interrupt_server.new_interrupt_state
+        self.application_status[0] = goal.new_interrupt_state
         result_ = InterruptActionResult()
-        result_.interrupt_state = self.application_status
+        result_.interrupt_state = self.application_status[0]
         self.interrupt_server.set_succeeded(result_)
 
-    # Abstract method that contains the procedure if the application is paused.
+    # Abstract method that contains the procedure to be done immediately after the application is paused.
     @abstractmethod
     def pauseProcedure(self):
         print "Application: Application paused."
@@ -41,7 +41,8 @@ class ApplicationContainer:
         # undo or check whether everything has been undone
         self.returnToRobotStandardState()
 
-    # Method that contains the procedure if the application is cancelled
+
+    # Abstract method that contains the procedure to be done immediately after the application is cancelled.
     @abstractmethod
     def cancelProcedure(self):
         print "Application: Application cancelled."
@@ -49,6 +50,7 @@ class ApplicationContainer:
         # undo or check whether everything has been undone
         self.returnToRobotStandardState()
 
+    # Method for returning to the standard pose of the robot
     @abstractmethod   
     def returnToRobotStandardState(self):
 		# save current data if necessary
@@ -56,26 +58,29 @@ class ApplicationContainer:
         pass
         
     # Handle interruption, if one occurs
-    # This method yet contains dummy variables
     def handleInterrupt(self):
-        if (application_status == 1):
-            pauseProcedure()
-        elif (application_status == 2):
-            cancelProcedure()
-	    return application_status
+        print "Application: Current status is " + str(self.application_status[0])
+        if (self.application_status[0] == 1):
+            self.pauseProcedure()
+            while (self.application_status[0] == 1):
+                pass
+        elif (self.application_status[0] == 2):
+            self.cancelProcedure()
+	    return self.application_status[0]
 
     # Implement application procedures of inherited classes here.
     @abstractmethod
     def executeCustomBehavior(self):
-        # After each command, def handle_interrupt has to be executed:
+        # After each command,
         # if handleInterrupt() != 0:
 		#     return
+        # has to be inserted.
         pass
 
     # Call this method to execute the application.
-    def execute_application(self):
+    def executeApplication(self):
         print "Application: Starting"
-        if handle_interrupt() != 0:
-			return
-        executeCustomBehavior()
-        print "Application: Completed with code " + str(application_status)
+        if self.handleInterrupt() != 0:
+			pass
+        self.executeCustomBehavior()
+        print "Application: Completed with code " + str(self.application_status[0])

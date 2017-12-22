@@ -1,6 +1,14 @@
 <?xml version="1.0"?>
 <launch>
 
+	<!-- ROS-MIRA communication -->
+	<include file="$(find scitos_mira)/launch/scitos_mira.launch"/>
+
+	<!-- map management system -->
+	<node ns="baker" pkg="baker_office_cleaning_application" type="map_management_client" name="map_management_client" output="screen" respawn="true" respawn_delay="2">
+		<remap from="map" to="/map"/>
+	</node>
+
 	<!-- include room exploration -->
 	<include file="$(find ipa_room_exploration)/ros/launch/room_exploration_action_server.launch"/>
 
