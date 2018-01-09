@@ -3,34 +3,64 @@
 import rospy
 import actionlib
 import application_container
+import map_handling_behavior
 
-class WetCleaningApplication(ApplicationContainer):
+class WetCleaningApplication(application_container.ApplicationContainer):
 
-    # Implement application procedures of inherited classes here.
-    def executeCustomBehavior(self):
-        # After each command,
-        # if handleInterrupt() != 0:
+	#========================================================================
+	# Serivces to be used:
+	# map_receiving_service_str:
+	#       '/baker/get_map_image'
+	# map_segmentation_service_str:
+	#       '/room_segmentation/room_segmentation_server'
+	# room_sequencing_service_str = 
+	#       '/room_sequence_planning/room_sequence_planning_server'
+	#========================================================================
+
+	# Implement application procedures of inherited classes here.
+	def executeCustomBehavior(self):
+		# After each command,
+		# if self.handleInterrupt() == 2:
 		#     return
-        # has to be inserted.
-        pass
+		# has to be inserted.
+		self.map_handler = map_handling_behavior.MapHandlingBehavior(
+			self.application_status,
+			'/baker/get_map_image',
+			'/room_segmentation/room_segmentation_server',
+			'/room_sequence_planning/room_sequence_planning_server')
+		self.map_handler.executeCustomBehavior()
+		if self.handleInterrupt() == 2:
+			return
 
-    # Abstract method that contains the procedure to be done immediately after the application is paused.
-    def pauseProcedure(self):
-        print "Application: Application paused."
-        # save current data if necessary
-        # undo or check whether everything has been undone
-        self.returnToRobotStandardState()
-
-    # Abstract method that contains the procedure to be done immediately after the application is cancelled.
-    def cancelProcedure(self):
-        print "Application: Application cancelled."
-        # save current data if necessary
-        # undo or check whether everything has been undone
-        self.returnToRobotStandardState()
-
-
-    # Method for returning to the standard pose of the robot
-    def returnToRobotStandardState(self):
+	# Abstract method that contains the procedure to be done immediately after the application is paused.
+	def pauseProcedure(self):
+		print "Application: Application paused."
 		# save current data if necessary
-        # undo or check whether everything has been undone
-        pass
+		# undo or check whether everything has been undone
+		self.returnToRobotStandardState()
+
+	# Abstract method that contains the procedure to be done immediately after the application is cancelled.
+	def cancelProcedure(self):
+		print "Application: Application cancelled."
+		# save current data if necessary
+		# undo or check whether everything has been undone
+		self.returnToRobotStandardState()
+
+	# Method for returning to the standard pose of the robot
+	def returnToRobotStandardState(self):
+		# save current data if necessary
+		# undo or check whether everything has been undone
+		pass
+
+
+
+if __name__ == '__main__':
+	try:
+		# Initialize node
+		rospy.init_node('application_wet_cleaning')
+		# Initialize application
+		app = WetCleaningApplication("interrupt_application_wet_cleaning")
+		# Execute application
+		app.executeApplication()
+	except rospy.ROSInterruptException:
+		print "Keyboard Interrupt"

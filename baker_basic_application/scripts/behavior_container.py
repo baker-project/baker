@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import roslib
-roslib.load_manifest('baker_office_cleaning_application')
+roslib.load_manifest('baker_basic_application')
 import actionlib
 import rospy
 import sys
@@ -13,15 +13,15 @@ class BehaviorContainer:
 	__metaclass__ = ABCMeta
 	# Behaviors which this behavior contains
 	sub_behaviors = []
-	# Status of the behavior. 0=OK, 1=Cancelled
+	# Status of the behavior. 0=OK, 1=Cancelled, 2=Erroneaus
 	behavior_status = 0
 	# Sleeping time in seconds
 	sleep_time = 1
 
 	# Constructor
-	def __init__(self, interrupt_var):
+	def __init__(self, interrupt_var_):
 		# Get the pointer to the interrupt variable of the application container
-		self.interrupt_var = interrupt_var
+		self.interrupt_var = interrupt_var_
 
 	# Method that returns the current interruption value [True/False]
 	def executionInterrupted(self):
@@ -35,7 +35,7 @@ class BehaviorContainer:
 			print "Behavior: Execution interrupted with code " + str(self.behavior_status)
 		return self.interrupt_var[0]
 
-	# Method for running an action server
+	# Method for running an action server, shall only be called from def executeCustomBehavior
 	def runAction(self, action_client, action_goal):
 		# action client --> call external functionality but do not wait for finishing
 		action_client.wait_for_server()
@@ -44,7 +44,7 @@ class BehaviorContainer:
 		# in loop check for interrupt --> if necessary stop action with self.executionInterrupted() == True and wait until action stopped
 		# Definition of SimpleGoalState: 0 = PENDING, 1 = ACTIVE, 3 = DONE (don't ask why DONE is 3)
 		while (action_client.get_state() != 3):
-			print str(action_client.get_state())
+			# print str(action_client.get_state())
 			if (self.executionInterrupted() == True):
 				action_client.cancel_goal()
 				return self.handleInterrupt()
@@ -52,14 +52,13 @@ class BehaviorContainer:
 		action_result = action_client.get_result()
 		return action_result
 
-
 	# Method for returning to the standard pose of the robot
 	@abstractmethod
 	def returnToRobotStandardState(self):
 		# save current data if necessary
 		# undo or check whether everything has been undone
 		pass
-    
+
 	# Implement behavior procedures of inherited classes here.
 	@abstractmethod
 	def executeCustomBehavior(self):
