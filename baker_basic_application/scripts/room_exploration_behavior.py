@@ -2,7 +2,7 @@
 
 import behavior_container
 
-class TemplateBehavior(behavior_container.BehaviorContainer):
+class RoomExplorationBehavior(behavior_container.BehaviorContainer):
 
 	# Method for returning to the standard pose of the robot
 	def returnToRobotStandardState(self):

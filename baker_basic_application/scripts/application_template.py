@@ -2,7 +2,7 @@
 
 import application_container
 
-class TemplateApplication(ApplicationContainer):
+class TemplateApplication(application_container.ApplicationContainer):
 
 	# Implement all procedures to be done once at the beginning here.
 	def initialize(self):

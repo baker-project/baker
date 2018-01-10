@@ -2,12 +2,12 @@
 
 import rospy
 from std_msgs.msg import String
-from cv_bridge import CvBridge, CvBridgeError
 
 import behavior_container
 import map_receiving_behavior
 import map_segmentation_behavior
 import room_sequencing_behavior
+import map_segment_extracting_behavior
 
 class MapHandlingBehavior(behavior_container.BehaviorContainer):
 
@@ -40,13 +40,14 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
 			return
-		# Get a opencv representation of the segmented image
-		self.bridge = CvBridge()
-		self.opencv_segmentation_data = self.bridge.imgmsg_to_cv2(self.segmentation_data.segmented_map, desired_encoding = "passthrough")
-		# Interruption opportunity
-		if self.handleInterrupt() == 2:
-			return
-		# Room Sequencing
+		# Room sequencing
 		self.room_sequencer = room_sequencing_behavior.RoomSequencingBehavior(self.interrupt_var, self.room_sequencing_service_str, self.map_data, self.segmentation_data)
 		self.room_sequencer.executeCustomBehavior()
 		self.room_sequencing_data = self.room_sequencer.room_sequence_result
+		# Interruption opportunity
+		if self.handleInterrupt() == 2:
+			return
+		# Room map extraction and conversion
+		self.room_extractor = map_segment_extracting_behavior.MapSegmentExtractingBehavior(self.interrupt_var, self.segmentation_data, self.room_sequencing_data)
+		self.room_extractor.executeCustomBehavior()
+		self.room_extraction_data = self.room_extractor.extracted_maps

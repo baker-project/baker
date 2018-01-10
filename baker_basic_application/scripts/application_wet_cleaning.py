@@ -19,16 +19,15 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 
 	# Implement application procedures of inherited classes here.
 	def executeCustomBehavior(self):
-		# After each command,
-		# if self.handleInterrupt() == 2:
-		#     return
-		# has to be inserted.
+		# Receive map, segment, get sequence, convert to openCV
 		self.map_handler = map_handling_behavior.MapHandlingBehavior(
 			self.application_status,
 			'/baker/get_map_image',
 			'/room_segmentation/room_segmentation_server',
-			'/room_sequence_planning/room_sequence_planning_server')
+			'/room_sequence_planning/room_sequence_planning_server'
+			)
 		self.map_handler.executeCustomBehavior()
+        # Interruption opportunity
 		if self.handleInterrupt() == 2:
 			return
 

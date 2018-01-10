@@ -23,7 +23,7 @@ from scitos_msgs.msg import MoveBasePathAction
 from scitos_msgs.msg import MoveBasePathGoal
 from std_msgs.msg import String
 from cv_bridge import CvBridge, CvBridgeError
-
+tmp_map_bridge
 #import simple_script_server
 #sss = simple_script_server.simple_script_server()
 
