@@ -24,7 +24,7 @@ class MapSegmentExtractingBehavior(behavior_container.BehaviorContainer):
 		current_room_index = self.room_sequence_data.checkpoints[room_sequence_index_].room_indices[0]
 		for x in range(image_width):
 			for y in range(image_height):
-				if (self.opencv_segmented_map[y, x] == current_room_index):
+				if (self.opencv_segmented_map[y, x] == current_room_index + 1):
 					tmp_map_opencv[y, x] = 255
 					print "%i %i %i" % (self.opencv_segmented_map[y, x], x, y)			
 		return self.bridge.cv2_to_imgmsg(tmp_map_opencv, encoding = "mono8")

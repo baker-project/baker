@@ -15,6 +15,8 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 	#       '/room_segmentation/room_segmentation_server'
 	# room_sequencing_service_str = 
 	#       '/room_sequence_planning/room_sequence_planning_server'
+	# room_exploration_service_str = 
+	#       '/room_exploration/room_exploration_server'
 	#========================================================================
 
 	# Implement application procedures of inherited classes here.
