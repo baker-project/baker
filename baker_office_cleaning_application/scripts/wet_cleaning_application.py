@@ -101,10 +101,10 @@ class SeqControl():
 		for current_room in range(1, len(room_sequence_result.checkpoints)):
 
 			# move to the room center of the current room
-			current_room_coordinates = Point32(x=-100, y=-100, z=-100)
+			current_room_coordinates = room_sequence_result.checkpoints[current_room].checkpoint_position_in_meter
 			print "Moving to room %i ..." % current_room
 			move_base_goal = MoveBaseGoal()
-			move_base_goal.target_pose.pose.position = Point32(x=0, y=0, z=0)
+			move_base_goal.target_pose.pose.position = current_room_coordinates
 			move_base_goal.target_pose.pose.orientation = Quaternion(x=0., y=0., z=0., w=0.)
 			move_base_goal.target_pose.header.frame_id = 'base_link'
 			move_base_goal.target_pose.header.stamp = rospy.Time.now()

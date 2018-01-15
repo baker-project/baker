@@ -8,12 +8,15 @@ import behavior_container
 
 class MapSegmentExtractingBehavior(behavior_container.BehaviorContainer):
 
-	def __init__(self, interrupt_var_, segmentation_data_, room_sequence_data_):
+	def __init__(self, interrupt_var_):
 		self.interrupt_var = interrupt_var_
-		self.segmentation_data = segmentation_data_
-		self.room_sequence_data = room_sequence_data_
 		# Get a opencv representation of the segmented image
 		self.bridge = CvBridge()
+		
+	# Method for setting parameters for the behavior
+	def setParameters(self, segmentation_data_, room_sequence_data_):
+		self.segmentation_data = segmentation_data_
+		self.room_sequence_data = room_sequence_data_
 		self.opencv_segmented_map = self.bridge.imgmsg_to_cv2(self.segmentation_data.segmented_map, desired_encoding = "passthrough")
 
 	# Method for returning the segment of the map corresponding to the order number as cv_bridge

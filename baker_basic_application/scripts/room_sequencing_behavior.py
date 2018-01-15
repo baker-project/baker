@@ -9,9 +9,13 @@ from ipa_building_msgs.msg import *
 import behavior_container
 
 class RoomSequencingBehavior(behavior_container.BehaviorContainer):
-	def __init__(self, interrupt_var_, service_str_, map_data_, segmentation_data_):
+
+	def __init__(self, interrupt_var_, service_str_):
 		self.interrupt_var = interrupt_var_
 		self.service_str = service_str_
+
+	# Method for setting parameters for the behavior
+	def setParameters(self, map_data_, segmentation_data_):
 		self.map_data = map_data_
 		self.segmentation_data = segmentation_data_
 

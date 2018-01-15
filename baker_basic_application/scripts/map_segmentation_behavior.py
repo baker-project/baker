@@ -10,9 +10,12 @@ import behavior_container
 
 class MapSegmentationBehavior(behavior_container.BehaviorContainer):
 
-	def __init__(self, interrupt_var_, service_str_, map_data_):
+	def __init__(self, interrupt_var_, service_str_):
 		self.interrupt_var = interrupt_var_
 		self.service_str = service_str_
+
+	# Method for setting parameters for the behavior
+	def setParameters(self, map_data_):
 		self.map_data = map_data_
 
 	# Method for returning to the standard pose of the robot

@@ -4,32 +4,28 @@ import rospy
 import actionlib
 import application_container
 import map_handling_behavior
+import movement_handling_behavior
 
 class WetCleaningApplication(application_container.ApplicationContainer):
 
-	#========================================================================
-	# Serivces to be used:
-	# map_receiving_service_str:
-	#       '/baker/get_map_image'
-	# map_segmentation_service_str:
-	#       '/room_segmentation/room_segmentation_server'
-	# room_sequencing_service_str = 
-	#       '/room_sequence_planning/room_sequence_planning_server'
-	# room_exploration_service_str = 
-	#       '/room_exploration/room_exploration_server'
-	#========================================================================
-
 	# Implement application procedures of inherited classes here.
 	def executeCustomBehavior(self):
-		# Receive map, segment, get sequence, convert to openCV
-		self.map_handler = map_handling_behavior.MapHandlingBehavior(
-			self.application_status,
-			'/baker/get_map_image',
-			'/room_segmentation/room_segmentation_server',
-			'/room_sequence_planning/room_sequence_planning_server'
-			)
-		self.map_handler.executeCustomBehavior()
+		# Receive map, segment, get sequence, extract maps
+		self.map_handler = map_handling_behavior.MapHandlingBehavior(self.application_status)
+		self.map_handler.setParameters()
+		self.map_handler.executeBehavior()
         # Interruption opportunity
+		if self.handleInterrupt() == 2:
+			return
+		# Move to segments, Compute exploration path, Travel through it, repeat
+		self.movement_handler = movement_handling_behavior.MovementHandlingBehavior(self.application_status)
+		self.movement_handler.setParameters(
+			map_handler.map_data,
+			map_handler.room_sequencing_data,
+			map_handler.room_extraction_data
+		)
+		self.movement_handler.executeBehavior()
+		# Interruption opportunity
 		if self.handleInterrupt() == 2:
 			return
 

@@ -11,11 +11,21 @@ import map_segment_extracting_behavior
 
 class MapHandlingBehavior(behavior_container.BehaviorContainer):
 
-	def __init__(self, interrupt_var_, map_receiving_service_str_, map_segmentation_service_str_, room_sequencing_service_str_):
-		super(MapHandlingBehavior, self).__init__(interrupt_var_)
-		self.map_receiving_service_str = map_receiving_service_str_
-		self.map_segmentation_service_str = map_segmentation_service_str_
-		self.room_sequencing_service_str = room_sequencing_service_str_
+	#========================================================================
+	# Serivces to be used:
+	# map_receiving_service_str:
+	#       '/baker/get_map_image'
+	# map_segmentation_service_str:
+	#       '/room_segmentation/room_segmentation_server'
+	# room_sequencing_service_str = 
+	#       '/room_sequence_planning/room_sequence_planning_server'
+	#========================================================================
+	
+	# Method for returning to the standard pose of the robot
+	def setParameters(self):
+		self.map_receiving_service_str = '/baker/get_map_image'
+		self.map_segmentation_service_str = '/room_segmentation/room_segmentation_server'
+		self.room_sequencing_service_str = '/room_sequence_planning/room_sequence_planning_server'
 
 	# Method for returning to the standard pose of the robot
 	def returnToRobotStandardState(self):
@@ -26,28 +36,47 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 
 	# Implemented Behavior
 	def executeCustomBehavior(self):
+
 		# Map receiving
 		self.map_receiver = map_receiving_behavior.MapReceivingBehavior(self.interrupt_var, self.map_receiving_service_str) 
+		self.map_receiver.setParameters()
 		self.map_receiver.executeCustomBehavior()
 		self.map_data = self.map_receiver.map_data
+
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
 			return
+		
 		# Map segmentation
-		self.map_segmenter = map_segmentation_behavior.MapSegmentationBehavior(self.interrupt_var, self.map_segmentation_service_str, self.map_data)
+		self.map_segmenter = map_segmentation_behavior.MapSegmentationBehavior(self.interrupt_var, self.map_segmentation_service_str)
+		self.map_segmenter.setParameters(
+			self.map_data
+			)
 		self.map_segmenter.executeCustomBehavior()
 		self.segmentation_data = self.map_segmenter.segmentation_result
+
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
 			return
+		
 		# Room sequencing
-		self.room_sequencer = room_sequencing_behavior.RoomSequencingBehavior(self.interrupt_var, self.room_sequencing_service_str, self.map_data, self.segmentation_data)
+		self.room_sequencer = room_sequencing_behavior.RoomSequencingBehavior(self.interrupt_var, self.room_sequencing_service_str)
+		self.room_sequencer.setParameters(
+			self.map_data, 
+			self.segmentation_data
+			)
 		self.room_sequencer.executeCustomBehavior()
 		self.room_sequencing_data = self.room_sequencer.room_sequence_result
+		
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
 			return
+		
 		# Room map extraction and conversion
-		self.room_extractor = map_segment_extracting_behavior.MapSegmentExtractingBehavior(self.interrupt_var, self.segmentation_data, self.room_sequencing_data)
+		self.room_extractor = map_segment_extracting_behavior.MapSegmentExtractingBehavior(self.interrupt_var)
+		self.room_extractor.setParameters(
+			self.segmentation_data, 
+			self.room_sequencing_data
+			)
 		self.room_extractor.executeCustomBehavior()
-		self.room_extraction_data = self.room_extractor.extracted_maps
+		self.room_extraction_data = self.room_extractor.extraction_result

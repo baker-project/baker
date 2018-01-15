@@ -11,6 +11,11 @@ class MapReceivingBehavior(behavior_container.BehaviorContainer):
 	def __init__(self, interrupt_var_, service_str_):
 		self.interrupt_var = interrupt_var_
 		self.service_str = service_str_
+	
+	# Method for setting parameters for the behavior
+	def setParameters(self):
+		# no parameters required
+		pass
 
 	# Method for returning to the standard pose of the robot
 	def returnToRobotStandardState(self):
