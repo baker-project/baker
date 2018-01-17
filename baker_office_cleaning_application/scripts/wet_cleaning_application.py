@@ -23,7 +23,6 @@ from scitos_msgs.msg import MoveBasePathAction
 from scitos_msgs.msg import MoveBasePathGoal
 from std_msgs.msg import String
 from cv_bridge import CvBridge, CvBridgeError
-tmp_map_bridge
 #import simple_script_server
 #sss = simple_script_server.simple_script_server()
 
@@ -49,7 +48,6 @@ class SeqControl():
 		# compute map division into rooms (ipa_room_segmentation)
 		segmentation_goal = MapSegmentationGoal()
 		segmentation_goal.input_map = self.map_data.map  
-		rospy.init_node('exploration_node')# todo: use the current room map
 		segmentation_goal.map_resolution = self.map_data.map_resolution
 		segmentation_goal.map_origin = self.map_data.map_origin
 		segmentation_goal.return_format_in_meter = False
