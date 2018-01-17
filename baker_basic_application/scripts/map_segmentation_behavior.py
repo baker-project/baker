@@ -35,8 +35,7 @@ class MapSegmentationBehavior(behavior_container.BehaviorContainer):
 		segmentation_goal.return_format_in_meter = False
 		segmentation_goal.return_format_in_pixel = True
 		segmentation_goal.robot_radius = 0.3
-		print "Waiting for Action " + str(self.service_str) + " to become available..."
 		segmentation_client = actionlib.SimpleActionClient(str(self.service_str), MapSegmentationAction)
-		print "Running segmentation action..."
+		self.printMsg("Running segmentation action...")
 		self.segmentation_result = self.runAction(segmentation_client, segmentation_goal)
-		print "Map Segmentation completed"
+		self.printMsg("Map Segmentation completed")

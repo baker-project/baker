@@ -11,8 +11,8 @@ from abc import ABCMeta, abstractmethod
 
 class BehaviorContainer:
 	__metaclass__ = ABCMeta
-	# Behaviors which this behavior contains
-	sub_behaviors = []
+	# Arbitrary behavior name. Only used for debug.
+	behavior_name = "<Unnamed>"
 	# Status of the behavior. 0=OK, 1=Cancelled, 2=Erroneaus
 	behavior_status = 0
 	# Sleeping time in seconds
@@ -23,6 +23,10 @@ class BehaviorContainer:
 		# Get the pointer to the interrupt variable of the application container
 		self.interrupt_var = interrupt_var_
 
+	# Method for printing messages.
+	def printMsg(self, text_):
+		print "[Behavior '" + str(self.behavior_name) + "']: " + str(text_)
+
 	# Method that returns the current interruption value [True/False]
 	def executionInterrupted(self):
 		return (self.interrupt_var[0] != 0)
@@ -30,15 +34,17 @@ class BehaviorContainer:
 	# Method that handles interruptions (ASSUMING: False=OK, True=INTERRUPT)
 	def handleInterrupt(self):
 		if self.executionInterrupted() == True:
-			print "Behavior: Interrupted"
+			self.printMsg("Interrupted")
 			self.returnToRobotStandardState()
-			print "Behavior: Execution interrupted with code " + str(self.behavior_status)
+			self.printMsg("Execution interrupted with code " + str(self.behavior_status))
 		return self.interrupt_var[0]
 
 	# Method for running an action server, shall only be called from def executeCustomBehavior
 	def runAction(self, action_client, action_goal):
 		# action client --> call external functionality but do not wait for finishing
+		self.printMsg("Waiting for action " + str(action_client.action_client.ns) + " to become available...")
 		action_client.wait_for_server()
+		self.printMsg("Sending goal...")
 		action_client.send_goal(action_goal)
 		# loop --> ask for action finished and sleep for one second
 		# in loop check for interrupt --> if necessary stop action with self.executionInterrupted() == True and wait until action stopped
@@ -69,6 +75,6 @@ class BehaviorContainer:
 
 	# Call this function to execute the behavior.
 	def executeBehavior(self):
-		print "Behavior: Executing behavior..."
+		self.printMsg("Executing behavior...")
 		self.executeCustomBehavior()
-		print "Behavior: Execution ended with code " + str(self.behavior_status)
+		self.printMsg("Execution ended with code " + str(self.behavior_status))

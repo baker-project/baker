@@ -30,18 +30,18 @@ class TestBehavior1(behavior_container.BehaviorContainer):
 	max_count = 100
 
 	def returnToRobotStandardState(self):
-		print "Behavior 1: Returning to standard state"
+		self.printMsg("Returning to standard state")
 
 	def executeCustomBehavior(self):
-		print "Behavior 1: Executing..."
+		self.printMsg("Executing...")
 		i = 0
 		while(i < max_count):
 			i = i + 1
 			rospy.sleep(0.5)
-			print "Behavior 1: %i" % i
+			self.printMsg(str(i))
 			if (self.handleInterrupt() != 0):
 				return
-		print "Behavior 1: Execution completed."
+		self.printMsg("Execution completed.")
 
 
 class CppBehavior(behavior_container.BehaviorContainer):
@@ -51,13 +51,13 @@ class CppBehavior(behavior_container.BehaviorContainer):
 	# - room segmentation
 
 	def returnToRobotStandardState(self):
-		print "C++ Sub Behavior: Returning to standard state"
+		self.printMsg("Returning to standard state")
 
 	def executeCustomBehavior(self):
-		print "C++ Sub Behavior: Executing..."
+		self.printMsg("Executing...")
 
 		# receive the navigation map in sensor_msgs/Image format
-		print "Waiting for service '/baker/get_map_image' to become available ..."
+		self.printMsg("Waiting for service '/baker/get_map_image' to become available ...")
 		rospy.wait_for_service('/baker/get_map_image')
 		try:
 			get_map = rospy.ServiceProxy('/baker/get_map_image', GetMap)
@@ -76,11 +76,11 @@ class CppBehavior(behavior_container.BehaviorContainer):
 		segmentation_goal.return_format_in_pixel = True
 		segmentation_goal.robot_radius = 0.3
 		segmentation_client = actionlib.SimpleActionClient('/room_segmentation/room_segmentation_server', MapSegmentationAction)
-		print "Running Action /room_segmentation/room_segmentation_server ..."
+		self.printMsg("Running Action /room_segmentation/room_segmentation_server ...")
 		segmentation_result = self.runAction(segmentation_client, segmentation_goal)
-		print "Segmentation completed"
+		self.printMsg("Segmentation completed")
 
-		print "C++ Sub Behavior: Completed"
+		self.printMsg("Completed")
 		
 
 class TestBehavior2(behavior_container.BehaviorContainer):
@@ -88,16 +88,15 @@ class TestBehavior2(behavior_container.BehaviorContainer):
 	# This test behavior class calls contains a CppBehavior object and runs it
 
 	def __init__(self, interrupt_var):
-		# Append a new C++ Behavior instance to the sub behaviors
-		self.sub_behaviors.append(CppBehavior(interrupt_var))
+		self.sub_behavior = CppBehavior(interrupt_var)
 
 	def returnToRobotStandardState(self):
-		print "Behavior 2: Returning to standard state"
+		self.printMsg("Returning to standard state")
 
 	def executeCustomBehavior(self):
-		print "Behavior 2: Executing..."
-		self.sub_behaviors[0].executeBehavior()
-		print "Behavior 2: Execution completed."
+		self.printMsg("Executing...")
+		self.sub_behavior.executeBehavior()
+		self.printMsg("Execution completed.")
 
 
 
@@ -118,7 +117,9 @@ class TestApplication(application_container.ApplicationContainer):
 	def executeCustomBehavior(self):
 		print "Beginning execution"
 		behavior_1 = TestBehavior1(self.application_status)
+		behavior_1.behavior_name = "Test 1"
 		behavior_2 = TestBehavior2(self.application_status)
+		behavior_2.behavior_name = "Test 2"
 		print "Executing behavior 1"
 		behavior_1.executeCustomBehavior()
 		if (self.handleInterrupt() == 2):

@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+import rospy
+import actionlib
+
+from scitos_msgs.msg import MoveBasePathAction
+from scitos_msgs.msg import MoveBasePathGoal
+
 import behavior_container
 
 class MoveBasePathBehavior(behavior_container.BehaviorContainer):
@@ -28,6 +34,7 @@ class MoveBasePathBehavior(behavior_container.BehaviorContainer):
 		move_base_path_goal.path_tolerance = self.path_tolerance
 		move_base_path_goal.goal_position_tolerance = self.goal_position_tolerance
 		move_base_path_goal.goal_angle_tolerance = self.goal_angle_tolerance
-		print "Waiting for action '" + str(self.service_str) + "' to become available ..."
 		move_base_path_client = actionlib.SimpleActionClient(self.service_str, MoveBasePathAction)
+		self.printMsg("Running move_base_path action...")
 		move_base_path_result = self.runAction(move_base_path_client, move_base_path_goal)
+		self.printMsg("move_base_path completed.")

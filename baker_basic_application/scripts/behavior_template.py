@@ -20,3 +20,16 @@ class TemplateBehavior(behavior_container.BehaviorContainer):
 		# if self.handleInterrupt() == 2:
 		#     return
 		pass
+
+
+'''
+How to call the implemented behavior:
+
+xyz = behavior_template.TemplateBehavior(<interrupt_var>)
+xyz.behavior_name = <behavior_name>
+xyz.setParameters(<parameters>)
+
+...
+
+xyz.executeBehavior()
+'''

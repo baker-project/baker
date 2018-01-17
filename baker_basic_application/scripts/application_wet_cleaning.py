@@ -12,6 +12,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 	def executeCustomBehavior(self):
 		# Receive map, segment, get sequence, extract maps
 		self.map_handler = map_handling_behavior.MapHandlingBehavior(self.application_status)
+		self.map_handler.behavior_name = "Map handling"
 		self.map_handler.setParameters()
 		self.map_handler.executeBehavior()
         # Interruption opportunity
@@ -19,10 +20,11 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			return
 		# Move to segments, Compute exploration path, Travel through it, repeat
 		self.movement_handler = movement_handling_behavior.MovementHandlingBehavior(self.application_status)
+		self.movement_handler.behavior_name = "Movement handling"
 		self.movement_handler.setParameters(
-			map_handler.map_data,
-			map_handler.room_sequencing_data,
-			map_handler.room_extraction_data
+			self.map_handler.map_data,
+			self.map_handler.room_sequencing_data,
+			self.map_handler.room_extraction_data
 		)
 		self.movement_handler.executeBehavior()
 		# Interruption opportunity

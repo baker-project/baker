@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+import rospy
+import actionlib
+
+from ipa_building_msgs.msg import *
 
 import behavior_container
 
@@ -19,7 +23,7 @@ class RoomExplorationBehavior(behavior_container.BehaviorContainer):
 	def setParameters(self, map_data_, input_map_, map_resolution_, map_origin_, robot_radius_, coverage_radius_, field_of_view_, starting_position_, planning_mode_):
 		self.map_data = map_data_
 		self.input_map = input_map_
-		self.map_resolution = map_resolution
+		self.map_resolution = map_resolution_
 		self.map_origin = map_origin_
 		self.robot_radius = robot_radius_
 		self.coverage_radius = coverage_radius_
@@ -38,7 +42,8 @@ class RoomExplorationBehavior(behavior_container.BehaviorContainer):
 		exploration_goal.field_of_view = self.field_of_view
 		exploration_goal.starting_position = self.starting_position
 		exploration_goal.planning_mode = self.planning_mode
-		print "Waiting for action '" + self.service_str + ""' to become available ..."
 		exploration_client = actionlib.SimpleActionClient(self.service_str, RoomExplorationAction)
-		exploration_result = self.runAction(exploration_client, exploration_goal)
-		print "Exploration path received with length ", len(exploration_result.coverage_path_pose_stamped)
+		self.printMsg("Running room exploration action...")
+		self.exploration_result = self.runAction(exploration_client, exploration_goal)
+		self.printMsg("Exploration path received with length " + str(len(self.exploration_result.coverage_path_pose_stamped)))
+		self.printMsg("Room exploration action completed.")

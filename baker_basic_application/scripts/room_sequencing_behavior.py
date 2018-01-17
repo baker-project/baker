@@ -35,8 +35,7 @@ class RoomSequencingBehavior(behavior_container.BehaviorContainer):
 		room_sequence_goal.room_information_in_pixel = self.segmentation_data.room_information_in_pixel
 		room_sequence_goal.robot_start_coordinate.position = Point32(x=8., y=14.)  # actual current coordinates should be inserted
 		room_sequence_goal.robot_start_coordinate.orientation = Quaternion(x=0.,y=0.,z=0., w=0.)
-		print "Waiting for Action " + str(self.service_str) + " to become available..."
 		room_sequence_client = actionlib.SimpleActionClient(str(self.service_str), FindRoomSequenceWithCheckpointsAction)
-		print "Running segmentation action..."
+		self.printMsg("Running sequencing action...")
 		self.room_sequence_result = self.runAction(room_sequence_client, room_sequence_goal)
-		print "Room Sequencing completed"
+		self.printMsg("Room sequencing completed.")

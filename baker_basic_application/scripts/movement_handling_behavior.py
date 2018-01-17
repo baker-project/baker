@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 
+from geometry_msgs.msg import PoseStamped, Pose2D, Point32, Quaternion
+
 import behavior_container
 import move_base_behavior
 import room_exploration_behavior
 import move_base_path_behavior
+import move_base_wall_follow_behavior
 
 class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 
@@ -40,11 +43,15 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 	# Implemented Behavior
 	def executeCustomBehavior(self):
 		self.move_base_handler = move_base_behavior.MoveBaseBehavior(self.interrupt_var, self.move_base_service_str)
-		self.room_explorer = room_exploration_behavior.RoomExplorationBehavior(self.interrupt_var, self.room_exploring_service_str)
+		self.move_base_handler.behavior_name = "Move Base handling"
+		self.room_explorer = room_exploration_behavior.RoomExplorationBehavior(self.interrupt_var, self.room_exploration_service_str)
+		self.room_explorer.behavior_name = "Room exploration"
 		self.path_follower = move_base_path_behavior.MoveBasePathBehavior(self.interrupt_var, self.move_base_path_service_str)
+		self.path_follower.behavior_name = "Path following"
 		self.wall_follower = move_base_path_behavior.MoveBasePathBehavior(self.interrupt_var, self.move_base_wall_follow_service_str)
+		self.wall_follower.behavior_name = "Wall following"
 
-		for current_room_index in range(extraction_data):
+		for current_room_index in range(len(self.extraction_data)):
 
 			# Robot movement into next room
 			"""
@@ -54,7 +61,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 			header_frame_id = 'base_link'
 			"""			
 			self.move_base_handler.setParameters(
-				self.sequence_data.checkpoints[current_room_index].checkpoint_position_in_meter
+				self.sequence_data.checkpoints[current_room_index].checkpoint_position_in_meter, 
 				Quaternion(x=0., y=0., z=0., w=0.), 
 				'base_link'
 				)
@@ -79,7 +86,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 			"""
 			self.room_explorer.setParameters(
 				self.map_data,
-				self.extraction_data[current_room_index]
+				self.extraction_data[current_room_index],
 				self.map_data.map_resolution,
 				self.map_data.map_origin,
 				0.3,
@@ -103,7 +110,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 			goal_angle_tolerance = 1.57
 			"""
 			self.path_follower.setParameters(
-				exploration_result.coverage_path_pose_stamped,
+				self.room_explorer.exploration_result.coverage_path_pose_stamped,
 				0.2,
 				0.5,
 				1.57
@@ -123,7 +130,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 			goal_angle_tolerance = 3.14
 			"""
 			self.wall_follower.setParameters(
-				exploration_result.coverage_path_pose_stamped,
+				self.room_explorer.exploration_result.coverage_path_pose_stamped,
 				0.2,
 				0.4,
 				3.14

@@ -21,7 +21,7 @@ class MapSegmentExtractingBehavior(behavior_container.BehaviorContainer):
 
 	# Method for returning the segment of the map corresponding to the order number as cv_bridge
 	def getMapSegmentAsCVBridge(self, room_sequence_index_):
-		print "Creating room map for room %i" % room_sequence_index_
+		self.printMsg("Creating room map for room " + str(room_sequence_index_))
 		image_height, image_width = self.opencv_segmented_map.shape
 		tmp_map_opencv = np.zeros((image_width, image_height), np.uint8)
 		current_room_index = self.room_sequence_data.checkpoints[room_sequence_index_].room_indices[0]
@@ -29,7 +29,7 @@ class MapSegmentExtractingBehavior(behavior_container.BehaviorContainer):
 			for y in range(image_height):
 				if (self.opencv_segmented_map[y, x] == current_room_index + 1):
 					tmp_map_opencv[y, x] = 255
-					print "%i %i %i" % (self.opencv_segmented_map[y, x], x, y)			
+					# print "%i %i %i" % (self.opencv_segmented_map[y, x], x, y)			
 		return self.bridge.cv2_to_imgmsg(tmp_map_opencv, encoding = "mono8")
 
 	# Method for returning to the standard pose of the robot
@@ -41,6 +41,7 @@ class MapSegmentExtractingBehavior(behavior_container.BehaviorContainer):
 	# Implemented Behavior
 	def executeCustomBehavior(self):
 		self.extraction_result = []
-		print "Rooms to extract: %i" % len(self.room_sequence_data.checkpoints)
-		for current_room in range(0, len(self.room_sequence_data.checkpoints) - 1):
-			self.extraction_result.append(self.getMapSegmentAsCVBridge(current_room))
+		self.printMsg("Estimate rooms to extract: " + str(len(self.room_sequence_data.checkpoints)))
+		for current_room in range(1, len(self.room_sequence_data.checkpoints)):
+			if (self.room_sequence_data.checkpoints[current_room].room_indices != None):
+				self.extraction_result.append(self.getMapSegmentAsCVBridge(current_room))
