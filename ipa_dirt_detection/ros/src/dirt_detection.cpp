@@ -2965,14 +2965,14 @@ void DirtDetection::CreateCarpetClassiefierSVM(const std::vector<CarpetFeatures>
 
 	//determine optimal parameters and train SVM
 	//Comment: It's important to define all input parameters because otherwise "SVM.train_auto" might not work properly!!!
-	carpet_SVM.train_auto(	&data_mat, &res_mat, NULL, NULL, params, 10,
+	carpet_SVM.train_auto(	data_mat, res_mat, cv::Mat(), cv::Mat(), params, 10,
 							CvSVM::get_default_grid(CvSVM::C), //C_grid,
 							CvSVM::get_default_grid(CvSVM::GAMMA), //gamma_grid,
 							CvSVM::get_default_grid(CvSVM::P),
 							CvSVM::get_default_grid(CvSVM::NU), //nu_grid,
 							CvSVM::get_default_grid(CvSVM::COEF),
 							CvSVM::get_default_grid(CvSVM::DEGREE),
-							false );
+							false);
 
 	//get SVM parameter
 	params = carpet_SVM.get_params();
@@ -3001,8 +3001,7 @@ void DirtDetection::CreateCarpetClassiefierSVM(const std::vector<CarpetFeatures>
 
 	//determine optimal parameters and train SVM
 	//Comment: It's important to define all input parameters because otherwise "SVM.train_auto" might not work properly!!!
-	cv::Ptr<cv::ml::TrainData> train_data;
-	train_data->create(data_mat, cv::ml::ROW_SAMPLE, res_mat);
+	cv::Ptr<cv::ml::TrainData> train_data = cv::ml::TrainData::create(data_mat, cv::ml::ROW_SAMPLE, res_mat);
 	carpet_SVM->trainAuto(	train_data, 10,
 							cv::ml::SVM::getDefaultGrid(cv::ml::SVM::C), //C_grid,
 							cv::ml::SVM::getDefaultGrid(cv::ml::SVM::GAMMA), //gamma_grid,
@@ -3127,7 +3126,7 @@ void DirtDetection::SVMEvaluation(	std::vector<CarpetFeatures>& train_feat_vec, 
 				m.at<float>(0,0) = float(x/ScaleMean);
 				m.at<float>(0,1) = float(y/ScaleStd);
 #if CV_MAJOR_VERSION == 2
-				pcc = 700*carpet_SVM.predict (&m);
+				pcc = 700*carpet_SVM.predict(m);
 #else
 				pcc = 700*carpet_SVM->predict(m);
 #endif
@@ -3137,7 +3136,7 @@ void DirtDetection::SVMEvaluation(	std::vector<CarpetFeatures>& train_feat_vec, 
 				image.at<cv::Vec3b>(j,i) = cv::Vec3b(pcc, pcc, pcc);
 
 				//plot image pixel
-				image2.at<cv::Vec3b>(j, i)  = blue;
+				image2.at<cv::Vec3b>(j, i) = blue;
 
 			}
 	}
@@ -3176,7 +3175,7 @@ void DirtDetection::SVMEvaluation(	std::vector<CarpetFeatures>& train_feat_vec, 
 			m.at<float>(0,0) = float(test_feat_vec[i].mean/ScaleMean);
 			m.at<float>(0,1) = float(test_feat_vec[i].stdDev/ScaleStd);
 #if CV_MAJOR_VERSION == 2
-			float pcc = carpet_SVM.predict(&m);
+			float pcc = carpet_SVM.predict(m);
 #else
 			float pcc = carpet_SVM->predict(m);
 #endif
@@ -3303,7 +3302,7 @@ void DirtDetection::CreateCarpetClassiefierRTree(const std::vector<CarpetFeature
 								);
 
 	//train tree
-	carpet_Tree.train(&data_mat, CV_ROW_SAMPLE, &res_mat, NULL, NULL, &var_type, NULL, params);
+	carpet_Tree.train(data_mat, CV_ROW_SAMPLE, res_mat, cv::Mat(), cv::Mat(), var_type, cv::Mat(), params);
 #else
 	carpet_Tree->create();
 	carpet_Tree->setMaxDepth(10);
@@ -3316,7 +3315,8 @@ void DirtDetection::CreateCarpetClassiefierRTree(const std::vector<CarpetFeature
 	carpet_Tree->setTermCriteria(cv::TermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 100, 0.1f));
 
 	//train tree
-	carpet_Tree->train(data_mat, cv::ml::ROW_SAMPLE, res_mat);
+	cv::Ptr<cv::ml::TrainData> train_data = cv::ml::TrainData::create(data_mat, cv::ml::ROW_SAMPLE, res_mat, cv::Mat(), cv::Mat(), cv::Mat(), var_type);
+	carpet_Tree->train(train_data);
 #endif
 }
 
@@ -3358,7 +3358,7 @@ void DirtDetection::CreateCarpetClassiefierGBTree(const std::vector<CarpetFeatur
 	// alternatives are CV_VAR_CATEGORICAL or CV_VAR_ORDERED(=CV_VAR_NUMERICAL)
 	// that can be assigned on a per attribute basis
 	cv::Mat var_type = cv::Mat(NCarpetFeatures+1, 1, CV_8U );
-	var_type.setTo(Scalar(CV_VAR_NUMERICAL) ); // all inputs are numerical
+	var_type.setTo(cv::Scalar(CV_VAR_NUMERICAL) ); // all inputs are numerical
 
 	//transform to mat to cvmat
 	CvMat varT2 = var_type;
@@ -3492,7 +3492,7 @@ void DirtDetection::RTreeEvaluation(std::vector<CarpetFeatures>& train_feat_vec,
 				m.at<float>(0,0) = float(x/ScaleMean);
 				m.at<float>(0,1) = float(y/ScaleStd);
 #if CV_MAJOR_VERSION == 2
-				pcc = 700*carpet_Tree.predict(&m);
+				pcc = 700*carpet_Tree.predict(m);
 #else
 				pcc = 700*carpet_Tree->predict(m);
 #endif
@@ -3541,7 +3541,7 @@ void DirtDetection::RTreeEvaluation(std::vector<CarpetFeatures>& train_feat_vec,
 			m.at<float>(0,0) = float(test_feat_vec[i].mean/ScaleMean);
 			m.at<float>(0,1) = float(test_feat_vec[i].stdDev/ScaleStd);
 #if CV_MAJOR_VERSION == 2
-			float pcc = carpet_Tree.predict(&m);
+			float pcc = carpet_Tree.predict(m);
 #else
 			float pcc = carpet_Tree->predict(m);
 #endif
@@ -3702,7 +3702,7 @@ void DirtDetection::GBTreeEvaluation(std::vector<CarpetFeatures>& train_feat_vec
 	double kx1 = width/(1.2*maxmean);
 	double kx2 = height/(1.2*maxstd);
 
-	Vec3b green(0,255,0), blue (255,0,0), red (0,0,255);
+	cv::Vec3b green(0,255,0), blue (255,0,0), red (0,0,255);
 
 //	cv::Mat sampleMat = cv::Mat::zeros(1, 2, CV_32FC1);
 	cv::Mat sampleMat(1, 2, CV_32FC1);
@@ -3725,10 +3725,10 @@ void DirtDetection::GBTreeEvaluation(std::vector<CarpetFeatures>& train_feat_vec
 
 
 				//plot image pixel
-				image.at<Vec3b>(j,i) = Vec3b( pcc, pcc, pcc);
+				image.at<cv::Vec3b>(j,i) = cv::Vec3b( pcc, pcc, pcc);
 
 				//plot image pixel
-				image2.at<Vec3b>(j, i)  = blue;
+				image2.at<cv::Vec3b>(j, i)  = blue;
 
 			}
 	}
@@ -3919,7 +3919,7 @@ void DirtDetection::SVMExampleCode()
 	for (int i = 0; i < image.rows; ++i)
 		for (int j = 0; j < image.cols; ++j)
 		{
-			cv::Mat sampleMat = (Mat_<float>(1,2) << i,j);
+			cv::Mat sampleMat = (cv::Mat_<float>(1,2) << i,j);
 			float response = SVM.predict(sampleMat);
 
 //			if (response <= 1.5)
