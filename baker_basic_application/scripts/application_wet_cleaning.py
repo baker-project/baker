@@ -32,11 +32,15 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			return
 
 	# Abstract method that contains the procedure to be done immediately after the application is paused.
-	def pauseProcedure(self):
+	def prePauseProcedure(self):
 		print "Application: Application paused."
 		# save current data if necessary
 		# undo or check whether everything has been undone
 		self.returnToRobotStandardState()
+
+	# Abstract method that contains the procedure to be done immediately after the pause has ended
+	def postPauseProcedure(self):
+		print "Application: Application continued."
 
 	# Abstract method that contains the procedure to be done immediately after the application is cancelled.
 	def cancelProcedure(self):

@@ -18,16 +18,17 @@ class BehaviorContainer:
 	# Sleeping time in seconds
 	sleep_time = 1
 
+
+# Method for printing messages.
+	def printMsg(self, text_):
+		print "[Behavior '" + str(self.behavior_name) + "']: " + str(text_)
+
 	# Constructor
 	def __init__(self, interrupt_var_):
 		# Get the pointer to the interrupt variable of the application container
 		self.interrupt_var = interrupt_var_
 
-	# Method for printing messages.
-	def printMsg(self, text_):
-		print "[Behavior '" + str(self.behavior_name) + "']: " + str(text_)
-
-	# Method that returns the current interruption value [True/False]
+		# Method that returns the current interruption value [True/False]
 	def executionInterrupted(self):
 		return (self.interrupt_var[0] != 0)
 

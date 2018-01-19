@@ -14,10 +14,17 @@ from baker_basic_application.msg import InterruptActionResult
 
 class ApplicationContainer:
 	__metaclass__ = ABCMeta
+	# Arbitrary application name. Only used for debug.
+	application_name = "<Unnamed>"
 	# Status of the application. 0=OK, 1=Paused, 2=Cancelled
 	# using a vector because a single int number cannot be passed by reference, 
 	# but this apparently works to automatically get the changed number also into the client behaviors
 	application_status = [0]
+
+
+	# Method for printing messages.
+	def printMsg(self, text_):
+		print "[Application '" + str(self.application_name) + "']: " + str(text_)
 
 	# Constructor
 	def __init__(self, interrupt_action_name_):
@@ -35,17 +42,22 @@ class ApplicationContainer:
 
 	# Abstract method that contains the procedure to be done immediately after the application is paused.
 	@abstractmethod
-	def pauseProcedure(self):
-		print "Application: Application paused."
+	def prePauseProcedure(self):
+		self.printMsg("Application paused.")
 		# save current data if necessary
 		# undo or check whether everything has been undone
 		self.returnToRobotStandardState()
+
+	# Abstract method that contains the procedure to be done immediately after the pause has ended
+	@abstractmethod
+	def postPauseProcedure(self):
+		self.printMsg("Application continued.")
 
 
 	# Abstract method that contains the procedure to be done immediately after the application is cancelled.
 	@abstractmethod
 	def cancelProcedure(self):
-		print "Application: Application cancelled."
+		self.printMsg("Application cancelled.")
 		# save current data if necessary
 		# undo or check whether everything has been undone
 		self.returnToRobotStandardState()
@@ -59,11 +71,12 @@ class ApplicationContainer:
 		
 	# Handle interruption, if one occurs
 	def handleInterrupt(self):
-		print "Application: Current status is " + str(self.application_status[0])
+		self.printMsg("Current status is " + str(self.application_status[0]))
 		if (self.application_status[0] == 1):
-			self.pauseProcedure()
+			self.prePauseProcedure()
 			while (self.application_status[0] == 1):
 				pass
+			self.postPauseProcedure()
 		elif (self.application_status[0] == 2):
 			self.cancelProcedure()
 		return self.application_status[0]
@@ -79,8 +92,8 @@ class ApplicationContainer:
 
 	# Call this method to execute the application.
 	def executeApplication(self):
-		print "Application: Starting"
+		self.printMsg("Started.")
 		if self.handleInterrupt() != 0:
 			pass
 		self.executeCustomBehavior()
-		print "Application: Completed with code " + str(self.application_status[0])
+		self.printMsg("Completed with code " + str(self.application_status[0]))

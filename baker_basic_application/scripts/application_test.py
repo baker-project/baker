@@ -105,8 +105,11 @@ class TestApplication(application_container.ApplicationContainer):
 	# This application first runs an TestBehavior1 instance, then an TestBehavior2 instance.
 	# The TestBehavor2 instance runs a contained CppBehavior instance.
 
-	def pauseProcedure(self):
+	def prePauseProcedure(self):
 		print "Application paused"
+
+	def postPauseProcedure(self):
+		print "Application: Application continued."
 
 	def cancelProcedure(self):
 		print "Application cancelled"

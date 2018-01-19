@@ -83,6 +83,19 @@ include_directories(
 	${catkin_INCLUDE_DIRS}
 )
 
+# map management client
+add_executable(map_management_client
+	src/map_management_client.cpp
+)
+target_link_libraries(map_management_client
+	${catkin_LIBRARIES} 
+	${OpenCV_LIBS}
+)
+add_dependencies(map_management_client 
+	${catkin_EXPORTED_TARGETS}
+#	${${PROJECT_NAME}_EXPORTED_TARGETS}
+)
+
 #############
 ## Install ##
 #############
