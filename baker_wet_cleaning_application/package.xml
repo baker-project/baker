@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-	<name>baker_basic_application</name>
+	<name>baker_wet_cleaning_application</name>
 	
 	<description>Contains abstract classes for application implementation.</description>
 	

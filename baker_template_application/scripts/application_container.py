@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 
 import roslib
-roslib.load_manifest('baker_basic_application')
+roslib.load_manifest('baker_wet_cleaning_application')
 
 import actionlib
 import rospy
 import sys
 from abc import ABCMeta, abstractmethod
 
-from baker_basic_application.msg import InterruptActionAction
-from baker_basic_application.msg import InterruptActionGoal
-from baker_basic_application.msg import InterruptActionResult
+from baker_wet_cleaning_application.msg import InterruptActionAction
+from baker_wet_cleaning_application.msg import InterruptActionGoal
+from baker_wet_cleaning_application.msg import InterruptActionResult
 
 class ApplicationContainer:
 	__metaclass__ = ABCMeta

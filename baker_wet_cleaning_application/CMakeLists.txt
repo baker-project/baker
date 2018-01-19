@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(baker_basic_application)
+project(baker_wet_cleaning_application)
 
 set(catkin_RUN_PACKAGES
 	actionlib

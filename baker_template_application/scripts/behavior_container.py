@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import roslib
-roslib.load_manifest('baker_basic_application')
+roslib.load_manifest('baker_wet_cleaning_application')
 import actionlib
 import rospy
 import sys

@@ -8,7 +8,7 @@ import threading
 from ipa_building_msgs.msg import *
 
 import roslib
-roslib.load_manifest('baker_basic_application')
+roslib.load_manifest('baker_wet_cleaning_application')
 import actionlib
 import tf
 import numpy as np

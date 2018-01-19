@@ -5,7 +5,7 @@
 	<include file="$(find scitos_mira)/launch/scitos_mira.launch"/>
 
 	<!-- map management system -->
-	<node ns="baker" pkg="baker_basic_application" type="map_management_client" name="map_management_client" output="screen" respawn="true" respawn_delay="2">
+	<node ns="baker" pkg="baker_wet_cleaning_application" type="map_management_client" name="map_management_client" output="screen" respawn="true" respawn_delay="2">
 		<remap from="map" to="/map"/>
 	</node>
 
