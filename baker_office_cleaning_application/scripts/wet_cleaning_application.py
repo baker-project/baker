@@ -23,7 +23,6 @@ from scitos_msgs.msg import MoveBasePathAction
 from scitos_msgs.msg import MoveBasePathGoal
 from std_msgs.msg import String
 from cv_bridge import CvBridge, CvBridgeError
-
 #import simple_script_server
 #sss = simple_script_server.simple_script_server()
 
@@ -34,7 +33,6 @@ class TestClass():
 #class SeqControl(simple_script_server.script):
 class SeqControl():
 	def explore(self):
-		rospy.init_node('exploration_node')
 
 		# receive the navigation map in sensor_msgs/Image format
 		print "Waiting for service '/baker/get_map_image' to become available ..."
@@ -49,7 +47,7 @@ class SeqControl():
 
 		# compute map division into rooms (ipa_room_segmentation)
 		segmentation_goal = MapSegmentationGoal()
-		segmentation_goal.input_map = self.map_data.map  # todo: use the current room map
+		segmentation_goal.input_map = self.map_data.map  
 		segmentation_goal.map_resolution = self.map_data.map_resolution
 		segmentation_goal.map_origin = self.map_data.map_origin
 		segmentation_goal.return_format_in_meter = False
@@ -180,6 +178,7 @@ class SeqControl():
 
 if __name__ == '__main__':
 	try:
+		rospy.init_node('exploration_node')
 		command = 'script_1 = TestClass()'
 		exec(command)
 		script_1.explore()
