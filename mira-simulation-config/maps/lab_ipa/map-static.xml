@@ -4,8 +4,8 @@
 		<Image>lab_ipa.png</Image>
 		<CellSize>0.05</CellSize>
 		<Offset>
-			<X>0</X>
-			<Y>0</Y>
+			<X>384</X>
+			<Y>384</Y>
 		</Offset>
 	</Map>
 </root>

@@ -77,6 +77,14 @@ Reset bumber
 In miracenter -> window -> showview: open a DriveView, click "Reset Motorstop"
 
 
+Config
+------
+Bei channels: 
+- Laser reinziehen
+- maps static reinziehen
+
+Visulization control > '+' > Rigid model
+
 ##############################################################################
 
 4. Commands:
