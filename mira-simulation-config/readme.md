@@ -1,4 +1,4 @@
-Start Miracenter:
+##Start Miracenter:
 miracenter application.xml -p1234
 miracenter ~/git/care-o-bot-indigo/src/baker/mira-simulation-config/application.xml -p1234
 
@@ -8,7 +8,12 @@ mirainspect channel echo /navigation/PilotEvent -k127.0.0.1:1234
 in MiraCenter - Channels View -> show type of messages
 
 
+## Run remaining software
+roslaunch baker_office_cleaning_application office_cleaning_application.launch
+OR
+roslaunch scitos_mira scitos_mira.launch
 
+rosrun baker_office_cleaning_application test_room_exploration.py
 
 
 ## Install basic MIRA on a separate device

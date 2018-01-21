@@ -1,5 +1,4 @@
 <root>
-	<!--var MCFFile="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/ipa_biolab/map.mcf"/-->
 	<var MCFFile="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/lab_ipa/map.mcf"/>
 	<var useDocking="false"/>
 

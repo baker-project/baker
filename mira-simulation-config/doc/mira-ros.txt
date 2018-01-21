@@ -4,6 +4,8 @@ This file describes the usage of the Mira simulator together with a ROS interfac
 
 1. Start MIRA Simulator (the command assumes that the AVH folder is located within the current working directory):
 
+miracenter ~/git/care-o-bot-indigo/src/baker/mira-simulation-config/application.xml -p1234
+
 # simple map
 miracenter SCITOSSimulator:etc/SCITOS-application.xml -v MCFFile=~/Downloads/simple_map/map.mcf,robot=SCITOS-G5,useDocking=false -p1234
            -> configuration file                         -> map file                            -> robot type                    -> port number
