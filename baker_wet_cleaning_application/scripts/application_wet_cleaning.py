@@ -15,7 +15,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.map_handler.behavior_name = "Map handling"
 		self.map_handler.setParameters()
 		self.map_handler.executeBehavior()
-        # Interruption opportunity
+		# Interruption opportunity
 		if self.handleInterrupt() == 2:
 			return
 		# Move to segments, Compute exploration path, Travel through it, repeat
