@@ -1,0 +1,4 @@
+int32 new_interrupt_state				# The new interrupt state which is to be set
+---
+int32 interrupt_state					# The current interruption state of the server
+---
