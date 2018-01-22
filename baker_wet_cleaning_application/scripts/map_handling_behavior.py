@@ -56,7 +56,7 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 			)
 		self.map_segmenter.executeCustomBehavior()
 		self.segmentation_data = self.map_segmenter.segmentation_result
-
+		
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
 			return
@@ -74,7 +74,15 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
 			return
+			
+		self.printMsg("self.room_sequencing_data.checkpoints=")
+		print self.room_sequencing_data.checkpoints
+		self.printMsgs("self.segmentation_data.room_information_in_pixel=")
+		print self.segmentation_data.room_information_in_pixel
+		self.printMsgs("self.segmentation_data.room_information_in_meter=")
+		print self.segmentation_data.room_information_in_meter
 		
+		"""
 		# Room map extraction and conversion
 		self.room_extractor = map_segment_extracting_behavior.MapSegmentExtractingBehavior(self.interrupt_var)
 		self.room_extractor.behavior_name = "Room extraction"
@@ -84,3 +92,4 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 			)
 		self.room_extractor.executeCustomBehavior()
 		self.room_extraction_data = self.room_extractor.extraction_result
+		"""

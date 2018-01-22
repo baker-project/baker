@@ -20,28 +20,28 @@ class RoomExplorationBehavior(behavior_container.BehaviorContainer):
 		pass
 
 	# Method for setting parameters for the behavior
-	def setParameters(self, map_data_, input_map_, map_resolution_, map_origin_, robot_radius_, coverage_radius_, field_of_view_, starting_position_, planning_mode_):
-		self.map_data = map_data_
-		self.input_map = input_map_
-		self.map_resolution = map_resolution_
-		self.map_origin = map_origin_
-		self.robot_radius = robot_radius_
-		self.coverage_radius = coverage_radius_
-		self.field_of_view = field_of_view_
-		self.starting_position = starting_position_
-		self.planning_mode = planning_mode_
+	def setParameters(self, map_data, input_map, map_resolution, map_origin, robot_radius, coverage_radius, field_of_view, starting_position, planning_mode):
+		self.map_data_ = map_data
+		self.input_map_ = input_map
+		self.map_resolution_ = map_resolution
+		self.map_origin_ = map_origin
+		self.robot_radius_ = robot_radius
+		self.coverage_radius_ = coverage_radius
+		self.field_of_view_ = field_of_view
+		self.starting_position_ = starting_position
+		self.planning_mode_ = planning_mode
 
 	# Implemented Behavior
 	def executeCustomBehavior(self):
 		exploration_goal = RoomExplorationGoal()
-		exploration_goal.input_map = self.input_map
-		exploration_goal.map_resolution = self.map_resolution
-		exploration_goal.map_origin = self.map_origin
-		exploration_goal.robot_radius = self.robot_radius
-		exploration_goal.coverage_radius = self.coverage_radius
-		exploration_goal.field_of_view = self.field_of_view
-		exploration_goal.starting_position = self.starting_position
-		exploration_goal.planning_mode = self.planning_mode
+		exploration_goal.input_map = self.input_map_
+		exploration_goal.map_resolution = self.map_resolution_
+		exploration_goal.map_origin = self.map_origin_
+		exploration_goal.robot_radius = self.robot_radius_
+		exploration_goal.coverage_radius = self.coverage_radius_
+		exploration_goal.field_of_view = self.field_of_view_
+		exploration_goal.starting_position = self.starting_position_
+		exploration_goal.planning_mode = self.planning_mode_
 		exploration_client = actionlib.SimpleActionClient(self.service_str, RoomExplorationAction)
 		self.printMsg("Running room exploration action...")
 		self.exploration_result = self.runAction(exploration_client, exploration_goal)

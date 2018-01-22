@@ -63,7 +63,7 @@ protected:
 		{
 			for (unsigned int u = 0; u < map_msg_data->info.width; u++, i++)
 			{
-				if (map_msg_data->data[i] != 0)
+				if (map_msg_data->data[i] > 100*0.39)		// accessible areas are <=100 in MIRA
 					map_.at<unsigned char>(v, u) = 0;
 			}
 		}

@@ -57,6 +57,9 @@ class RoomSequencingBehavior(behavior_container.BehaviorContainer):
 
 	# Implemented Behavior
 	def executeCustomBehavior(self):
+		self.printMsg("self.segmentation_data.room_information_in_pixel=")
+		print self.segmentation_data.room_information_in_pixel
+	
 		room_sequence_goal = FindRoomSequenceWithCheckpointsGoal()
 		room_sequence_goal.input_map = self.map_data.map
 		room_sequence_goal.map_resolution = self.map_data.map_resolution
