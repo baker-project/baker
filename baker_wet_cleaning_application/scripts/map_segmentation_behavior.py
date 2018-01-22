@@ -32,7 +32,7 @@ class MapSegmentationBehavior(behavior_container.BehaviorContainer):
 		# rospy.init_node('exploration_node') idk why this is here...
 		segmentation_goal.map_resolution = self.map_data.map_resolution
 		segmentation_goal.map_origin = self.map_data.map_origin
-		segmentation_goal.return_format_in_meter = False
+		segmentation_goal.return_format_in_meter = True
 		segmentation_goal.return_format_in_pixel = True
 		segmentation_goal.robot_radius = 0.3
 		segmentation_client = actionlib.SimpleActionClient(str(self.service_str), MapSegmentationAction)

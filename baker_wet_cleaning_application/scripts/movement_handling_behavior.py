@@ -38,7 +38,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 		self.sequence_data_ = sequence_data
 		# Get a opencv representation of the segmented image
 		self.bridge = CvBridge()
-		self.opencv_segmented_map = self.bridge.imgmsg_to_cv2(self.segmentation_data.segmented_map, desired_encoding = "passthrough")
+		self.opencv_segmented_map = self.bridge.imgmsg_to_cv2(self.segmentation_data_.segmented_map, desired_encoding = "passthrough")
 
 	# Method for returning to the standard pose of the robot
 	def returnToRobotStandardState(self):
@@ -67,10 +67,12 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				goal_orientation = Quaternion(x=0., y=0., z=0., w=0.)
 				header_frame_id = 'base_link'
 				"""
+				self.printMsg("current_room_index=")
+				print current_room_index
 				self.printMsg(str(["Moving to room_center in meter=", self.segmentation_data_.room_information_in_meter[current_room_index].room_center]))
 				self.move_base_handler.setParameters(
 					self.segmentation_data_.room_information_in_meter[current_room_index].room_center,
-					Quaternion(x=0., y=0., z=0., w=0.),	// todo: normalized quaternion
+					Quaternion(x=0., y=0., z=0., w=0.),	# todo: normalized quaternion
 					'base_link'
 					)
 				self.move_base_handler.executeBehavior()
@@ -114,13 +116,13 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				For path follow movement:
 				target_poses = exploration_result.coverage_path_pose_stamped
 				path_tolerance = 0.2
-				goal_position_tolerance = 0.25
+				goal_position_tolerance = 0.5
 				goal_angle_tolerance = 1.57
 				"""
 				self.path_follower.setParameters(
 					self.room_explorer.exploration_result.coverage_path_pose_stamped,
 					0.2,
-					0.25,
+					0.5,
 					1.57
 				)
 				self.path_follower.executeBehavior()

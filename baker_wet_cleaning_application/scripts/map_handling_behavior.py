@@ -77,9 +77,9 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 			
 		self.printMsg("self.room_sequencing_data.checkpoints=")
 		print self.room_sequencing_data.checkpoints
-		self.printMsgs("self.segmentation_data.room_information_in_pixel=")
+		self.printMsg("self.segmentation_data.room_information_in_pixel=")
 		print self.segmentation_data.room_information_in_pixel
-		self.printMsgs("self.segmentation_data.room_information_in_meter=")
+		self.printMsg("self.segmentation_data.room_information_in_meter=")
 		print self.segmentation_data.room_information_in_meter
 		
 		"""
