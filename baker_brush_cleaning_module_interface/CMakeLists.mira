@@ -2,7 +2,9 @@ message(STATUS "Detecting MIRA root directory")
 
 # Examines each path in MIRA_PATH in order to find the MIRA root directory, which
 # is identified by the file "make/Insource.make"
-SET(ENV{MIRA_PATH} "$ENV{MIRA_PATH}:/opt/mira:${CMAKE_SOURCE_DIR}")
+message("MIRA_PATH=$ENV{MIRA_PATH}")
+#SET(ENV{MIRA_PATH} "$ENV{MIRA_PATH}:${CMAKE_SOURCE_DIR}")
+#message("MIRA_PATH=$ENV{MIRA_PATH}")
 
 SET(FORCE_USE_QT4 1)
 
@@ -78,6 +80,3 @@ LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib"
 IF("${isSystemDir}" STREQUAL "-1")
    SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 ENDIF("${isSystemDir}" STREQUAL "-1")
-
-
-

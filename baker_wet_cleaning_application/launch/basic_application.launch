@@ -7,6 +7,10 @@
 	<include file="$(find scitos_mira)/launch/scitos_mira.launch">
 		<arg name="scitos_node_args" value="$(arg scitos_node_args)"/>
 	</include>
+	
+	<!-- include ROS_MIRA communication module to brush cleaner -->
+	<include file="$(find baker_brush_cleaning_module_interface)/launch/brush_cleaning_module_interface.launch"/>
+	
 
 	<!-- map management system -->
 	<node ns="baker" pkg="baker_wet_cleaning_application" type="map_management_client" name="map_management_client" output="screen" respawn="true" respawn_delay="2">

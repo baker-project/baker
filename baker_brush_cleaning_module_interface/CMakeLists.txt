@@ -4,6 +4,7 @@ project(baker_brush_cleaning_module_interface)
 set(catkin_RUN_PACKAGES
 	baker_msgs
 	roscpp
+	std_srvs
 )
 
 set(catkin_BUILD_PACKAGES

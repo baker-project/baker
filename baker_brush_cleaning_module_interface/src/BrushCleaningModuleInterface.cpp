@@ -40,9 +40,12 @@
  * @file BrushCleaningModuleInterface.C
  *    Interface for BakeR brush cleaning module
  *
- * @author Christof Schröter
+ * @author Christof Schroeter
  * @date   2018/01/23
  */
+
+#include <ros/ros.h>
+#include <std_srvs/Trigger.h>
 
 #include <fw/Unit.h>
 #include <fw/ServiceProperty.h>
@@ -66,6 +69,7 @@ MIRA_OBJECT(BrushCleaningModuleInterface)
 public:
 
 	BrushCleaningModuleInterface();
+	BrushCleaningModuleInterface(ros::NodeHandle nh);
 
 	template<typename Reflector>
 	void reflect(Reflector& r)
@@ -73,7 +77,7 @@ public:
 		Unit::reflect(r);
 
 		r.property("ModuleService", mModule,
-		           "Used module service", "BakerCleaningModule");
+		           "Used module service", "BakeRCleaningModule");
 
 		// TODO: reflect all parameters (members and properties) that specify the persistent state of the unit
 		//r.property("Param1", mParam1, "First parameter of this unit with default value", 123.4f);
@@ -85,6 +89,13 @@ protected:
 	virtual void initialize();
 
 	virtual void process(const Timer& timer);
+
+	bool startBrushCleanerCallback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
+	bool stopBrushCleanerCallback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
+
+	ros::NodeHandle nh_;
+	ros::ServiceServer start_cleaning_srv_;		/// server for activating the brush cleaning mechanism
+	ros::ServiceServer stop_cleaning_srv_;		/// server for deactivating the brush cleaning mechanism
 
 private:
 
@@ -104,44 +115,137 @@ BrushCleaningModuleInterface::BrushCleaningModuleInterface() : Unit(Duration::mi
 	// TODO: further initialization of members, etc.
 }
 
+BrushCleaningModuleInterface::BrushCleaningModuleInterface(ros::NodeHandle nh) : Unit(Duration::milliseconds(100)), nh_(nh)
+{
+	// TODO: further initialization of members, etc.
+}
+
 void BrushCleaningModuleInterface::initialize()
 {
-	// TODO: call after instantiation
+	mModule = "BakeRCleaningModule";
 	subscribe<BakeRCleaningModule::ModuleStatus>("Status", &BrushCleaningModuleInterface::onStatusChanged);
 
+	std::cout << "mModule='" << (std::string)mModule << "'      resolveName(mModule)=" << resolveName(mModule) << std::endl;
 	bootup(MakeString() << "Waiting for service " << resolveName(mModule));
-	waitForService(mModule);
+	bool service_available = waitForService(mModule, mira::Duration::seconds(10));
+	if (service_available == false)
+		std::cout << "mModule='" << (std::string)mModule << "'  resolveName(mModule)=" << resolveName(mModule) << " is not available." << std::endl;
+
+	start_cleaning_srv_ = nh_.advertiseService("start_brush_cleaner", &BrushCleaningModuleInterface::startBrushCleanerCallback, this);
+	stop_cleaning_srv_ = nh_.advertiseService("stop_brush_cleaner", &BrushCleaningModuleInterface::stopBrushCleanerCallback, this);
+
+	std::cout << "BrushCleaningModuleInterface initialized." << std::endl;
 }
 
 void BrushCleaningModuleInterface::process(const Timer& timer)
 {
-	// TODO: call start() after initialize()
-
 	// TODO: this method is called periodically with the specified cycle time, so you can perform your computation here.
 }
 
-void BrushCleaningModuleInterface::onStatusChanged(ChannelRead<BakeRCleaningModule::ModuleStatus> status)
+void BrushCleaningModuleInterface::onStatusChanged(mira::ChannelRead<BakeRCleaningModule::ModuleStatus> status)
 {
-	std::cout << "received module status" << std::endl;
+	std::cout << "received module status: connected=" << status->connected << std::endl;
 	// TODO: encode to ROS message and publish
 }
 
-void BrushCleaningModuleInterface::startCleaning()
+
+bool BrushCleaningModuleInterface::startBrushCleanerCallback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
 {
-	// TODO (vor initialize()): call setProperty("ModuleService", "BakeRCleaningModule")
-	callService<void>(mModule, "startCleaning").get();
+	std::cout << "BrushCleaningModuleInterface::startBrushCleanerCallback: Starting cleaner." << std::endl;
+	try
+	{
+		callService<void>(mModule, "startCleaning").get();
+	}
+	catch (XRuntime e)
+	{
+		res.message = e.what();
+		res.success = false;
+		return false;
+	}
+
+	res.success = true;
+	return true;
 }
 
-/*
- * BrushCleaningModuleInterface ifc;
- * ifc.checkin("/modules/brushcleaning"", "ROSInterface");
- * ifc.setProperty("ModuleService", "BakerCleaningModule");
- * ifc.addImmediateHandlerFunction(boost::bind(&BrushCleaningModuleInterface::initialize, this));
- * ifc.start();
- *
- */
+bool BrushCleaningModuleInterface::stopBrushCleanerCallback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
+{
+	std::cout << "BrushCleaningModuleInterface::stopBrushCleanerCallback: Stopping cleaner." << std::endl;
+	try
+	{
+		callService<void>(mModule, "stopCleaning").get();
+	}
+	catch (XRuntime e)
+	{
+		res.message = e.what();
+		res.success = false;
+		return false;
+	}
+
+	res.success = true;
+	return true;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
+
 
 }}
 
-MIRA_CLASS_SERIALIZATION(mira::actors::BrushCleaningModuleInterface, mira::Unit );
+MIRA_CLASS_SERIALIZATION(mira::actors::BrushCleaningModuleInterface, mira::Unit);
+
+
+int main(int argc, char **argv)
+{
+	ros::init(argc, argv, "baker_cleaning_module_interface");
+	ros::NodeHandle nh;
+
+	std::string  config_file, port_number, scitos_modules;
+	std::vector<std::string> args;
+
+	if (argc < 2)
+	{
+		// no arguments, so use ROS parameters.
+		if (ros::param::get("~config_file", config_file))
+		{
+			args.push_back(std::string("-c"));
+			args.push_back(config_file);
+		}
+		else
+		{
+			ROS_ERROR("Can't read parameter 'config_file'");
+			return 1;
+		}
+		if (ros::param::get("~server_port", port_number))
+		{
+			args.push_back(std::string("-p"));
+			args.push_back(port_number);
+			ROS_INFO_STREAM("Loading with MIRA multiprocess communication support on port " << port_number);
+		}
+		else
+		{
+			ROS_INFO("Not loading with MIRA multiprocess support.");
+		}
+	}
+	else
+	{
+		for (int i = 1; i < argc; i++)
+			args.push_back(std::string(argv[i]));
+	}
+
+	mira::Framework framework(args, true);
+	ros::Duration(2).sleep();
+
+	mira::actors::BrushCleaningModuleInterface ifc(nh);
+	ifc.checkin("/modules/brushcleaning", "ROSInterface");
+	//ifc.setProperty("ModuleService", "BakerCleaningModule");
+	//ifc.addImmediateHandlerFunction(boost::bind(&BrushCleaningModuleInterface::initialize, &ifc));
+	ifc.start();
+
+	std::cout << "BrushCleaningModuleInterface started." << std::endl;
+
+	while (ros::ok())
+		ros::spinOnce();
+
+	ifc.stop();
+
+	return 0;
+}

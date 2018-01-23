@@ -9,10 +9,10 @@
 
 	<maintainer email="richard.bormann@ipa.fraunhofer.de">Richard Bormann</maintainer>
 	<author email="richard.bormann@ipa.fraunhofer.de">Richard Bormann</author>
-	<author email="">Christof Schröter</author>
 
 	<buildtool_depend>catkin</buildtool_depend>
 	<depend>baker_msgs</depend>
 	<depend>roscpp</depend>
+	<depend>std_srvs</depend>
 
 </package>
