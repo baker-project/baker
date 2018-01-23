@@ -12,6 +12,7 @@
 	<author email="">Christof Schröter</author>
 
 	<buildtool_depend>catkin</buildtool_depend>
+	<depend>baker_msgs</depend>
 	<depend>roscpp</depend>
 
 </package>
