@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="2">
+	<name>baker_brush_cleaning_module_interface</name>
+	
+	<description>Contains ROS-MIRA interfaces for the brush (wet) cleaning module.</description>
+	
+	<version>0.0.0</version>
+	<license>LGPL for academic and non-commercial use; for commercial use, please contact Fraunhofer IPA, Nobelstr. 12, 70569 Stuttgart, Germany</license>
+
+	<maintainer email="richard.bormann@ipa.fraunhofer.de">Richard Bormann</maintainer>
+	<author email="richard.bormann@ipa.fraunhofer.de">Richard Bormann</author>
+	<author email="">Christof Schröter</author>
+
+	<buildtool_depend>catkin</buildtool_depend>
+	<depend>baker_msgs</depend>
+	<depend>roscpp</depend>
+
+</package>
