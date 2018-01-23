@@ -15,6 +15,9 @@
 
 	<!-- include room exploration -->
 	<include file="$(find ipa_room_exploration)/ros/launch/room_exploration_action_server.launch"/>
+	
+	<!-- include coverage monitor -->
+	<include file="$(find ipa_room_exploration)/ros/launch/coverage_monitor_server.launch"/>
 
 	<!-- include room segmentation -->
 	<include file="$(find ipa_room_segmentation)/ros/launch/room_segmentation_action_server.launch"/>

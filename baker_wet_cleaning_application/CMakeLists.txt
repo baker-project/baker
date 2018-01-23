@@ -21,7 +21,6 @@ set(catkin_RUN_PACKAGES
 
 set(catkin_BUILD_PACKAGES
 	${catkin_RUN_PACKAGES}
-	cmake_modules
 )
 
 ## Add support for C++11, supported in ROS Kinetic and newer
