@@ -1,22 +1,10 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(baker_wet_cleaning_application)
+project(baker_brush_cleaning_module_interface)
 
 set(catkin_RUN_PACKAGES
-	actionlib
-	actionlib_msgs
 	baker_msgs
-	cv_bridge
-	eigen_conversions
-	geometry_msgs
-	ipa_building_msgs
-	move_base_msgs
-	nav_msgs
 	roscpp
-	rospy
-	scitos_msgs
-	sensor_msgs
-	std_msgs
-	tf
+	std_srvs
 )
 
 set(catkin_BUILD_PACKAGES
@@ -33,25 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
 	${catkin_BUILD_PACKAGES}
 )
 
-find_package(OpenCV REQUIRED)
-
-#######################################
-## Declare ROS messages and services ##
-#######################################
-
-## Add the Files for actionlib
-add_action_files(
-	DIRECTORY action
-	FILES 
-		InterruptAction.action
-)
-
-## Generate added messages and services with any dependencies listed here
-generate_messages(
-	DEPENDENCIES
-		actionlib_msgs
-		std_msgs
-)
+#find_package(OpenCV REQUIRED)
 
 ###################################
 ## catkin specific configuration ##
@@ -68,7 +38,7 @@ LIBRARIES
 CATKIN_DEPENDS
 	${catkin_RUN_PACKAGES}
 DEPENDS
-	OpenCV
+	#OpenCV
 )
 
 ###########
@@ -79,18 +49,23 @@ DEPENDS
 ## Your package locations should be listed before other locations
 # include_directories(include)
 include_directories(
+	include
 	${catkin_INCLUDE_DIRS}
 )
 
-# map management client
-add_executable(map_management_client
-	src/map_management_client.cpp
+# include cmake file for MIRA
+include(CMakeLists.mira)
+
+
+# brush_cleaning_module_interface
+add_executable(brush_cleaning_module_interface
+	src/BrushCleaningModuleInterface.cpp
 )
-target_link_libraries(map_management_client
+target_link_libraries(brush_cleaning_module_interface
 	${catkin_LIBRARIES} 
-	${OpenCV_LIBS}
+	#${OpenCV_LIBS}
 )
-add_dependencies(map_management_client 
+add_dependencies(brush_cleaning_module_interface
 	${catkin_EXPORTED_TARGETS}
 #	${${PROJECT_NAME}_EXPORTED_TARGETS}
 )
@@ -110,22 +85,34 @@ add_dependencies(map_management_client
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node
-#	 ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#	 LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#	 RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+install(TARGETS brush_cleaning_module_interface
+	ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+	LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+	RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Mark cpp header files for installation
-# install(DIRECTORY include/${PROJECT_NAME}/
-#	 DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#	 FILES_MATCHING PATTERN "*.h"
-#	 PATTERN ".svn" EXCLUDE
-# )
+install(DIRECTORY include/${PROJECT_NAME}/
+	DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+	FILES_MATCHING PATTERN "*.h"
+	PATTERN ".svn" EXCLUDE
+)
 
-## Mark other files for installation (e.g. launch and bag files, etc.)
-# install(FILES
-#	 # myfile1
-#	 # myfile2
-#	 DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
+## Mark launch files for installation
+install(DIRECTORY launch/
+	DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+	FILES_MATCHING PATTERN "*.launch"
+)
+
+## Mark resources files for installation
+install(DIRECTORY etc/
+	DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/etc
+	FILES_MATCHING PATTERN "*"
+)
+
+##########
+## MIRA ##
+##########
+
+# for mira support (auto linking, enabling C++0x support,...)
+catkin_add_mira(brush_cleaning_module_interface)

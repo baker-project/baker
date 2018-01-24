@@ -8,6 +8,21 @@ from ipa_building_msgs.msg import *
 
 import behavior_container
 
+
+###############''WORKAROUND FOR TRANSFORMLISTENER ISSUE####################
+import threading
+import tf
+_tl=None
+_tl_creation_lock=threading.Lock()
+
+def get_transform_listener():
+	global _tl
+	with _tl_creation_lock:
+		if _tl==None:
+			_tl=tf.TransformListener(True, rospy.Duration(40.0))
+		return _tl
+###########################################################################
+
 class RoomSequencingBehavior(behavior_container.BehaviorContainer):
 
 	def __init__(self, interrupt_var_, service_str_):
@@ -25,15 +40,34 @@ class RoomSequencingBehavior(behavior_container.BehaviorContainer):
 		# nothing to be undone
 		pass
 
+	# retrieves the current robot pose
+	def currentRobotPose(self):
+		# read out current robot pose
+		try:
+			listener = get_transform_listener()
+			t = rospy.Time(0)
+			listener.waitForTransform('/map', '/base_link', t, rospy.Duration(10))
+			(robot_pose_translation, robot_pose_rotation) = listener.lookupTransform('/map', '/base_link', t)
+		except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException), e:
+			print "Could not lookup robot pose: %s" % e
+			return (None, None, None)
+		robot_pose_rotation_euler = tf.transformations.euler_from_quaternion(robot_pose_rotation, 'rzyx')  # yields yaw, pitch, roll
+		
+		return (robot_pose_translation, robot_pose_rotation, robot_pose_rotation_euler)
+
 	# Implemented Behavior
 	def executeCustomBehavior(self):
+		self.printMsg("self.segmentation_data.room_information_in_pixel=")
+		print self.segmentation_data.room_information_in_pixel
+	
 		room_sequence_goal = FindRoomSequenceWithCheckpointsGoal()
 		room_sequence_goal.input_map = self.map_data.map
 		room_sequence_goal.map_resolution = self.map_data.map_resolution
 		room_sequence_goal.map_origin = self.map_data.map_origin
 		room_sequence_goal.robot_radius = 0.3
 		room_sequence_goal.room_information_in_pixel = self.segmentation_data.room_information_in_pixel
-		room_sequence_goal.robot_start_coordinate.position = Point32(x=8., y=14.)  # actual current coordinates should be inserted
+		(robot_pose_translation, robot_pose_rotation, robot_pose_rotation_euler) = self.currentRobotPose()
+		room_sequence_goal.robot_start_coordinate.position = Point32(x=robot_pose_translation[0], y=robot_pose_translation[1])  # actual current coordinates should be inserted
 		room_sequence_goal.robot_start_coordinate.orientation = Quaternion(x=0.,y=0.,z=0., w=0.)
 		room_sequence_client = actionlib.SimpleActionClient(str(self.service_str), FindRoomSequenceWithCheckpointsAction)
 		self.printMsg("Running sequencing action...")

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 import rospy
 import actionlib
 import application_container
@@ -15,16 +16,21 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.map_handler.behavior_name = "Map handling"
 		self.map_handler.setParameters()
 		self.map_handler.executeBehavior()
-        # Interruption opportunity
+		
+		# Interruption opportunity
 		if self.handleInterrupt() == 2:
 			return
+		
+		self.printMsg("self.map_handler.room_sequencing_data.checkpoints=")
+		print self.map_handler.room_sequencing_data.checkpoints
+		
 		# Move to segments, Compute exploration path, Travel through it, repeat
 		self.movement_handler = movement_handling_behavior.MovementHandlingBehavior(self.application_status)
 		self.movement_handler.behavior_name = "Movement handling"
 		self.movement_handler.setParameters(
 			self.map_handler.map_data,
+			self.map_handler.segmentation_data,
 			self.map_handler.room_sequencing_data,
-			self.map_handler.room_extraction_data
 		)
 		self.movement_handler.executeBehavior()
 		# Interruption opportunity
@@ -65,5 +71,7 @@ if __name__ == '__main__':
 		app = WetCleaningApplication("interrupt_application_wet_cleaning")
 		# Execute application
 		app.executeApplication()
+		sys.exit()
 	except rospy.ROSInterruptException:
 		print "Keyboard Interrupt"
+		sys.exit()

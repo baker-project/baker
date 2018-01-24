@@ -63,13 +63,14 @@ protected:
 		{
 			for (unsigned int u = 0; u < map_msg_data->info.width; u++, i++)
 			{
-				if (map_msg_data->data[i] != 0)
+				if (map_msg_data->data[i] > 100*0.39)		// accessible areas are <=100 in MIRA
 					map_.at<unsigned char>(v, u) = 0;
 			}
 		}
 		cv::Mat temp = map_;
-		//cv::flip(temp, map_, 0);
-//		cv::imshow("map", map_);
+		//cv::flip(temp, map_, 0);	// without flip, you see the data arrangement in the OccupancyGrid message, flipped you see the map as is in RViz,
+									// with flipping, the coordinate systems between OccupancyGrid (lower left origin) and image (upper left origin) do not match anymore
+//		cv::imshow("mapDataCallback_map", map_);
 //		cv::waitKey();
 
 		map_data_recieved_ = true;

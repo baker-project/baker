@@ -17,6 +17,9 @@ miracenter SCITOSSimulator:etc/SCITOS-application.xml -v MCFFile=~/Downloads/AVH
 
 
 
+roslaunch baker_wet_cleaning_application basic_application.launch scitos_node_args:="-k192.168.5.1:1234"
+
+
 For visualization, drag and drop following channels from the channel list to the central display:
 
 /maps/static/Map
@@ -78,6 +81,14 @@ Reset bumber
 ------------
 In miracenter -> window -> showview: open a DriveView, click "Reset Motorstop"
 
+
+Config
+------
+Bei channels: 
+- Laser reinziehen
+- maps static reinziehen
+
+Visulization control > '+' > Rigid model
 
 ##############################################################################
 

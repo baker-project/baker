@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<launch>
+	<arg name="config_file_arg" default="$(find baker_brush_cleaning_module_interface)/etc/BrushCleaningModuleInterface.xml"/>
+
+	<arg name="brush_cleaning_module_interface_args" default="-k127.0.0.1:1234"/>
+
+	<node pkg="baker_brush_cleaning_module_interface" type="brush_cleaning_module_interface" name="brush_cleaning_module_interface" output="screen" respawn="true" args="$(arg brush_cleaning_module_interface_args)">
+		<param name="config_file" value="$(arg config_file_arg)" type="string"/>
+	</node>
+
+</launch>
+

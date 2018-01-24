@@ -23,7 +23,7 @@ class MapSegmentExtractingBehavior(behavior_container.BehaviorContainer):
 	def getMapSegmentAsCVBridge(self, room_sequence_index_):
 		self.printMsg("Creating room map for room " + str(room_sequence_index_))
 		image_height, image_width = self.opencv_segmented_map.shape
-		tmp_map_opencv = np.zeros((image_width, image_height), np.uint8)
+		tmp_map_opencv = np.zeros((image_height, image_width), np.uint8)
 		current_room_index = self.room_sequence_data.checkpoints[room_sequence_index_].room_indices[0]
 		for x in range(image_width):
 			for y in range(image_height):
@@ -41,7 +41,7 @@ class MapSegmentExtractingBehavior(behavior_container.BehaviorContainer):
 	# Implemented Behavior
 	def executeCustomBehavior(self):
 		self.extraction_result = []
-		self.printMsg("Estimate rooms to extract: " + str(len(self.room_sequence_data.checkpoints)))
-		for current_room in range(1, len(self.room_sequence_data.checkpoints)):
+		# wrong: self.printMsg("Estimate rooms to extract: " + str(len(self.room_sequence_data.checkpoints)))
+		for current_room in range(0, len(self.room_sequence_data.checkpoints)):
 			if (self.room_sequence_data.checkpoints[current_room].room_indices != None):
 				self.extraction_result.append(self.getMapSegmentAsCVBridge(current_room))

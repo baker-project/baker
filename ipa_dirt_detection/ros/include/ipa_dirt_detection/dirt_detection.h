@@ -71,6 +71,7 @@
 #include <deque>
 #include <time.h>
 #include <math.h>
+#include <sstream>
 
 // ROS includes
 #include <ros/ros.h>
@@ -103,9 +104,7 @@
 #include <image_transport/subscriber_filter.h>
 
 // opencv
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
-#include <opencv2/ml/ml.hpp>
+#include <opencv2/opencv.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
 
@@ -233,6 +232,9 @@ protected:
 	bool dirtDetectionActivatedOnStartup_;	// for normal operation mode, specifies whether dirt detection is on right from the beginning
 	std::string dirtMappingMaskFilename_;	// if not an empty string, this enables using a mask that defines areas in the map where dirt detections are valid (i.e. this mask can be used to exclude areas from dirt mapping, white=detection area, black=do not detect)
 	bool useDirtMappingMask_;
+	std::string birdeyeresolution;
+	int frame_num_bag;
+	std::string framenumbag;
 
 	std::string experimentFolder_;		// storage location of the database index file and writing location for the results of an experiment
 	std::string labelingFilePath_;		// path to labeling file storage
@@ -248,6 +250,14 @@ protected:
 	int minPlanePoints_;		// minimum number of points that are necessary to find the floor plane
 	double planeNormalMaxZ_;	// maximum z-value of the plane normal (ensures to have an floor plane)
 	double planeMaxHeight_;		// maximum height of the detected plane above the mapped ground
+	
+	// multiscale search
+	int detectScales;                 // Number of detection scales
+	double birdEyeBaseResolution_;    // base resolution of perspective transformation
+	double birdEyeStartResolution_;   // smallest resolution for perspective transform
+	cv::Mat MultiscaleScores;         // scores for different scale detection
+	cv::Size baseSize;                // resoltion of 2D projection under base resoltion
+	double image_scaling;
 
 	// further
 	ros::Time lastIncomingMessage_;
@@ -360,6 +370,8 @@ public:
 	 *
 	 */
 	void dirtDetectionCallback(const sensor_msgs::PointCloud2ConstPtr& point_cloud2_rgb_msg);
+	
+	void MultiScaledirtDetectionCallback(const sensor_msgs::PointCloud2ConstPtr& point_cloud2_rgb_msg);
 
 	void planeLabelingCallback(const sensor_msgs::PointCloud2ConstPtr& point_cloud2_rgb_msg);
 
@@ -481,8 +493,11 @@ public:
 	 * @param [out]	carpet_SVM		Returns an opencv support vector machine.
 	 *
 	 */
-	void CreateCarpetClassiefierSVM(const std::vector<CarpetFeatures>& carp_feat_vec, const std::vector<CarpetClass>& carp_class_vec, CvSVM &carpet_SVM);
-
+#if CV_MAJOR_VERSION == 2
+	void CreateCarpetClassiefierSVM(const std::vector<CarpetFeatures>& carp_feat_vec, const std::vector<CarpetClass>& carp_class_vec, CvSVM& carpet_SVM);
+#else
+	void CreateCarpetClassiefierSVM(const std::vector<CarpetFeatures>& carp_feat_vec, const std::vector<CarpetClass>& carp_class_vec, cv::Ptr<cv::ml::SVM>& carpet_SVM);
+#endif
 
 	/**
 	 * This function creates/calculates a carpet-classifier for the given carpets. In this case an opencv tree model
@@ -493,7 +508,11 @@ public:
 	 * @param [out]	carpet_Tree		Returns an opencv tree model.
 	 *
 	 */
+#if CV_MAJOR_VERSION == 2
 	void CreateCarpetClassiefierRTree(const std::vector<CarpetFeatures>& carp_feat_vec, const std::vector<CarpetClass>& carp_class_vec, CvRTrees &carpet_Tree);
+#else
+	void CreateCarpetClassiefierRTree(const std::vector<CarpetFeatures>& carp_feat_vec, const std::vector<CarpetClass>& carp_class_vec, cv::Ptr<cv::ml::RTrees> &carpet_Tree);
+#endif
 
 	/**
 	 * This function creates/calculates a carpet-classifier for the given carpets. In this case an opencv gradient boosted tree model
@@ -504,8 +523,11 @@ public:
 	 * @param [out]	carpet_GBTree	Returns an opencv gradient boosted tree model.
 	 *
 	 */
-	void CreateCarpetClassiefierGBTree(const std::vector<CarpetFeatures>& carp_feat_vec, const std::vector<CarpetClass>& carp_class_vec,
-			CvGBTrees &carpet_GBTree);
+#if CV_MAJOR_VERSION == 2
+	void CreateCarpetClassiefierGBTree(const std::vector<CarpetFeatures>& carp_feat_vec, const std::vector<CarpetClass>& carp_class_vec, CvGBTrees &carpet_GBTree);
+#else
+	// not implemented in OpenCV 3
+#endif
 
 
 	/**
@@ -563,9 +585,15 @@ public:
 	 * @param [in]	carpet_SVM		Opencv support vector machine.
 	 *
 	 */
+#if CV_MAJOR_VERSION == 2
 	void SVMEvaluation(	std::vector<CarpetFeatures>& train_feat_vec, std::vector<CarpetClass>& train_class_vec,
 						std::vector<CarpetFeatures>& test_feat_vec, std::vector<CarpetClass>& test_class_vec,
 						CvSVM &carpet_SVM, double ScaleMean, double ScaleStd);
+#else
+	void SVMEvaluation(	std::vector<CarpetFeatures>& train_feat_vec, std::vector<CarpetClass>& train_class_vec,
+						std::vector<CarpetFeatures>& test_feat_vec, std::vector<CarpetClass>& test_class_vec,
+						cv::Ptr<cv::ml::SVM>& carpet_SVM, double ScaleMean, double ScaleStd);
+#endif
 
 
 	/**
@@ -579,9 +607,15 @@ public:
 	 * @param [in]	carpet_Tree		Opencv random tree model.
 	 *
 	 */
+#if CV_MAJOR_VERSION == 2
 	void RTreeEvaluation(	std::vector<CarpetFeatures>& train_feat_vec, std::vector<CarpetClass>& train_class_vec,
 						std::vector<CarpetFeatures>& test_feat_vec, std::vector<CarpetClass>& test_class_vec,
 						CvRTrees &carpet_Tree, double ScaleMean, double ScaleStd);
+#else
+	void RTreeEvaluation(	std::vector<CarpetFeatures>& train_feat_vec, std::vector<CarpetClass>& train_class_vec,
+						std::vector<CarpetFeatures>& test_feat_vec, std::vector<CarpetClass>& test_class_vec,
+						cv::Ptr<cv::ml::RTrees> &carpet_Tree, double ScaleMean, double ScaleStd);
+#endif
 
 	/**
 	 * This function can be used to test a specific opencv gradient boosted tree model. The function, however, is only usable if only one or two features are used to classify
@@ -594,9 +628,13 @@ public:
 	 * @param [in]	carpet_GBTree	Opencv gradient boosted tree model.
 	 *
 	 */
+#if CV_MAJOR_VERSION == 2
 	void GBTreeEvaluation(	std::vector<CarpetFeatures>& train_feat_vec, std::vector<CarpetClass>& train_class_vec,
 						std::vector<CarpetFeatures>& test_feat_vec, std::vector<CarpetClass>& test_class_vec,
 						CvGBTrees &carpet_GBTree, double ScaleMean, double ScaleStd);
+#else
+	// not implemented in OpenCV 3
+#endif
 
 	/**
 	 * This function scales the features to the interval [0,1]. It returns the scaled features and the

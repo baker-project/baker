@@ -120,3 +120,6 @@ showObservationsGrid: false
 # displays the grid that illustrates the dirt detections at each floor cell (the image might be displayed rotated)
 showDirtGrid: false
 ##### end debug display section
+
+# to save the intermidiate data
+SaveDataForTest: false
