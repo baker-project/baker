@@ -65,8 +65,7 @@
 #include <math.h>
 
 // opencv
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
+#include <opencv2/opencv.hpp>
 
 // ROS
 #include <ros/ros.h>

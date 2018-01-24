@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<package format="2">
+	<name>baker_wet_cleaning_application</name>
+	
+	<description>Contains abstract classes for application implementation.</description>
+	
+	<version>0.0.0</version>
+	<license>LGPL for academic and non-commercial use; for commercial use, please contact Fraunhofer IPA, Nobelstr. 12, 70569 Stuttgart, Germany</license>
+
+	<maintainer email="richard.bormann@ipa.fraunhofer.de">Richard Bormann</maintainer>
+	<author email="richard.bormann@ipa.fraunhofer.de">Richard Bormann</author>
+	<author email="yann.philippczyk@ipa.fraunhofer.de">Yann Philippczyk</author>
+
+	<buildtool_depend>catkin</buildtool_depend>
+	<depend>actionlib</depend>
+	<depend>actionlib_msgs</depend>
+	<depend>baker_msgs</depend>
+	<depend>cv_bridge</depend>
+	<depend>eigen_conversions</depend>
+	<depend>geometry_msgs</depend>
+	<depend>ipa_building_msgs</depend>
+	<depend>libopencv-dev</depend>
+	<depend>move_base_msgs</depend>
+	<depend>nav_msgs</depend>
+	<depend>roscpp</depend>
+	<depend>rospy</depend>
+	<depend>scitos_msgs</depend>
+	<depend>sensor_msgs</depend>
+	<depend>std_msgs</depend>
+	<depend>tf</depend>
+
+</package>

@@ -1,0 +1,10 @@
+<root>
+
+	<namespace name="modules">
+		<namespace name="brushcleaning">
+			<unit id="BrushCleaningModuleInterface" class="mira::actors::BrushCleaningModuleInterface">
+				<ModuleService>BakeRCleaningModule</ModuleService>
+			</unit>
+		</namespace>
+	</namespace>
+</root>

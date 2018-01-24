@@ -9,9 +9,9 @@
         <NogoMap/>
         <SpeedMap/>
         <OnewayMap/>
-	<NoGoAreas/>
-	<SpeedAreas/>
-	<OnewayAreas/>
+        <NoGoAreas/>
+        <SpeedAreas/>
+        <OnewayAreas/>
         <ReferencePoints/>
         <Offset>
           <X>0</X>
