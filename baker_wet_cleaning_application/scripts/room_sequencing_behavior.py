@@ -25,14 +25,15 @@ def get_transform_listener():
 
 class RoomSequencingBehavior(behavior_container.BehaviorContainer):
 
-	def __init__(self, interrupt_var_, service_str_):
-		self.interrupt_var = interrupt_var_
-		self.service_str = service_str_
+	def __init__(self, behavior_name, interrupt_var, service_str):
+		self.behavior_name_ = behavior_name
+		self.interrupt_var_ = interrupt_var
+		self.service_str_ = service_str
 
 	# Method for setting parameters for the behavior
-	def setParameters(self, map_data_, segmentation_data_):
-		self.map_data = map_data_
-		self.segmentation_data = segmentation_data_
+	def setParameters(self, map_data, segmentation_data):
+		self.map_data_ = map_data
+		self.segmentation_data_ = segmentation_data
 
 	# Method for returning to the standard pose of the robot
 	def returnToRobotStandardState(self):
@@ -57,19 +58,18 @@ class RoomSequencingBehavior(behavior_container.BehaviorContainer):
 
 	# Implemented Behavior
 	def executeCustomBehavior(self):
-		self.printMsg("self.segmentation_data.room_information_in_pixel=")
-		print self.segmentation_data.room_information_in_pixel
+		self.printMsg("self.segmentation_data_.room_information_in_pixel=" + str(self.segmentation_data_.room_information_in_pixel))
 	
 		room_sequence_goal = FindRoomSequenceWithCheckpointsGoal()
-		room_sequence_goal.input_map = self.map_data.map
-		room_sequence_goal.map_resolution = self.map_data.map_resolution
-		room_sequence_goal.map_origin = self.map_data.map_origin
-		room_sequence_goal.robot_radius = 0.3
-		room_sequence_goal.room_information_in_pixel = self.segmentation_data.room_information_in_pixel
+		room_sequence_goal.input_map = self.map_data_.map
+		room_sequence_goal.map_resolution = self.map_data_.map_resolution
+		room_sequence_goal.map_origin = self.map_data_.map_origin
+		room_sequence_goal.robot_radius = 0.3		# todo: get from database
+		room_sequence_goal.room_information_in_pixel = self.segmentation_data_.room_information_in_pixel
 		(robot_pose_translation, robot_pose_rotation, robot_pose_rotation_euler) = self.currentRobotPose()
 		room_sequence_goal.robot_start_coordinate.position = Point32(x=robot_pose_translation[0], y=robot_pose_translation[1])  # actual current coordinates should be inserted
-		room_sequence_goal.robot_start_coordinate.orientation = Quaternion(x=0.,y=0.,z=0., w=0.)
-		room_sequence_client = actionlib.SimpleActionClient(str(self.service_str), FindRoomSequenceWithCheckpointsAction)
+		room_sequence_goal.robot_start_coordinate.orientation = Quaternion(x=0.,y=0.,z=0., w=0.)	# todo: normalized quaternion
+		room_sequence_client = actionlib.SimpleActionClient(str(self.service_str_), FindRoomSequenceWithCheckpointsAction)
 		self.printMsg("Running sequencing action...")
 		self.room_sequence_result = self.runAction(room_sequence_client, room_sequence_goal)
 		self.printMsg("Room sequencing completed.")

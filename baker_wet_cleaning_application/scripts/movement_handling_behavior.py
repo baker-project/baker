@@ -15,13 +15,13 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 
 	#========================================================================
 	# Serivces to be used:
-	# room_exploration_service_str = 
+	# room_exploration_service_str_ = 
 	#       '/room_exploration/room_exploration_server'
-	# move_base_path_service_str =
+	# move_base_path_service_str_ =
 	#		'/move_base_path'
-	# move_base_wall_follow_service_str =
+	# move_base_wall_follow_service_str_ =
 	#		'/move_base_wall_follow'
-	# move_base_service_str =
+	# move_base_service_str_ =
 	#		'move_base'
 	#========================================================================
 
@@ -29,16 +29,16 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 	# Method for setting parameters for the behavior
 	def setParameters(self, map_data, segmentation_data, sequence_data):
 		# Service strings
-		self.room_exploration_service_str = '/room_exploration/room_exploration_server'
-		self.move_base_path_service_str = '/move_base_path'
-		self.move_base_wall_follow_service_str = '/move_base_wall_follow'
-		self.move_base_service_str = 'move_base'
+		self.room_exploration_service_str_ = '/room_exploration/room_exploration_server'
+		self.move_base_path_service_str_ = '/move_base_path'
+		self.move_base_wall_follow_service_str_ = '/move_base_wall_follow'
+		self.move_base_service_str_ = 'move_base'
 		self.map_data_ = map_data
 		self.segmentation_data_ = segmentation_data
 		self.sequence_data_ = sequence_data
 		# Get a opencv representation of the segmented image
-		self.bridge = CvBridge()
-		self.opencv_segmented_map = self.bridge.imgmsg_to_cv2(self.segmentation_data_.segmented_map, desired_encoding = "passthrough")
+		self.bridge_ = CvBridge()
+		self.opencv_segmented_map_ = self.bridge_.imgmsg_to_cv2(self.segmentation_data_.segmented_map, desired_encoding = "passthrough")
 
 	# Method for returning to the standard pose of the robot
 	def returnToRobotStandardState(self):
@@ -48,14 +48,10 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 
 	# Implemented Behavior
 	def executeCustomBehavior(self):
-		self.move_base_handler = move_base_behavior.MoveBaseBehavior(self.interrupt_var, self.move_base_service_str)
-		self.move_base_handler.behavior_name = "Move Base handling"
-		self.room_explorer = room_exploration_behavior.RoomExplorationBehavior(self.interrupt_var, self.room_exploration_service_str)
-		self.room_explorer.behavior_name = "Room exploration"
-		self.path_follower = move_base_path_behavior.MoveBasePathBehavior(self.interrupt_var, self.move_base_path_service_str)
-		self.path_follower.behavior_name = "Path following"
-		self.wall_follower = move_base_path_behavior.MoveBasePathBehavior(self.interrupt_var, self.move_base_wall_follow_service_str)
-		self.wall_follower.behavior_name = "Wall following"
+		self.move_base_handler_ = move_base_behavior.MoveBaseBehavior("MoveBaseBehavior", self.interrupt_var_, self.move_base_service_str_)
+		self.room_explorer_ = room_exploration_behavior.RoomExplorationBehavior("RoomExplorationBehavior", self.interrupt_var_, self.room_exploration_service_str_)
+		self.path_follower_ = move_base_path_behavior.MoveBasePathBehavior("MoveBasePathBehavior_PathFollowing", self.interrupt_var_, self.move_base_path_service_str_)
+		self.wall_follower_ = move_base_path_behavior.MoveBasePathBehavior("MoveBasePathBehavior_WallFollowing", self.interrupt_var_, self.move_base_wall_follow_service_str_)
 
 		for current_checkpoint_index in range(len(self.sequence_data_.checkpoints)):
 			for current_room_index in self.sequence_data_.checkpoints[current_checkpoint_index].room_indices:
@@ -67,15 +63,14 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				goal_orientation = Quaternion(x=0., y=0., z=0., w=0.)
 				header_frame_id = 'base_link'
 				"""
-				self.printMsg("current_room_index=")
-				print current_room_index
-				self.printMsg(str(["Moving to room_center in meter=", self.segmentation_data_.room_information_in_meter[current_room_index].room_center]))
-				self.move_base_handler.setParameters(
+				self.printMsg("current_room_index=" + current_room_index)
+				self.printMsg("Moving to room_center in meter=" + str(self.segmentation_data_.room_information_in_meter[current_room_index].room_center))
+				self.move_base_handler_.setParameters(
 					self.segmentation_data_.room_information_in_meter[current_room_index].room_center,
 					Quaternion(x=0., y=0., z=0., w=0.),	# todo: normalized quaternion
 					'base_link'
 					)
-				self.move_base_handler.executeBehavior()
+				self.move_base_handler_.executeBehavior()
 				
 				# Interruption opportunity
 				if self.handleInterrupt() == 2:
@@ -84,7 +79,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				# Room exploration
 				"""
 				For room exploration:
-				map_data = map_data
+				map_data = self.map_data_
 				input_map = self.getMapSegmentAsImageMsg(current_room_index)
 				map_resolution = self.map_data_.map_resolution
 				map_origin = self.map_data_.map_origin
@@ -94,9 +89,9 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				starting_position = Pose2D(x=1., y=0., theta=0.)
 				planning_mode = 2
 				"""
-				self.room_explorer.setParameters(
+				self.room_explorer_.setParameters(
 					self.map_data_,
-					self.getMapSegmentAsImageMsg(current_room_index),
+					self.getMapSegmentAsImageMsg(self.opencv_segmented_map_, current_room_index),
 					self.map_data_.map_resolution,
 					self.map_data_.map_origin,
 					robot_radius = 0.325,		# todo: read from MIRA
@@ -105,7 +100,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					starting_position = Pose2D(x=1., y=0., theta=0.),
 					planning_mode = 2
 				)
-				self.room_explorer.executeBehavior()
+				self.room_explorer_.executeBehavior()
 				
 				# Interruption opportunity
 				if self.handleInterrupt() == 2:
@@ -119,13 +114,13 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				goal_position_tolerance = 0.5
 				goal_angle_tolerance = 1.57
 				"""
-				self.path_follower.setParameters(
-					self.room_explorer.exploration_result.coverage_path_pose_stamped,
+				self.path_follower_.setParameters(
+					self.room_explorer_.exploration_result.coverage_path_pose_stamped,
 					0.2,
 					0.5,
 					1.57
 				)
-				self.path_follower.executeBehavior()
+				self.path_follower_.executeBehavior()
 				
 				# Interruption opportunity
 				if self.handleInterrupt() == 2:
@@ -140,13 +135,13 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				goal_angle_tolerance = 3.14
 				"""
 				'''
-				self.wall_follower.setParameters(
-					self.room_explorer.exploration_result.coverage_path_pose_stamped,
+				self.wall_follower_.setParameters(
+					self.room_explorer_.exploration_result.coverage_path_pose_stamped,
 					0.2,
 					0.4,
 					3.14
 				)
-				self.wall_follower.executeBehavior()
+				self.wall_follower_.executeBehavior()
 				'''
 				
 				# Interruption opportunity
@@ -155,13 +150,13 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 
 
 	# Method for returning the segment of the map corresponding to the order number as cv_bridge
-	def getMapSegmentAsImageMsg(self, current_room_index):
+	def getMapSegmentAsImageMsg(self, opencv_segmented_map, current_room_index):
 		self.printMsg("Creating room map for room " + str(current_room_index))
-		image_height, image_width = self.opencv_segmented_map.shape
+		image_height, image_width = opencv_segmented_map.shape
 		tmp_map_opencv = np.zeros((image_height, image_width), np.uint8)
 		for x in range(image_width):
 			for y in range(image_height):
-				if (self.opencv_segmented_map[y, x] == current_room_index + 1):
+				if (opencv_segmented_map[y, x] == current_room_index + 1):
 					tmp_map_opencv[y, x] = 255
-					# print "%i %i %i" % (self.opencv_segmented_map[y, x], x, y)
-		return self.bridge.cv2_to_imgmsg(tmp_map_opencv, encoding = "mono8")
+					# print "%i %i %i" % (self.opencv_segmented_map_[y, x], x, y)
+		return self.bridge_.cv2_to_imgmsg(tmp_map_opencv, encoding = "mono8")

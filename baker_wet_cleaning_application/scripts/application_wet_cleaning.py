@@ -12,27 +12,25 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 	# Implement application procedures of inherited classes here.
 	def executeCustomBehavior(self):
 		# Receive map, segment, get sequence, extract maps
-		self.map_handler = map_handling_behavior.MapHandlingBehavior(self.application_status)
-		self.map_handler.behavior_name = "Map handling"
-		self.map_handler.setParameters()
-		self.map_handler.executeBehavior()
+		self.map_handler_ = map_handling_behavior.MapHandlingBehavior("MapHandlingBehavior", self.application_status_)
+		self.map_handler_.setParameters()
+		self.map_handler_.executeBehavior()
 		
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
 			return
 		
-		self.printMsg("self.map_handler.room_sequencing_data.checkpoints=")
-		print self.map_handler.room_sequencing_data.checkpoints
+		self.printMsg("self.map_handler_.room_sequencing_data.checkpoints=")
+		print self.map_handler_.room_sequencing_data.checkpoints
 		
 		# Move to segments, Compute exploration path, Travel through it, repeat
-		self.movement_handler = movement_handling_behavior.MovementHandlingBehavior(self.application_status)
-		self.movement_handler.behavior_name = "Movement handling"
-		self.movement_handler.setParameters(
-			self.map_handler.map_data,
-			self.map_handler.segmentation_data,
-			self.map_handler.room_sequencing_data,
+		self.movement_handler_ = movement_handling_behavior.MovementHandlingBehavior("MovementHandlingBehavior", self.application_status_)
+		self.movement_handler_.setParameters(
+			self.map_handler_.map_data,
+			self.map_handler_.segmentation_data,
+			self.map_handler_.room_sequencing_data,
 		)
-		self.movement_handler.executeBehavior()
+		self.movement_handler_.executeBehavior()
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
 			return
@@ -68,7 +66,7 @@ if __name__ == '__main__':
 		# Initialize node
 		rospy.init_node('application_wet_cleaning')
 		# Initialize application
-		app = WetCleaningApplication("interrupt_application_wet_cleaning")
+		app = WetCleaningApplication("application_wet_cleaning", "interrupt_application_wet_cleaning")
 		# Execute application
 		app.executeApplication()
 		sys.exit()

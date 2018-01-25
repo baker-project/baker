@@ -12,33 +12,34 @@ from abc import ABCMeta, abstractmethod
 class BehaviorContainer:
 	__metaclass__ = ABCMeta
 	# Arbitrary behavior name. Only used for debug.
-	behavior_name = "<Unnamed>"
-	# Status of the behavior. 0=OK, 1=Cancelled, 2=Erroneaus
-	behavior_status = 0
+	behavior_name_ = "<Unnamed>"
+	# Status of the behavior. 0=OK, 1=Cancelled, 2=Erroneous
+	behavior_status_ = 0
 	# Sleeping time in seconds
-	sleep_time = 1
+	sleep_time_ = 1
 
 
 # Method for printing messages.
-	def printMsg(self, text_):
-		print "[Behavior '" + str(self.behavior_name) + "']: " + str(text_)
+	def printMsg(self, text):
+		print "[Behavior '" + str(self.behavior_name_) + "']: " + str(text)
 
 	# Constructor
-	def __init__(self, interrupt_var_):
+	def __init__(self, behavior_name, interrupt_var):
+		self.behavior_name_ = behavior_name
 		# Get the pointer to the interrupt variable of the application container
-		self.interrupt_var = interrupt_var_
+		self.interrupt_var_ = interrupt_var
 
 		# Method that returns the current interruption value [True/False]
 	def executionInterrupted(self):
-		return (self.interrupt_var[0] != 0)
+		return (self.interrupt_var_[0] != 0)
 
 	# Method that handles interruptions (ASSUMING: False=OK, True=INTERRUPT)
 	def handleInterrupt(self):
 		if self.executionInterrupted() == True:
 			self.printMsg("Interrupted")
 			self.returnToRobotStandardState()
-			self.printMsg("Execution interrupted with code " + str(self.behavior_status))
-		return self.interrupt_var[0]
+			self.printMsg("Execution interrupted with code " + str(self.behavior_status_))
+		return self.interrupt_var_[0]
 
 	# Method for running an action server, shall only be called from def executeCustomBehavior
 	def runAction(self, action_client, action_goal):
@@ -55,7 +56,7 @@ class BehaviorContainer:
 			if (self.executionInterrupted() == True):
 				action_client.cancel_goal()
 				return self.handleInterrupt()
-			rospy.sleep(self.sleep_time)
+			rospy.sleep(self.sleep_time_)
 		action_result = action_client.get_result()
 		return action_result
 
@@ -78,4 +79,4 @@ class BehaviorContainer:
 	def executeBehavior(self):
 		self.printMsg("Executing behavior...")
 		self.executeCustomBehavior()
-		self.printMsg("Execution ended with code " + str(self.behavior_status))
+		self.printMsg("Execution ended with code " + str(self.behavior_status_))

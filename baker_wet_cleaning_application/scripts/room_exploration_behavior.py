@@ -9,9 +9,10 @@ import behavior_container
 
 class RoomExplorationBehavior(behavior_container.BehaviorContainer):
 
-	def __init__(self, interrupt_var_, service_str_):
-		self.interrupt_var = interrupt_var_
-		self.service_str = service_str_
+	def __init__(self, behavior_name, interrupt_var, service_str):
+		self.behavior_name_ = behavior_name
+		self.interrupt_var_ = interrupt_var
+		self.service_str_ = service_str
 
 	# Method for returning to the standard pose of the robot
 	def returnToRobotStandardState(self):
@@ -42,7 +43,7 @@ class RoomExplorationBehavior(behavior_container.BehaviorContainer):
 		exploration_goal.field_of_view = self.field_of_view_
 		exploration_goal.starting_position = self.starting_position_
 		exploration_goal.planning_mode = self.planning_mode_
-		exploration_client = actionlib.SimpleActionClient(self.service_str, RoomExplorationAction)
+		exploration_client = actionlib.SimpleActionClient(self.service_str_, RoomExplorationAction)
 		self.printMsg("Running room exploration action...")
 		self.exploration_result = self.runAction(exploration_client, exploration_goal)
 		self.printMsg("Exploration path received with length " + str(len(self.exploration_result.coverage_path_pose_stamped)))
