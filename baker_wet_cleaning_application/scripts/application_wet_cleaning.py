@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import sys
 import rospy
 import actionlib
 import application_container
@@ -69,7 +68,6 @@ if __name__ == '__main__':
 		app = WetCleaningApplication("application_wet_cleaning", "interrupt_application_wet_cleaning")
 		# Execute application
 		app.executeApplication()
-		sys.exit()
 	except rospy.ROSInterruptException:
 		print "Keyboard Interrupt"
-		sys.exit()
+	rospy.signal_shutdown("Finished")
