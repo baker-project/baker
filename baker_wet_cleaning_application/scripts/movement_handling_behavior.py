@@ -106,6 +106,10 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				if self.handleInterrupt() == 2:
 					return
 	
+				# todo:
+				# baker_brush_cleaning_module_interface: turn on the cleaning device (service "start_brush_cleaner")
+				# coverage_monitor_server.cpp: turn on logging of the cleaned path (service "start_coverage_monitoring") and set the robot configuration (robot_radius, coverage_radius, coverage_offset) before with dynamic reconfigure
+	
 				# Explored path follow
 				"""
 				For path follow movement:
@@ -147,6 +151,10 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				# Interruption opportunity
 				if self.handleInterrupt() == 2:
 					return
+
+				# todo:
+				# coverage_monitor_server.cpp: turn off logging of the cleaned path (service "stop_coverage_monitoring")
+				# baker_brush_cleaning_module_interface: turn off the cleaning device (service "stop_brush_cleaner")
 
 
 	# Method for returning the segment of the map corresponding to the order number as cv_bridge
