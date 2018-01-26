@@ -5,6 +5,8 @@ from geometry_msgs.msg import PoseStamped, Pose2D, Point32, Quaternion
 import cv2
 import numpy as np
 from cv_bridge import CvBridge, CvBridgeError
+import std_srvs.srv
+import dynamic_reconfigure.client
 
 import behavior_container
 import move_base_behavior
@@ -27,15 +29,23 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 
 		
 	# Method for setting parameters for the behavior
-	def setParameters(self, map_data, segmentation_data, sequence_data):
+	def setParameters(self, map_data, segmentation_data, sequence_data, robot_frame_id, robot_radius, coverage_radius, field_of_view):
 		# Service strings
 		self.room_exploration_service_str_ = '/room_exploration/room_exploration_server'
 		self.move_base_path_service_str_ = '/move_base_path'
 		self.move_base_wall_follow_service_str_ = '/move_base_wall_follow'
 		self.move_base_service_str_ = 'move_base'
+		self.start_cleaning_service_str_ = '/brush_cleaning_module_interface/start_brush_cleaner'
+		self.stop_cleaning_service_str_ = '/brush_cleaning_module_interface/stop_brush_cleaner'
+		self.coverage_monitor_dynamic_reconfigure_service_str_ = '/coverage_monitor_server/coverage_monitor_server'
+		self.stop_coverage_monitoring_service_str_ = "/coverage_monitor_server/coverage_monitor_server/stop_coverage_monitoring"
 		self.map_data_ = map_data
 		self.segmentation_data_ = segmentation_data
 		self.sequence_data_ = sequence_data
+		self.robot_frame_id_ = robot_frame_id
+		self.robot_radius_ = robot_radius
+		self.coverage_radius_ = coverage_radius
+		self.field_of_view_ = field_of_view
 		# Get a opencv representation of the segmented image
 		self.bridge_ = CvBridge()
 		self.opencv_segmented_map_ = self.bridge_.imgmsg_to_cv2(self.segmentation_data_.segmented_map, desired_encoding = "passthrough")
@@ -94,10 +104,10 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					self.getMapSegmentAsImageMsg(self.opencv_segmented_map_, current_room_index),
 					self.map_data_.map_resolution,
 					self.map_data_.map_origin,
-					robot_radius = 0.325,		# todo: read from MIRA
-					coverage_radius = 0.25,
-					field_of_view = [Point32(x=0.04035, y=0.136), Point32(x=0.04035, y=-0.364), Point32(x=0.54035, y=-0.364), Point32(x=0.54035, y=0.136)], # this field of view represents the off-center iMop floor wiping device
-					starting_position = Pose2D(x=1., y=0., theta=0.),
+					robot_radius = self.robot_radius_,
+					coverage_radius = self.coverage_radius_,
+					field_of_view = self.field_of_view_,		# this field of view represents the off-center iMop floor wiping device
+					starting_position = Pose2D(x=1., y=0., theta=0.),	# todo: determine current robot position
 					planning_mode = 2
 				)
 				self.room_explorer_.executeBehavior()
@@ -106,10 +116,30 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				if self.handleInterrupt() == 2:
 					return
 	
-				# todo:
 				# baker_brush_cleaning_module_interface: turn on the cleaning device (service "start_brush_cleaner")
-				# coverage_monitor_server.cpp: turn on logging of the cleaned path (service "start_coverage_monitoring") and set the robot configuration (robot_radius, coverage_radius, coverage_offset) before with dynamic reconfigure
-	
+				self.printMsg("Start cleaning with " + self.start_cleaning_service_str_)
+				rospy.wait_for_service(self.start_cleaning_service_str_) 
+				try:
+					req = rospy.ServiceProxy(self.start_cleaning_service_str_, std_srvs.srv.Trigger)
+					resp = req()
+					print "Start cleaning returned with success status " + resp.success
+				except rospy.ServiceException, e:
+					print "Service call to " + self.start_cleaning_service_str_ + " failed: %s" % e
+				
+				# coverage_monitor_server.cpp: set the robot configuration (robot_radius, coverage_radius, coverage_offset) with dynamic reconfigure
+				#                              and turn on logging of the cleaned path (service "start_coverage_monitoring")
+				try:
+					print "Calling dynamic reconfigure at the coverage_monitor_server to set robot radius, coverage_radius, and coverage offset and start coverage monitoring."
+					client = dynamic_reconfigure.client.Client(self.coverage_monitor_dynamic_reconfigure_service_str_, timeout=5)
+					rospy.wait_for_service(self.coverage_monitor_dynamic_reconfigure_service_str_ + "/set_parameters")
+					client.update_configuration({"map_frame":self.map_data_.header.frame_id, "robot_frame":self.robot_frame_id_, "coverage_radius":self.coverage_radius,
+									 "coverage_circle_offset_transform_x":0.5*(self.field_of_view_[0].x+self.field_of_view_[2].x),
+									 "coverage_circle_offset_transform_y":0.5*(self.field_of_view_[0].y+self.field_of_view_[1].y),
+									 "coverage_circle_offset_transform_z":0.0,
+									 "robot_trajectory_recording_active":True})
+				except rospy.ServiceException, e:
+					print "Dynamic reconfigure request to " + self.coverage_monitor_dynamic_reconfigure_service_str_ + " failed: %s" % e
+				
 				# Explored path follow
 				"""
 				For path follow movement:
@@ -152,9 +182,25 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				if self.handleInterrupt() == 2:
 					return
 
-				# todo:
 				# coverage_monitor_server.cpp: turn off logging of the cleaned path (service "stop_coverage_monitoring")
+				self.printMsg("Stop coverage monitoring with " + self.stop_coverage_monitoring_service_str_)
+				rospy.wait_for_service(self.stop_coverage_monitoring_service_str_) 
+				try:
+					req = rospy.ServiceProxy(self.stop_coverage_monitoring_service_str_, std_srvs.srv.Trigger)
+					resp = req()
+					print "Stop coverage monitoring returned with success status " + resp.success
+				except rospy.ServiceException, e:
+					print "Service call to " + self.stop_coverage_monitoring_service_str_ + " failed: %s" % e
+				
 				# baker_brush_cleaning_module_interface: turn off the cleaning device (service "stop_brush_cleaner")
+				self.printMsg("Stop cleaning with " + self.stop_cleaning_service_str_)
+				rospy.wait_for_service(self.stop_cleaning_service_str_) 
+				try:
+					req = rospy.ServiceProxy(self.stop_cleaning_service_str_, std_srvs.srv.Trigger)
+					resp = req()
+					print "Stop cleaning returned with success status " + resp.success
+				except rospy.ServiceException, e:
+					print "Service call to " + self.stop_cleaning_service_str_ + " failed: %s" % e
 
 
 	# Method for returning the segment of the map corresponding to the order number as cv_bridge

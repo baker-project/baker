@@ -6,6 +6,7 @@ set(catkin_RUN_PACKAGES
 	actionlib_msgs
 	baker_msgs
 	cv_bridge
+	dynamic_reconfigure
 	eigen_conversions
 	geometry_msgs
 	ipa_building_msgs
@@ -16,6 +17,7 @@ set(catkin_RUN_PACKAGES
 	scitos_msgs
 	sensor_msgs
 	std_msgs
+	std_srvs
 	tf
 )
 

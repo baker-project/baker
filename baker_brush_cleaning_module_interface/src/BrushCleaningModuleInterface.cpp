@@ -52,7 +52,6 @@
 
 #include <actors/BakeRCleaningModule.h>
 
-using namespace mira;
 
 namespace mira { namespace actors {
 
