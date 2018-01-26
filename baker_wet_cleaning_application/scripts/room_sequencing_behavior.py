@@ -71,5 +71,5 @@ class RoomSequencingBehavior(behavior_container.BehaviorContainer):
 		room_sequence_goal.robot_start_coordinate.orientation = Quaternion(x=0.,y=0.,z=0., w=0.)	# todo: normalized quaternion
 		room_sequence_client = actionlib.SimpleActionClient(str(self.service_str_), FindRoomSequenceWithCheckpointsAction)
 		self.printMsg("Running sequencing action...")
-		self.room_sequence_result = self.runAction(room_sequence_client, room_sequence_goal)
+		self.room_sequence_result_ = self.runAction(room_sequence_client, room_sequence_goal)
 		self.printMsg("Room sequencing completed.")

@@ -195,7 +195,7 @@ MIRA_CLASS_SERIALIZATION(mira::actors::BrushCleaningModuleInterface, mira::Unit)
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "baker_cleaning_module_interface");
-	ros::NodeHandle nh;
+	ros::NodeHandle nh("~");
 
 	std::string  config_file, port_number, scitos_modules;
 	std::vector<std::string> args;

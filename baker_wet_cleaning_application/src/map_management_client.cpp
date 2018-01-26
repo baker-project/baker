@@ -106,7 +106,7 @@ protected:
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "map_management_client");
-	ros::NodeHandle nh;
+	ros::NodeHandle nh("~");
 
 	MapManagementClient mmc(nh);
 

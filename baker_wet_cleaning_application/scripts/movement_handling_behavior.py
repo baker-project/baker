@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import rospy
 from geometry_msgs.msg import PoseStamped, Pose2D, Point32, Quaternion
 
 import cv2
@@ -18,7 +19,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 	#========================================================================
 	# Serivces to be used:
 	# room_exploration_service_str_ = 
-	#       '/room_exploration/room_exploration_server'
+	#       '/room_exploration_server'
 	# move_base_path_service_str_ =
 	#		'/move_base_path'
 	# move_base_wall_follow_service_str_ =
@@ -37,8 +38,8 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 		self.move_base_service_str_ = 'move_base'
 		self.start_cleaning_service_str_ = '/brush_cleaning_module_interface/start_brush_cleaner'
 		self.stop_cleaning_service_str_ = '/brush_cleaning_module_interface/stop_brush_cleaner'
-		self.coverage_monitor_dynamic_reconfigure_service_str_ = '/coverage_monitor_server/coverage_monitor_server'
-		self.stop_coverage_monitoring_service_str_ = "/coverage_monitor_server/coverage_monitor_server/stop_coverage_monitoring"
+		self.coverage_monitor_dynamic_reconfigure_service_str_ = '/room_exploration/coverage_monitor_server'
+		self.stop_coverage_monitoring_service_str_ = "/room_exploration/coverage_monitor_server/stop_coverage_monitoring"
 		self.map_data_ = map_data
 		self.segmentation_data_ = segmentation_data
 		self.sequence_data_ = sequence_data
@@ -73,7 +74,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				goal_orientation = Quaternion(x=0., y=0., z=0., w=0.)
 				header_frame_id = 'base_link'
 				"""
-				self.printMsg("current_room_index=" + current_room_index)
+				self.printMsg("current_room_index=" + str(current_room_index))
 				self.printMsg("Moving to room_center in meter=" + str(self.segmentation_data_.room_information_in_meter[current_room_index].room_center))
 				self.move_base_handler_.setParameters(
 					self.segmentation_data_.room_information_in_meter[current_room_index].room_center,
@@ -122,7 +123,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				try:
 					req = rospy.ServiceProxy(self.start_cleaning_service_str_, std_srvs.srv.Trigger)
 					resp = req()
-					print "Start cleaning returned with success status " + resp.success
+					print "Start cleaning returned with success status " + str(resp.success)
 				except rospy.ServiceException, e:
 					print "Service call to " + self.start_cleaning_service_str_ + " failed: %s" % e
 				
@@ -132,11 +133,12 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					print "Calling dynamic reconfigure at the coverage_monitor_server to set robot radius, coverage_radius, and coverage offset and start coverage monitoring."
 					client = dynamic_reconfigure.client.Client(self.coverage_monitor_dynamic_reconfigure_service_str_, timeout=5)
 					rospy.wait_for_service(self.coverage_monitor_dynamic_reconfigure_service_str_ + "/set_parameters")
-					client.update_configuration({"map_frame":self.map_data_.header.frame_id, "robot_frame":self.robot_frame_id_, "coverage_radius":self.coverage_radius,
-									 "coverage_circle_offset_transform_x":0.5*(self.field_of_view_[0].x+self.field_of_view_[2].x),
-									 "coverage_circle_offset_transform_y":0.5*(self.field_of_view_[0].y+self.field_of_view_[1].y),
-									 "coverage_circle_offset_transform_z":0.0,
-									 "robot_trajectory_recording_active":True})
+					client.update_configuration({"map_frame":self.map_data_.map.header.frame_id, "robot_frame":self.robot_frame_id_,
+												 "coverage_radius":self.coverage_radius_,
+												 "coverage_circle_offset_transform_x":0.5*(self.field_of_view_[0].x+self.field_of_view_[2].x),
+												 "coverage_circle_offset_transform_y":0.5*(self.field_of_view_[0].y+self.field_of_view_[1].y),
+												 "coverage_circle_offset_transform_z":0.0,
+												 "robot_trajectory_recording_active":True})
 				except rospy.ServiceException, e:
 					print "Dynamic reconfigure request to " + self.coverage_monitor_dynamic_reconfigure_service_str_ + " failed: %s" % e
 				
@@ -188,7 +190,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				try:
 					req = rospy.ServiceProxy(self.stop_coverage_monitoring_service_str_, std_srvs.srv.Trigger)
 					resp = req()
-					print "Stop coverage monitoring returned with success status " + resp.success
+					print "Stop coverage monitoring returned with success status " + str(resp.success)
 				except rospy.ServiceException, e:
 					print "Service call to " + self.stop_coverage_monitoring_service_str_ + " failed: %s" % e
 				
@@ -198,7 +200,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				try:
 					req = rospy.ServiceProxy(self.stop_cleaning_service_str_, std_srvs.srv.Trigger)
 					resp = req()
-					print "Stop cleaning returned with success status " + resp.success
+					print "Stop cleaning returned with success status " + str(resp.success)
 				except rospy.ServiceException, e:
 					print "Service call to " + self.stop_cleaning_service_str_ + " failed: %s" % e
 

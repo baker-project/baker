@@ -23,7 +23,7 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 	
 	# Method for returning to the standard pose of the robot
 	def setParameters(self):
-		self.map_receiving_service_str_ = '/baker/get_map_image'
+		self.map_receiving_service_str_ = '/map_management_client/get_map_image'
 		self.map_segmentation_service_str_ = '/room_segmentation/room_segmentation_server'
 		self.room_sequencing_service_str_ = '/room_sequence_planning/room_sequence_planning_server'
 
@@ -41,7 +41,7 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 		self.map_receiver_ = map_receiving_behavior.MapReceivingBehavior("Map receiving", self.interrupt_var_, self.map_receiving_service_str_)
 		self.map_receiver_.setParameters()
 		self.map_receiver_.executeCustomBehavior()
-		self.map_data_ = self.map_receiver_.map_data
+		self.map_data_ = self.map_receiver_.map_data_
 
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
@@ -53,7 +53,7 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 			self.map_data_
 			)
 		self.map_segmenter_.executeCustomBehavior()
-		self.segmentation_data_ = self.map_segmenter_.segmentation_result
+		self.segmentation_data_ = self.map_segmenter_.segmentation_result_
 		
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
@@ -66,7 +66,7 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 			self.segmentation_data_
 			)
 		self.room_sequencer_.executeCustomBehavior()
-		self.room_sequencing_data_ = self.room_sequencer_.room_sequence_result
+		self.room_sequencing_data_ = self.room_sequencer_.room_sequence_result_
 		
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:

@@ -1,10 +1,12 @@
-self.robot_radius_#!/usr/bin/env python
+#!/usr/bin/env python
 
 import rospy
 import actionlib
 import application_container
 import map_handling_behavior
 import movement_handling_behavior
+
+from geometry_msgs.msg import Point32
 
 class WetCleaningApplication(application_container.ApplicationContainer):
 
@@ -15,7 +17,8 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.robot_frame_id_ = 'base_link'
 		self.robot_radius_ = 0.325	# todo: read from MIRA
 		self.coverage_radius_ = 0.25	# todo: read from MIRA
-		self.field_of_view_ = [Point32(x=0.04035, y=0.136), Point32(x=0.04035, y=-0.364), Point32(x=0.54035, y=-0.364), Point32(x=0.54035, y=0.136)]	# todo: read from MIRA
+		self.field_of_view_ = [Point32(x=0.04035, y=0.136), Point32(x=0.04035, y=-0.364),
+							   Point32(x=0.54035, y=-0.364), Point32(x=0.54035, y=0.136)]	# todo: read from MIRA
 
 		
 		# Receive map, segment, get sequence, extract maps
@@ -27,15 +30,15 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		if self.handleInterrupt() == 2:
 			return
 		
-		self.printMsg("self.map_handler_.room_sequencing_data.checkpoints=")
-		print self.map_handler_.room_sequencing_data.checkpoints
+		self.printMsg("self.map_handler_.room_sequencing_data_.checkpoints=")
+		print self.map_handler_.room_sequencing_data_.checkpoints
 		
 		# Move to segments, Compute exploration path, Travel through it, repeat
 		self.movement_handler_ = movement_handling_behavior.MovementHandlingBehavior("MovementHandlingBehavior", self.application_status_)
 		self.movement_handler_.setParameters(
-			self.map_handler_.map_data,
-			self.map_handler_.segmentation_data,
-			self.map_handler_.room_sequencing_data,
+			self.map_handler_.map_data_,
+			self.map_handler_.segmentation_data_,
+			self.map_handler_.room_sequencing_data_,
 			self.robot_frame_id_,
 			self.robot_radius_,
 			self.coverage_radius_,
