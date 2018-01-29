@@ -174,7 +174,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				"""
 				'''
 				self.wall_follower_.setParameters(
-					self.room_explorer_.exploration_result.coverage_path_pose_stamped,
+					self.room_explorer_.exploration_result_.coverage_path_pose_stamped,
 					current_room_map,
 					0.2,
 					0.4,
