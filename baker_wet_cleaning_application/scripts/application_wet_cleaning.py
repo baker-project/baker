@@ -15,8 +15,8 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		
 		# todo: read out these parameters
 		self.robot_frame_id_ = 'base_link'
-		self.robot_radius_ = 0.325	# todo: read from MIRA
-		self.coverage_radius_ = 0.25	# todo: read from MIRA
+		self.robot_radius_ = 0.2875  #0.325	# todo: read from MIRA
+		self.coverage_radius_ = 0.233655  #0.25	# todo: read from MIRA
 		self.field_of_view_ = [Point32(x=0.04035, y=0.136), Point32(x=0.04035, y=-0.364),
 							   Point32(x=0.54035, y=-0.364), Point32(x=0.54035, y=0.136)]	# todo: read from MIRA
 

@@ -100,9 +100,9 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				starting_position = Pose2D(x=1., y=0., theta=0.)
 				planning_mode = 2
 				"""
+				current_room_map = self.getMapSegmentAsImageMsg(self.opencv_segmented_map_, current_room_index);
 				self.room_explorer_.setParameters(
-					self.map_data_,
-					self.getMapSegmentAsImageMsg(self.opencv_segmented_map_, current_room_index),
+					current_room_map,
 					self.map_data_.map_resolution,
 					self.map_data_.map_origin,
 					robot_radius = self.robot_radius_,
@@ -127,8 +127,8 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				except rospy.ServiceException, e:
 					print "Service call to " + self.start_cleaning_service_str_ + " failed: %s" % e
 				
-				# coverage_monitor_server.cpp: set the robot configuration (robot_radius, coverage_radius, coverage_offset) with dynamic reconfigure
-				#                              and turn on logging of the cleaned path (service "start_coverage_monitoring")
+				# coverage_monitor_server: set the robot configuration (robot_radius, coverage_radius, coverage_offset) with dynamic reconfigure
+				#                          and turn on logging of the cleaned path (service "start_coverage_monitoring")
 				try:
 					print "Calling dynamic reconfigure at the coverage_monitor_server to set robot radius, coverage_radius, and coverage offset and start coverage monitoring."
 					client = dynamic_reconfigure.client.Client(self.coverage_monitor_dynamic_reconfigure_service_str_, timeout=5)
@@ -146,12 +146,14 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				"""
 				For path follow movement:
 				target_poses = exploration_result.coverage_path_pose_stamped
+				area_map = current_room_map
 				path_tolerance = 0.2
 				goal_position_tolerance = 0.5
 				goal_angle_tolerance = 1.57
 				"""
 				self.path_follower_.setParameters(
-					self.room_explorer_.exploration_result.coverage_path_pose_stamped,
+					self.room_explorer_.exploration_result_.coverage_path_pose_stamped,
+					current_room_map,
 					0.2,
 					0.5,
 					1.57

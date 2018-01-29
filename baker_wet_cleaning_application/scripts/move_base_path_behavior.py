@@ -22,8 +22,9 @@ class MoveBasePathBehavior(behavior_container.BehaviorContainer):
 		pass
 
 	# Method for setting parameters for the behavior
-	def setParameters(self, target_poses, path_tolerance, goal_position_tolerance, goal_angle_tolerance):
+	def setParameters(self, target_poses, area_map, path_tolerance, goal_position_tolerance, goal_angle_tolerance):
 		self.target_poses_ = target_poses
+		self.area_map_ = area_map
 		self.path_tolerance_ = path_tolerance
 		self.goal_position_tolerance_ = goal_position_tolerance
 		self.goal_angle_tolerance_ = goal_angle_tolerance
@@ -32,6 +33,7 @@ class MoveBasePathBehavior(behavior_container.BehaviorContainer):
 	def executeCustomBehavior(self):
 		move_base_path_goal = MoveBasePathGoal()
 		move_base_path_goal.target_poses = self.target_poses_
+		move_base_path_goal.area_map = self.area_map_
 		move_base_path_goal.path_tolerance = self.path_tolerance_
 		move_base_path_goal.goal_position_tolerance = self.goal_position_tolerance_
 		move_base_path_goal.goal_angle_tolerance = self.goal_angle_tolerance_

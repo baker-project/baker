@@ -21,8 +21,7 @@ class RoomExplorationBehavior(behavior_container.BehaviorContainer):
 		pass
 
 	# Method for setting parameters for the behavior
-	def setParameters(self, map_data, input_map, map_resolution, map_origin, robot_radius, coverage_radius, field_of_view, starting_position, planning_mode):
-		self.map_data_ = map_data
+	def setParameters(self, input_map, map_resolution, map_origin, robot_radius, coverage_radius, field_of_view, starting_position, planning_mode):
 		self.input_map_ = input_map
 		self.map_resolution_ = map_resolution
 		self.map_origin_ = map_origin
@@ -45,6 +44,6 @@ class RoomExplorationBehavior(behavior_container.BehaviorContainer):
 		exploration_goal.planning_mode = self.planning_mode_
 		exploration_client = actionlib.SimpleActionClient(self.service_str_, RoomExplorationAction)
 		self.printMsg("Running room exploration action...")
-		self.exploration_result = self.runAction(exploration_client, exploration_goal)
-		self.printMsg("Exploration path received with length " + str(len(self.exploration_result.coverage_path_pose_stamped)))
+		self.exploration_result_ = self.runAction(exploration_client, exploration_goal)
+		self.printMsg("Exploration path received with length " + str(len(self.exploration_result_.coverage_path_pose_stamped)))
 		self.printMsg("Room exploration action completed.")
