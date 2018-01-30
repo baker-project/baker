@@ -23,7 +23,9 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		
 		# Receive map, segment, get sequence, extract maps
 		self.map_handler_ = map_handling_behavior.MapHandlingBehavior("MapHandlingBehavior", self.application_status_)
-		self.map_handler_.setParameters()
+		self.map_handler_.setParameters(
+			self.robot_radius_
+		)
 		self.map_handler_.executeBehavior()
 		
 		# Interruption opportunity
