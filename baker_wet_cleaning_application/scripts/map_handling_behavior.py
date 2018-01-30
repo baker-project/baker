@@ -22,10 +22,12 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 	#========================================================================
 	
 	# Method for returning to the standard pose of the robot
-	def setParameters(self):
+	def setParameters(self, robot_radius, pre_segmented_map=None):
 		self.map_receiving_service_str_ = '/map_management_client/get_map_image'
+		self.map_segmented_receiving_service_str_ = '/map_management_client/get_map_segmented_image'
 		self.map_segmentation_service_str_ = '/room_segmentation/room_segmentation_server'
 		self.room_sequencing_service_str_ = '/room_sequence_planning/room_sequence_planning_server'
+		self.robot_radius_ = robot_radius
 
 	# Method for returning to the standard pose of the robot
 	def returnToRobotStandardState(self):
@@ -38,19 +40,28 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 	def executeCustomBehavior(self):
 
 		# Map receiving
-		self.map_receiver_ = map_receiving_behavior.MapReceivingBehavior("Map receiving", self.interrupt_var_, self.map_receiving_service_str_)
+		self.map_receiver_ = map_receiving_behavior.MapReceivingBehavior("Map receiving", self.interrupt_var_, self.map_receiving_service_str_, self.map_segmented_receiving_service_str_)
 		self.map_receiver_.setParameters()
 		self.map_receiver_.executeCustomBehavior()
 		self.map_data_ = self.map_receiver_.map_data_
+		self.map_segmented_data_ = self.map_receiver_.map_segmented_data_
 
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
 			return
 		
 		# Map segmentation
+		map_data = self.map_data_
+		map_segmentation_algorithm = 0		# use standard pre-set method
+		if (self.map_segmented_data_!=None):
+			self.printMsg("Using the externally pre-segmented map.")
+			map_data = self.map_segmented_data_
+			map_segmentation_algorithm = 99		# set segmentation method passthrough
 		self.map_segmenter_ = map_segmentation_behavior.MapSegmentationBehavior("Map segmentation", self.interrupt_var_, self.map_segmentation_service_str_)
 		self.map_segmenter_.setParameters(
-			self.map_data_
+			map_data,
+			self.robot_radius_,
+			map_segmentation_algorithm
 			)
 		self.map_segmenter_.executeCustomBehavior()
 		self.segmentation_data_ = self.map_segmenter_.segmentation_result_

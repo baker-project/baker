@@ -50,14 +50,19 @@ class BehaviorContainer:
 		action_client.send_goal(action_goal)
 		# loop --> ask for action finished and sleep for one second
 		# in loop check for interrupt --> if necessary stop action with self.executionInterrupted() == True and wait until action stopped
-		# Definition of SimpleGoalState: 0 = PENDING, 1 = ACTIVE, 3 = DONE (don't ask why DONE is 3)
-		while (action_client.get_state() != 3):
-			# print str(action_client.get_state())
+		# Definition of SimpleGoalState: 0 = PENDING, 1 = ACTIVE, 3 = DONE
+		while (action_client.get_state() < 3):
+			self.printMsg("action_client.get_state()=" + str(action_client.get_state()))
 			if (self.executionInterrupted() == True):
 				action_client.cancel_goal()
 				return self.handleInterrupt()
 			rospy.sleep(self.sleep_time_)
-		action_result = action_client.get_result()
+		if (action_client.get_state() == 3):
+			self.printMsg("Action successfully processed.")
+			action_result = action_client.get_result()
+		else:
+			self.printMsg("Action failed.")
+			action_result = None
 		return action_result
 
 	# Method for returning to the standard pose of the robot

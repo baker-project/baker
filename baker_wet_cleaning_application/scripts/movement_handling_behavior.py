@@ -67,26 +67,12 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 		for current_checkpoint_index in range(len(self.sequence_data_.checkpoints)):
 			for current_room_index in self.sequence_data_.checkpoints[current_checkpoint_index].room_indices:
 
-				# Robot movement into next room
-				"""
-				For movement to room:
-				goal_position = self.segmentation_data_.room_information_in_meter[current_room_index].room_center
-				goal_orientation = Quaternion(x=0., y=0., z=0., w=0.)
-				header_frame_id = 'base_link'
-				"""
-				self.printMsg("current_room_index=" + str(current_room_index))
-				self.printMsg("Moving to room_center in meter=" + str(self.segmentation_data_.room_information_in_meter[current_room_index].room_center))
-				self.move_base_handler_.setParameters(
-					self.segmentation_data_.room_information_in_meter[current_room_index].room_center,
-					Quaternion(x=0., y=0., z=0., w=0.),	# todo: normalized quaternion
-					'base_link'
-					)
-				self.move_base_handler_.executeBehavior()
-				
+				self.printMsg("Attending to next room with current_room_index=" + str(current_room_index))
+
 				# Interruption opportunity
 				if self.handleInterrupt() == 2:
 					return
-				
+
 				# Room exploration
 				"""
 				For room exploration:
@@ -108,15 +94,36 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					robot_radius = self.robot_radius_,
 					coverage_radius = self.coverage_radius_,
 					field_of_view = self.field_of_view_,		# this field of view represents the off-center iMop floor wiping device
-					starting_position = Pose2D(x=1., y=0., theta=0.),	# todo: determine current robot position
+					starting_position = self.segmentation_data_.room_information_in_meter[current_room_index].room_center,	#Pose2D(x=1., y=0., theta=0.),	# todo: determine current robot position
 					planning_mode = 2
 				)
 				self.room_explorer_.executeBehavior()
+				if (self.room_explorer_.exploration_result_ == None):
+					continue
 				
 				# Interruption opportunity
 				if self.handleInterrupt() == 2:
 					return
 	
+				# Robot movement into next room
+				"""
+				For movement to room:
+				goal_position = self.segmentation_data_.room_information_in_meter[current_room_index].room_center
+				goal_orientation = Quaternion(x=0., y=0., z=0., w=0.)
+				header_frame_id = 'base_link'
+				"""
+				self.printMsg("Moving to room_center in meter=" + str(self.segmentation_data_.room_information_in_meter[current_room_index].room_center))
+				self.move_base_handler_.setParameters(
+					self.segmentation_data_.room_information_in_meter[current_room_index].room_center,
+					Quaternion(x=0., y=0., z=0., w=0.),	# todo: normalized quaternion
+					'base_link'
+					)
+				self.move_base_handler_.executeBehavior()
+				
+				# Interruption opportunity
+				if self.handleInterrupt() == 2:
+					return
+				
 				# baker_brush_cleaning_module_interface: turn on the cleaning device (service "start_brush_cleaner")
 				self.printMsg("Start cleaning with " + self.start_cleaning_service_str_)
 				rospy.wait_for_service(self.start_cleaning_service_str_) 

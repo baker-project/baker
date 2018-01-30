@@ -45,5 +45,6 @@ class RoomExplorationBehavior(behavior_container.BehaviorContainer):
 		exploration_client = actionlib.SimpleActionClient(self.service_str_, RoomExplorationAction)
 		self.printMsg("Running room exploration action...")
 		self.exploration_result_ = self.runAction(exploration_client, exploration_goal)
-		self.printMsg("Exploration path received with length " + str(len(self.exploration_result_.coverage_path_pose_stamped)))
+		if (self.exploration_result_ != None):
+			self.printMsg("Exploration path received with length " + str(len(self.exploration_result_.coverage_path_pose_stamped)))
 		self.printMsg("Room exploration action completed.")
