@@ -45,8 +45,8 @@ class MapReceivingBehavior(behavior_container.BehaviorContainer):
 				rospy.wait_for_service(self.map_segmented_receiving_service_str_, timeout=3.0)
 				get_map_segmented = rospy.ServiceProxy(self.map_segmented_receiving_service_str_, baker_msgs.srv.GetMap)
 				self.map_segmented_data_ = get_map_segmented()
+				print "Segmented map received with resolution: ", self.map_segmented_data_.map_resolution, "   and origin: ", self.map_segmented_data_.map_origin
 			except rospy.ServiceException, e:
 				print "No segmented map available: %s" % e
 				self.map_segmented_data_ = None
 				self.behavior_status_ = 2
-			print "Segmented map received with resolution: ", self.map_segmented_data_.map_resolution, "   and origin: ", self.map_segmented_data_.map_origin
