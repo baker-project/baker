@@ -79,6 +79,8 @@ protected:
 
 		map_data_recieved_ = true;
 		map_msg_sub_.shutdown();
+
+		ROS_INFO_STREAM("MapManagementClient::mapDataCallback: Map received: " << map_header_.frame_id);
 	}
 
 	bool getMapCallback(baker_msgs::GetMap::Request& req, baker_msgs::GetMap::Response& res)
@@ -124,6 +126,8 @@ protected:
 
 		map_segmented_data_recieved_ = true;
 		map_segmented_msg_sub_.shutdown();
+
+		ROS_INFO_STREAM("MapManagementClient::mapSegmentedDataCallback: Map received: " << map_segmented_header_.frame_id);
 	}
 
 	bool getMapSegmentedCallback(baker_msgs::GetMap::Request& req, baker_msgs::GetMap::Response& res)
