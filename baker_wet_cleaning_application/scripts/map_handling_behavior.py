@@ -74,7 +74,8 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 		self.room_sequencer_ = room_sequencing_behavior.RoomSequencingBehavior("Room sequencing", self.interrupt_var_, self.room_sequencing_service_str_)
 		self.room_sequencer_.setParameters(
 			self.map_data_, 
-			self.segmentation_data_
+			self.segmentation_data_,
+			self.robot_radius_
 			)
 		self.room_sequencer_.executeCustomBehavior()
 		self.room_sequencing_data_ = self.room_sequencer_.room_sequence_result_
