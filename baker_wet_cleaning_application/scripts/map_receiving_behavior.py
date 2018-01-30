@@ -2,7 +2,7 @@
 
 import rospy
 from std_msgs.msg import String
-from baker_msgs.srv import *
+import baker_msgs.srv
 
 import behavior_container
 
