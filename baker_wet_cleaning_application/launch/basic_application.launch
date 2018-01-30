@@ -18,6 +18,7 @@
 	<!-- map management system -->
 	<node pkg="baker_wet_cleaning_application" type="map_management_client" name="map_management_client" output="screen" respawn="true" respawn_delay="2">
 		<remap from="~map" to="/map"/>
+		<remap from="~map_segmented" to="/map_segmented"/>
 	</node>
 
 	<!-- include room exploration -->
