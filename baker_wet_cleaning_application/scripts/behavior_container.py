@@ -53,7 +53,7 @@ class BehaviorContainer:
 		# Definition of SimpleGoalState: 0 = PENDING, 1 = ACTIVE, 3 = DONE
 		while (action_client.get_state() < 3):
 			#self.printMsg("action_client.get_state()=" + str(action_client.get_state()))
-			if (self.executionInterrupted() == True):
+			if (self.executionInterrupted()==True or rospy.is_shutdown()==True):
 				action_client.cancel_goal()
 				return self.handleInterrupt()
 			rospy.sleep(self.sleep_time_)
