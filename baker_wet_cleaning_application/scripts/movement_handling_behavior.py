@@ -86,6 +86,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				starting_position = Pose2D(x=1., y=0., theta=0.)
 				planning_mode = 2
 				"""
+				current_room_center = self.segmentation_data_.room_information_in_meter[current_room_index].room_center
 				current_room_map = self.getMapSegmentAsImageMsg(self.opencv_segmented_map_, current_room_index);
 				self.room_explorer_.setParameters(
 					current_room_map,
@@ -94,7 +95,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					robot_radius = self.robot_radius_,
 					coverage_radius = self.coverage_radius_,
 					field_of_view = self.field_of_view_,		# this field of view represents the off-center iMop floor wiping device
-					starting_position = self.segmentation_data_.room_information_in_meter[current_room_index].room_center,	#Pose2D(x=1., y=0., theta=0.),	# todo: determine current robot position
+					starting_position = Pose2D(x=current_room_center.x, y=current_room_center.y, theta=0.),	# todo: determine current robot position
 					planning_mode = 2
 				)
 				self.room_explorer_.executeBehavior()
