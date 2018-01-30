@@ -22,7 +22,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			self.printMsg("Imported parameter robot_radius = " + str(self.robot_radius_))
 		if rospy.has_param('coverage_radius'):
 			self.coverage_radius_ = rospy.get_param("coverage_radius")
-			self.printMsg("Imported parameter robot_radius = " + str(self.coverage_radius))
+			self.printMsg("Imported parameter robot_radius = " + str(self.coverage_radius_))
 		# todo: get field_of_view
 
 		self.robot_frame_id_ = 'base_link'
