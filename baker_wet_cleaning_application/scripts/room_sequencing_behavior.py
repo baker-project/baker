@@ -49,7 +49,7 @@ class RoomSequencingBehavior(behavior_container.BehaviorContainer):
 			t = rospy.Time(0)
 			listener.waitForTransform('/map', '/base_link', t, rospy.Duration(10))
 			(robot_pose_translation, robot_pose_rotation) = listener.lookupTransform('/map', '/base_link', t)
-		except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException), e:
+		except (tf.Exception, tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException, ), e:
 			print "Could not lookup robot pose: %s" % e
 			return (None, None, None)
 		robot_pose_rotation_euler = tf.transformations.euler_from_quaternion(robot_pose_rotation, 'rzyx')  # yields yaw, pitch, roll
@@ -67,7 +67,11 @@ class RoomSequencingBehavior(behavior_container.BehaviorContainer):
 		room_sequence_goal.robot_radius = 0.3		# todo: get from database
 		room_sequence_goal.room_information_in_pixel = self.segmentation_data_.room_information_in_pixel
 		(robot_pose_translation, robot_pose_rotation, robot_pose_rotation_euler) = self.currentRobotPose()
-		room_sequence_goal.robot_start_coordinate.position = Point32(x=robot_pose_translation[0], y=robot_pose_translation[1])  # actual current coordinates should be inserted
+		if (robot_pose_translation!=None):
+			room_sequence_goal.robot_start_coordinate.position = Point32(x=robot_pose_translation[0], y=robot_pose_translation[1])  # actual current coordinates should be inserted
+		else:
+			self.printMsg("Warning: tf lookup failed, taking (0,0) as robot_start_coordinate.")
+			room_sequence_goal.robot_start_coordinate.position = Point32(x=0, y=0)
 		room_sequence_goal.robot_start_coordinate.orientation = Quaternion(x=0.,y=0.,z=0., w=0.)	# todo: normalized quaternion
 		room_sequence_client = actionlib.SimpleActionClient(str(self.service_str_), FindRoomSequenceWithCheckpointsAction)
 		self.printMsg("Running sequencing action...")
