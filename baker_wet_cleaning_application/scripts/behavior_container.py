@@ -52,7 +52,7 @@ class BehaviorContainer:
 		# in loop check for interrupt --> if necessary stop action with self.executionInterrupted() == True and wait until action stopped
 		# Definition of SimpleGoalState: 0 = PENDING, 1 = ACTIVE, 3 = DONE
 		while (action_client.get_state() < 3):
-			self.printMsg("action_client.get_state()=" + str(action_client.get_state()))
+			#self.printMsg("action_client.get_state()=" + str(action_client.get_state()))
 			if (self.executionInterrupted() == True):
 				action_client.cancel_goal()
 				return self.handleInterrupt()
