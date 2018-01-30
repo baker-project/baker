@@ -14,6 +14,17 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 	def executeCustomBehavior(self):
 		
 		# todo: read out these parameters
+		if rospy.has_param('robot_frame'):
+			self.robot_frame_id_ = rospy.get_param("robot_frame")
+			self.printMsg("Imported parameter robot_frame = " + str(self.robot_frame_id_))
+		if rospy.has_param('robot_radius'):
+			self.robot_radius_ = rospy.get_param("robot_radius")
+			self.printMsg("Imported parameter robot_radius = " + str(self.robot_radius_))
+		if rospy.has_param('coverage_radius'):
+			self.coverage_radius_ = rospy.get_param("coverage_radius")
+			self.printMsg("Imported parameter robot_radius = " + str(self.coverage_radius))
+		# todo: get field_of_view
+
 		self.robot_frame_id_ = 'base_link'
 		self.robot_radius_ = 0.2875  #0.325	# todo: read from MIRA
 		self.coverage_radius_ = 0.233655  #0.25	# todo: read from MIRA
