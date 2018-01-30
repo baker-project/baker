@@ -96,7 +96,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					coverage_radius = self.coverage_radius_,
 					field_of_view = self.field_of_view_,		# this field of view represents the off-center iMop floor wiping device
 					starting_position = Pose2D(x=current_room_center.x, y=current_room_center.y, theta=0.),	# todo: determine current robot position
-					planning_mode = 2
+					planning_mode = 7 #2
 				)
 				self.room_explorer_.executeBehavior()
 				if (self.room_explorer_.exploration_result_ == None):
