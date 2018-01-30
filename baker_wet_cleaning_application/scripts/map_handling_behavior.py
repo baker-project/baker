@@ -84,9 +84,6 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 		if self.handleInterrupt() == 2:
 			return
 			
-		self.printMsg("self.room_sequencing_data_.checkpoints=")
-		print self.room_sequencing_data_.checkpoints
-		self.printMsg("self.segmentation_data_.room_information_in_pixel=")
-		print self.segmentation_data_.room_information_in_pixel
-		self.printMsg("self.segmentation_data_.room_information_in_meter=")
-		print self.segmentation_data_.room_information_in_meter
+		#self.printMsg("self.room_sequencing_data_.checkpoints=" + str(self.room_sequencing_data_.checkpoints))
+		#self.printMsg("self.segmentation_data_.room_information_in_pixel=" + str(self.segmentation_data_.room_information_in_pixel))
+		#self.printMsg("self.segmentation_data_.room_information_in_meter=" + str(self.segmentation_data_.room_information_in_meter))

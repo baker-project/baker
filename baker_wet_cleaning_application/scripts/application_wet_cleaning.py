@@ -43,8 +43,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		if self.handleInterrupt() == 2:
 			return
 		
-		self.printMsg("self.map_handler_.room_sequencing_data_.checkpoints=")
-		print self.map_handler_.room_sequencing_data_.checkpoints
+		#self.printMsg("self.map_handler_.room_sequencing_data_.checkpoints=" + str(self.map_handler_.room_sequencing_data_.checkpoints))
 		
 		# Move to segments, Compute exploration path, Travel through it, repeat
 		self.movement_handler_ = movement_handling_behavior.MovementHandlingBehavior("MovementHandlingBehavior", self.application_status_)
