@@ -3,8 +3,8 @@ message(STATUS "Detecting MIRA root directory")
 # Examines each path in MIRA_PATH in order to find the MIRA root directory, which
 # is identified by the file "make/Insource.make"
 message("MIRA_PATH=$ENV{MIRA_PATH}")
-#SET(ENV{MIRA_PATH} "$ENV{MIRA_PATH}:${CMAKE_SOURCE_DIR}")
-#message("MIRA_PATH=$ENV{MIRA_PATH}")
+SET(ENV{MIRA_PATH} "$ENV{MIRA_PATH}:${CMAKE_SOURCE_DIR}")
+message("MIRA_PATH=$ENV{MIRA_PATH}")
 
 SET(FORCE_USE_QT4 1)
 

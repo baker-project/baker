@@ -2,6 +2,7 @@
 <launch>
 
 	<arg name="scitos_node_args" default="-k127.0.0.1:1234"/>
+	<arg name="brush_cleaning_module_interface_args" default="-k127.0.0.1:1234"/>
 
 	<!-- ROS-MIRA communication -->
 	<include file="$(find scitos_mira)/launch/scitos_mira.launch">
@@ -9,12 +10,15 @@
 	</include>
 	
 	<!-- include ROS_MIRA communication module to brush cleaner -->
-	<include file="$(find baker_brush_cleaning_module_interface)/launch/brush_cleaning_module_interface.launch"/>
+	<include file="$(find baker_brush_cleaning_module_interface)/launch/brush_cleaning_module_interface.launch">
+		<arg name="brush_cleaning_module_interface_args" value="$(arg brush_cleaning_module_interface_args)"/>
+	</include>
 	
 
 	<!-- map management system -->
-	<node ns="baker" pkg="baker_wet_cleaning_application" type="map_management_client" name="map_management_client" output="screen" respawn="true" respawn_delay="2">
-		<remap from="map" to="/map"/>
+	<node pkg="baker_wet_cleaning_application" type="map_management_client" name="map_management_client" output="screen" respawn="true" respawn_delay="2">
+		<remap from="~map" to="/map"/>
+		<remap from="~map_segmented" to="/map_segmented"/>
 	</node>
 
 	<!-- include room exploration -->

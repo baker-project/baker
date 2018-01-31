@@ -1,38 +1,62 @@
 #!/usr/bin/env python
 
-import sys
 import rospy
 import actionlib
 import application_container
 import map_handling_behavior
 import movement_handling_behavior
 
+from geometry_msgs.msg import Point32
+
 class WetCleaningApplication(application_container.ApplicationContainer):
 
 	# Implement application procedures of inherited classes here.
 	def executeCustomBehavior(self):
+		
+		# todo: read out these parameters
+		if rospy.has_param('robot_frame'):
+			self.robot_frame_id_ = rospy.get_param("robot_frame")
+			self.printMsg("Imported parameter robot_frame = " + str(self.robot_frame_id_))
+		if rospy.has_param('robot_radius'):
+			self.robot_radius_ = rospy.get_param("robot_radius")
+			self.printMsg("Imported parameter robot_radius = " + str(self.robot_radius_))
+		if rospy.has_param('coverage_radius'):
+			self.coverage_radius_ = rospy.get_param("coverage_radius")
+			self.printMsg("Imported parameter robot_radius = " + str(self.coverage_radius_))
+		# todo: get field_of_view
+
+		#self.robot_frame_id_ = 'base_link'
+		#self.robot_radius_ = 0.2875  #0.325	# todo: read from MIRA
+		#self.coverage_radius_ = 0.233655  #0.25	# todo: read from MIRA
+		self.field_of_view_ = [Point32(x=0.04035, y=0.136), Point32(x=0.04035, y=-0.364),
+							   Point32(x=0.54035, y=-0.364), Point32(x=0.54035, y=0.136)]	# todo: read from MIRA
+
+		
 		# Receive map, segment, get sequence, extract maps
-		self.map_handler = map_handling_behavior.MapHandlingBehavior(self.application_status)
-		self.map_handler.behavior_name = "Map handling"
-		self.map_handler.setParameters()
-		self.map_handler.executeBehavior()
+		self.map_handler_ = map_handling_behavior.MapHandlingBehavior("MapHandlingBehavior", self.application_status_)
+		self.map_handler_.setParameters(
+			self.robot_radius_
+		)
+		self.map_handler_.executeBehavior()
 		
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
 			return
 		
-		self.printMsg("self.map_handler.room_sequencing_data.checkpoints=")
-		print self.map_handler.room_sequencing_data.checkpoints
+		#self.printMsg("self.map_handler_.room_sequencing_data_.checkpoints=" + str(self.map_handler_.room_sequencing_data_.checkpoints))
 		
 		# Move to segments, Compute exploration path, Travel through it, repeat
-		self.movement_handler = movement_handling_behavior.MovementHandlingBehavior(self.application_status)
-		self.movement_handler.behavior_name = "Movement handling"
-		self.movement_handler.setParameters(
-			self.map_handler.map_data,
-			self.map_handler.segmentation_data,
-			self.map_handler.room_sequencing_data,
+		self.movement_handler_ = movement_handling_behavior.MovementHandlingBehavior("MovementHandlingBehavior", self.application_status_)
+		self.movement_handler_.setParameters(
+			self.map_handler_.map_data_,
+			self.map_handler_.segmentation_data_,
+			self.map_handler_.room_sequencing_data_,
+			self.robot_frame_id_,
+			self.robot_radius_,
+			self.coverage_radius_,
+			self.field_of_view_
 		)
-		self.movement_handler.executeBehavior()
+		self.movement_handler_.executeBehavior()
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
 			return
@@ -67,11 +91,11 @@ if __name__ == '__main__':
 	try:
 		# Initialize node
 		rospy.init_node('application_wet_cleaning')
+		
 		# Initialize application
-		app = WetCleaningApplication("interrupt_application_wet_cleaning")
+		app = WetCleaningApplication("application_wet_cleaning", "interrupt_application_wet_cleaning")
 		# Execute application
 		app.executeApplication()
-		sys.exit()
 	except rospy.ROSInterruptException:
 		print "Keyboard Interrupt"
-		sys.exit()
+	rospy.signal_shutdown("Finished")

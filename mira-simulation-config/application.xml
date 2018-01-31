@@ -2,19 +2,28 @@
 	<var MCFFile="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/lab_ipa/map.mcf"/>
 	<var useDocking="false"/>
 
-	<var pathPlanner="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/SmoothPathPlanner.xml"/>
-
 	<!--var robot="SCITOS-G5"/-->
 	<var robot="BakeR-Simulation"/>
 	<var robotConfigFile="${findpkg BakeRConfig}/etc/${robot}.xml"/>
 	<var frontLaser="SickS300"/>
 	<var rearLaser="none"/>
 
+	<var pathPlanner="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/SmoothPathPlanner.xml"/>
+
 	<include file="${findpkg SCITOSSimulator}/etc/SCITOS-application.xml"/>
+
+	<namespace name="robot">
+		<parameter name="Robot.RobotModelProvider.Model">
+			<MaxForwardVelocity>0.5</MaxForwardVelocity>
+			<MaxBackwardVelocity>-0.3</MaxBackwardVelocity>
+			<MaxRotVelocity>60</MaxRotVelocity>
+		</parameter>
+	</namespace>
 
 	<namespace name="navigation">
 		<parameter name="Pilot.Planner.Objectives[?].item.Objective{mira::pilot::SmoothTransitionPathObjective}.Planner">
 			<PersistentDoubleBuffer>true</PersistentDoubleBuffer>
+			<MaxPlanningTime>3000</MaxPlanningTime>
 		</parameter>
 
 		<parameter name="Pilot.Planner.Objectives[?].item.Objective{mira::pilot::DirectionObjective}">
@@ -33,11 +42,27 @@
 		</parameter>
 	</namespace>
 
-	<namespace name="robot">
-		<parameter name="Robot.RobotModelProvider.Model">
-			<MaxForwardVelocity>0.5</MaxForwardVelocity>
-			<MaxBackwardVelocity>-0.3</MaxBackwardVelocity>
-			<MaxRotVelocity>60</MaxRotVelocity>
-		</parameter>
+	<namespace name="modules">
+		<namespace name="brushcleaning">
+			<using name="../../robot/RobotFrame"/>
+			<using name="../../robot/Odometry"/>
+			<include file="${findpkg BakeRCleaningModule}/etc/BakeRCleaningModule.xml" />
+			<parameter name="BakeRCleaningModule">
+				<Simulation>true</Simulation>
+			</parameter>
+		</namespace>
 	</namespace>
+	
+	<if_exists var="cleaningMap">
+		<namespace name="maps">
+			<namespace name="cleaning">
+				<using name="../MapFrame"/>
+				<unit id="MapPublisher" class="mira::mapping::OccupancyGridLoader">
+					<include file="${cleaningMap}"/>
+				</unit>
+			</namespace>
+		</namespace>
+	</if_exists>	
+
 </root>
+

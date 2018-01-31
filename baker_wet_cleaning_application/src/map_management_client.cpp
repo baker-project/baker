@@ -32,9 +32,11 @@ class MapManagementClient
 public:
 	MapManagementClient(ros::NodeHandle nh) : node_handle_(nh)
 	{
-		// receive map
+		// receive maps
 		map_data_recieved_ = false;
 		map_msg_sub_ = nh.subscribe<nav_msgs::OccupancyGrid>("map", 1, &MapManagementClient::mapDataCallback, this);
+		map_segmented_data_recieved_ = false;
+		map_segmented_msg_sub_ = nh.subscribe<nav_msgs::OccupancyGrid>("map_segmented", 1, &MapManagementClient::mapSegmentedDataCallback, this);
 		ROS_INFO("MapManagementClient: Waiting to receive map...");
 		while (map_data_recieved_ == false)
 		{
@@ -43,8 +45,9 @@ public:
 		}
 		ROS_INFO("MapManagementClient: Map received.");
 
-		// advertise service for the map
+		// advertise service for the maps
 		get_map_server_ = nh.advertiseService("get_map_image", &MapManagementClient::getMapCallback, this);
+		get_map_segmented_server_ = nh.advertiseService("get_map_segmented_image", &MapManagementClient::getMapSegmentedCallback, this);
 	}
 
 protected:
@@ -54,7 +57,7 @@ protected:
 		map_header_ = map_msg_data->header;
 		map_resolution_ = map_msg_data->info.resolution;
 		map_origin_ = map_msg_data->info.origin;
-		ROS_INFO_STREAM("MapManagementClient::mapDataCallback: map resolution: " << map_msg_data->info.resolution
+		ROS_INFO_STREAM("MapManagementClient::mapDataCallback: map resolution: " << map_resolution_
 				<< "    map_origin: (" << map_origin_.position.x << ", " << map_origin_.position.y << ")");
 
 		// create original map
@@ -63,11 +66,12 @@ protected:
 		{
 			for (unsigned int u = 0; u < map_msg_data->info.width; u++, i++)
 			{
-				if (map_msg_data->data[i] > 100*0.39)		// accessible areas are <=100 in MIRA
+				if (map_msg_data->data[i] > 100. * 100./255.)		// accessible areas are <=100 in MIRA (value range 0...255), whereas ROS has a value range of 0...100
 					map_.at<unsigned char>(v, u) = 0;
 			}
 		}
-		cv::Mat temp = map_;
+//		cv::Mat temp = map_;
+		// do not flip
 		//cv::flip(temp, map_, 0);	// without flip, you see the data arrangement in the OccupancyGrid message, flipped you see the map as is in RViz,
 									// with flipping, the coordinate systems between OccupancyGrid (lower left origin) and image (upper left origin) do not match anymore
 //		cv::imshow("mapDataCallback_map", map_);
@@ -75,10 +79,15 @@ protected:
 
 		map_data_recieved_ = true;
 		map_msg_sub_.shutdown();
+
+		ROS_INFO_STREAM("MapManagementClient::mapDataCallback: Map received: " << map_header_.frame_id);
 	}
 
 	bool getMapCallback(baker_msgs::GetMap::Request& req, baker_msgs::GetMap::Response& res)
 	{
+		if (map_data_recieved_==false)
+			return false;
+
 		// return the map data
 		cv_bridge::CvImage cv_ptr;
 		cv_ptr.image = map_;
@@ -90,8 +99,56 @@ protected:
 		return true;
 	}
 
+	void mapSegmentedDataCallback(const nav_msgs::OccupancyGrid::ConstPtr& map_msg_data)
+	{
+		map_segmented_header_ = map_msg_data->header;
+		map_segmented_resolution_ = map_msg_data->info.resolution;
+		map_segmented_origin_ = map_msg_data->info.origin;
+		ROS_INFO_STREAM("MapManagementClient::mapSegmentedDataCallback: map segmented resolution: " << map_segmented_resolution_
+				<< "    map_segmented_origin: (" << map_segmented_origin_.position.x << ", " << map_segmented_origin_.position.y << ")");
+
+		// create original map
+		map_segmented_ = 255 * cv::Mat::ones(map_msg_data->info.height, map_msg_data->info.width, CV_8UC1);
+		for (unsigned int v = 0, i = 0; v < map_msg_data->info.height; v++)
+		{
+			for (unsigned int u = 0; u < map_msg_data->info.width; u++, i++)
+			{
+				if (map_msg_data->data[i] > 100. * 100./255.)		// accessible areas are <=100 in MIRA (value range 0...255), whereas ROS has a value range of 0...100
+					map_segmented_.at<unsigned char>(v, u) = 0;
+			}
+		}
+//		cv::Mat temp = map_segmented_;
+		// do not flip
+		//cv::flip(temp, map_, 0);	// without flip, you see the data arrangement in the OccupancyGrid message, flipped you see the map as is in RViz,
+									// with flipping, the coordinate systems between OccupancyGrid (lower left origin) and image (upper left origin) do not match anymore
+//		cv::imshow("mapDataCallback_map", map_);
+//		cv::waitKey();
+
+		map_segmented_data_recieved_ = true;
+		map_segmented_msg_sub_.shutdown();
+
+		ROS_INFO_STREAM("MapManagementClient::mapSegmentedDataCallback: Map received: " << map_segmented_header_.frame_id);
+	}
+
+	bool getMapSegmentedCallback(baker_msgs::GetMap::Request& req, baker_msgs::GetMap::Response& res)
+	{
+		if (map_segmented_data_recieved_==false)
+			return false;
+
+		// return the map data
+		cv_bridge::CvImage cv_ptr;
+		cv_ptr.image = map_segmented_;
+		cv_ptr.encoding = "mono8";
+		res.map = *(cv_ptr.toImageMsg());
+		res.map.header = map_segmented_header_;
+		res.map_origin = map_segmented_origin_;
+		res.map_resolution = map_segmented_resolution_;
+		return true;
+	}
+
 	ros::NodeHandle node_handle_;
 
+	// map storage
 	ros::Subscriber map_msg_sub_;		// subscriber to the map topic
 	bool map_data_recieved_;
 	cv::Mat map_;						// format CV_8UC1, obstacles=0, free space=255
@@ -99,14 +156,23 @@ protected:
 	geometry_msgs::Pose map_origin_;	// in [m]
 	std_msgs::Header map_header_;
 
+	// map segmented storage
+	ros::Subscriber map_segmented_msg_sub_;		// subscriber to the map segmented topic
+	bool map_segmented_data_recieved_;
+	cv::Mat map_segmented_;						// format CV_8UC1, obstacles=0, free space=255
+	double map_segmented_resolution_;			// in [m/cell]
+	geometry_msgs::Pose map_segmented_origin_;	// in [m]
+	std_msgs::Header map_segmented_header_;
+
 	ros::ServiceServer get_map_server_;		// server handling requests for obtaining the current map in image format
+	ros::ServiceServer get_map_segmented_server_;		// server handling requests for obtaining a manually or externally segmented map in image format
 };
 
 
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "map_management_client");
-	ros::NodeHandle nh;
+	ros::NodeHandle nh("~");
 
 	MapManagementClient mmc(nh);
 
