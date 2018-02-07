@@ -1,0 +1,86 @@
+{
+    "21": {
+        "last_cleanup_unsuccessful": false, 
+        "last_successful_clean_date": null, 
+        "room_center_coords": [
+            1, 
+            2, 
+            3
+        ], 
+        "room_id": 21, 
+        "room_issues": {
+            "1": {
+                "issue_coords": [
+                    4.02323, 
+                    5, 
+                    6
+                ], 
+                "issue_date": "2018-02-06_10:47", 
+                "issue_id": 1, 
+                "issue_images": [
+                    "~/testordner/OBild1", 
+                    "~/testordner/OBild2"
+                ], 
+                "issue_type": 21
+            }, 
+            "2": {
+                "issue_coords": [
+                    4.02323, 
+                    5, 
+                    6
+                ], 
+                "issue_date": "2018-02-06_10:48", 
+                "issue_id": 2, 
+                "issue_images": [
+                    "~/testordner/OBild3", 
+                    "~/testordner/OBild4"
+                ], 
+                "issue_type": 11
+            }
+        }, 
+        "room_map": null, 
+        "room_name": "Garage"
+    }, 
+    "42": {
+        "last_cleanup_unsuccessful": false, 
+        "last_successful_clean_date": null, 
+        "room_center_coords": [
+            1, 
+            2, 
+            3
+        ], 
+        "room_id": 42, 
+        "room_issues": {
+            "1": {
+                "issue_coords": [
+                    4.02323, 
+                    5, 
+                    6
+                ], 
+                "issue_date": "2018-02-06_10:49", 
+                "issue_id": 1, 
+                "issue_images": [
+                    "~/testordner/OBild1", 
+                    "~/testordner/OBild2"
+                ], 
+                "issue_type": 21
+            }, 
+            "2": {
+                "issue_coords": [
+                    4.02323, 
+                    5, 
+                    6
+                ], 
+                "issue_date": "2018-02-06_10:50", 
+                "issue_id": 2, 
+                "issue_images": [
+                    "~/testordner/OBild3", 
+                    "~/testordner/OBild4"
+                ], 
+                "issue_type": 11
+            }
+        }, 
+        "room_map": null, 
+        "room_name": "Kitchen"
+    }
+}
