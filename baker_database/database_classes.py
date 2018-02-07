@@ -1,35 +1,3 @@
-"""
-Assumed procedure of cleaning:
-
-1. Check if a scheduled assignment is to be done
-2. Get all rooms to clean
-	2.1. Get all the rooms which were incompleted the last time
-	2.2. Get all rooms where the last successful cleanup is too far in the past
-	2.3. Get all rooms where a defined date for cleanup is given and matches with today.
-	2.4. Check if aquired rooms have issues which are not yet resolved. Handle them in some way.
-3. Make sequence of the rooms
-4. Handle the rooms one by one
-	4.1. Go to next room, explore it, clean it
-	4.2. Check result
-		4.2.1. If there are issues with the cleaning
-			4.2.1a. If the issue can be resolved in some easy way, resolve it. Continue as if room is fine.
-			4.2.1b. Otherwise, add an issue item to the room
-		4.2.2. If there are no issues (maybe also otherwise?), update the date property of the room
-	4.3. Redo 4 until all rooms are completed
-5. Handle the error items of the rooms
-	5.1. Consult human
-	5.2. Do some action
-		5.2a. If human says what to do (e.g. also to discard), do what the human says
-		5.2b. Otherwise, do what the human says
-	5.3. Check if issue is resolved
-		5.3a. If issue resolved, remove issue item from the room and delete all associated files
-		5.3b. Otherwise, keep issue item or tag it as unsolvable
-	5.4. Redo from 5.2 on until no handled issues exist
-
-X. If interrupted, store all data to the database
-X. After interruption, continue with 2 if there are rooms which were not completed. Else, continue with 5.
-"""
-
 #!/usr/bin/env python
 
 # Class which contains all the properties of the robot
