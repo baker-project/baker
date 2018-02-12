@@ -38,7 +38,7 @@
                 "issue_type": 11
             }
         }, 
-        "room_map": null, 
+        "room_map": "TestRaum.map", 
         "room_name": "Garage"
     }, 
     "42": {
@@ -80,7 +80,7 @@
                 "issue_type": 11
             }
         }, 
-        "room_map": null, 
+        "room_map": "42TestRaum", 
         "room_name": "Kitchen"
     }
 }

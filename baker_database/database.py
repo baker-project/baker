@@ -1,9 +1,15 @@
 #!/usr/bin/env python
 
+# For the room, assignment and robot data information
 import database_classes
+# For time calculations
 from datetime import datetime, date, time, timedelta
+# For Point32
 from geometry_msgs.msg import Point32
-
+# For map receiving, for image receiving
+import cv2
+from cv_bridge import CvBridge, CvBridgeError
+# For support of the JSON format
 import json
 
 # Database class
@@ -346,6 +352,22 @@ class Database():
 				result = self.assignments_[i]
 		return result
 
+	# Retrieve a cv_bridge room map by providing a room_id
+	def loadRoomMapAsCVBridge(self, room_id):
+		wanted_room = None
+		for room in self.rooms_:
+			if (room.room_id_ == room_id):
+				wanted_room = room
+		if (wanted_room != None):
+			path = str(self.extracted_file_path) + str("resources/maps/") + str(wanted_room.room_map_)
+			map_opencv = cv2.imread(path)
+			bridge = CvBridge()
+			return bridge.self.bridge_.cv2_to_imgmsg(map_opencv, encoding = "mono8")
+		else:
+			return None
+
+
+
 
 
 # =========================================================================================
@@ -360,6 +382,8 @@ db.loadDatabase()
 print db.getRoom(21).room_issues_[0].issue_id_
 print db.getRoom(21).room_name_
 print db.robot_properties_.exploration_coverage_radius_
+print db.getRoom(21).room_map_
+print db.getRoom(42).room_map_
 #db.createTestRoomObject()
 #db.createTestAssignmentObject()
 print db.getAssignment(21).assignment_name_
