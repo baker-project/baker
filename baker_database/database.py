@@ -166,6 +166,11 @@ class Database():
 			current_room.room_id_ = dict.get(room_key).get("room_id")
 			# Get the map of the room
 			current_room.room_map_ = dict.get(room_key).get("room_map")
+			# Get an open cv representation of the map
+			room_map_file_path = str(self.extracted_file_path) + str("resources/maps/") + str(current_room.room_map_)
+			map_opencv = cv2.imread(room_map_file_path, 0)
+			bridge = CvBridge()
+			current_room.room_map_data_ = bridge.cv2_to_imgmsg(map_opencv, encoding = "mono8")
 			# Get the room center coordinates
 			room_center_coords_list = dict.get(room_key).get("room_center_coords")
 			current_room.room_center_coords_ = Point32(x=room_center_coords_list[0], y=room_center_coords_list[1], z=room_center_coords_list[2])
@@ -245,6 +250,9 @@ class Database():
 			current_assignment.assignment_id_ = dict.get(assignment_key).get("assignment_id")
 			# Get the list of room IDs which are scheduled in this assignment
 			current_assignment.scheduled_rooms_ = dict.get(assignment_key).get("scheduled_rooms")
+			# Get the RoomItem representation behind the ID
+			for room_id in current_assignment.scheduled_rooms_:
+				current_assignment.scheduled_rooms_data_.append(self.getRoom(room_id))
 			# Get a date string or None if there is no date
 			date_str = dict.get(assignment_key).get("last_completed_clean")
 			if (date_str != None):
@@ -352,20 +360,6 @@ class Database():
 				result = self.assignments_[i]
 		return result
 
-	# Retrieve a cv_bridge room map by providing a room_id
-	def loadRoomMapAsCVBridge(self, room_id):
-		wanted_room = None
-		for room in self.rooms_:
-			if (room.room_id_ == room_id):
-				wanted_room = room
-		if (wanted_room != None):
-			path = str(self.extracted_file_path) + str("resources/maps/") + str(wanted_room.room_map_)
-			map_opencv = cv2.imread(path)
-			bridge = CvBridge()
-			return bridge.self.bridge_.cv2_to_imgmsg(map_opencv, encoding = "mono8")
-		else:
-			return None
-
 
 
 
@@ -384,6 +378,7 @@ print db.getRoom(21).room_name_
 print db.robot_properties_.exploration_coverage_radius_
 print db.getRoom(21).room_map_
 print db.getRoom(42).room_map_
+print db.getAssignment(42).scheduled_rooms_data_[1].room_id_
 #db.createTestRoomObject()
 #db.createTestAssignmentObject()
 print db.getAssignment(21).assignment_name_

@@ -53,9 +53,12 @@ class RoomItem():
 	# List of issues in a room. Array of RoomIssue 
 	# (ARRAY OF ROOMISSUE)
 	room_issues_ = []
-	# Map of the room 
+	# Filename of the room map file
 	# (STRING)
 	room_map_ = None
+	# CV_Bridge representation of the map
+	# (CV_BRIDGE)
+	room_map_data_ = None
 	# Coords of the room center 
 	# (POINT32)
 	room_center_coords_ = None
@@ -68,9 +71,12 @@ class AssignmentItem():
 	# Assignment ID 
 	# (INTEGER)
 	assignment_id_ = 0
-	# Rooms which are handled by this assignment 
-	# (ARRAY OF ROOMITEM)
+	# IDs of Rooms which are handled by this assignment 
+	# (ARRAY OF INTEGER)
 	scheduled_rooms_ = []
+	# The RoomItem objects behind the IDs
+	# RoomItem
+	scheduled_rooms_data_ = []
 	# Date of the last clean which completed successfully 
 	# (DATETIME)
 	last_completed_clean_ = None
