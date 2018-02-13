@@ -49,7 +49,7 @@ class RoomItem():
 	last_successful_clean_date_ = None
 	# Was the last scheduled cleanup interrupted / cancelled and therefore should it be resumed? 
 	# (BOOLEAN)
-	last_cleanup_unsuccessful_ = False
+	last_cleanup_successful_ = False
 	# List of issues in a room. Array of RoomIssue 
 	# (ARRAY OF ROOMISSUE)
 	room_issues_ = []
@@ -62,6 +62,10 @@ class RoomItem():
 	# Coords of the room center 
 	# (POINT32)
 	room_center_coords_ = None
+
+	# RoomItems must be hashable for convenience
+	def __hash__(self):
+		return self.room_id_
 
 # Item that contains assignment data
 class AssignmentItem():

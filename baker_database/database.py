@@ -32,7 +32,7 @@ class Database():
 			"room_name": "D3.06",
 			"room_id": 42,
 			"last_successful_clean_date": datetime.now().strftime("%Y-%m-%d_%H:%M"),
-			"last_cleanup_unsuccessful": "False",
+			"last_cleanup_successful": "False",
 			"room_map": None,
 			"room_coords": [0, 0, 0],
 			"room_issues": {
@@ -75,7 +75,7 @@ class Database():
 		test_room.room_issues_.append(issue1)
 		test_room.room_issues_.append(issue2)
 		test_room.room_id_ = 42
-		test_room.last_cleanup_unsuccessful_ = False
+		test_room.last_cleanup_successful_ = False
 		test_room.last_successful_clean_date_ = None
 		test_room.room_map_ = None
 		test_room.room_center_coords_ = None
@@ -175,7 +175,7 @@ class Database():
 			room_center_coords_list = dict.get(room_key).get("room_center_coords")
 			current_room.room_center_coords_ = Point32(x=room_center_coords_list[0], y=room_center_coords_list[1], z=room_center_coords_list[2])
 			# Get the information if the last clean has not yet been completed
-			current_room.last_cleanup_unsuccessful_ = dict.get(room_key).get("last_cleanup_unsuccessful")
+			current_room.last_cleanup_successful_ = dict.get(room_key).get("last_cleanup_successful")
 			# Get the last successful clean date if there is any, otherwise set None
 			date_str = dict.get(room_key).get("last_successful_clean_date")
 			if (date_str != None):
@@ -229,7 +229,7 @@ class Database():
 					"room_id": current_room.room_id_,
 					"room_name": current_room.room_name_,
 					"last_successful_clean_date": date_str,
-					"last_cleanup_unsuccessful": current_room.last_cleanup_unsuccessful_,
+					"last_cleanup_successful": current_room.last_cleanup_successful_,
 					"room_issues": issues_dict,
 					"room_map": current_room.room_map_,
 					"room_center_coords": room_center_coords_list

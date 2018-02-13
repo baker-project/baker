@@ -1,6 +1,6 @@
 {
     "21": {
-        "last_cleanup_unsuccessful": false, 
+        "last_cleanup_successful": false, 
         "last_successful_clean_date": null, 
         "room_center_coords": [
             1, 
@@ -42,7 +42,7 @@
         "room_name": "Garage"
     }, 
     "42": {
-        "last_cleanup_unsuccessful": false, 
+        "last_cleanup_successful": false, 
         "last_successful_clean_date": null, 
         "room_center_coords": [
             1, 
