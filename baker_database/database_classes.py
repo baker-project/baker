@@ -17,6 +17,12 @@ class RobotProperties():
 	wall_follow_goal_position_tolerance_ = 0
 	wall_follow_goal_angle_tolerance_ = 0
 
+# Class which contains all global application settings
+class GlobalSettings():
+	# Should interrupted assignments be completed automatically after interruption is over? 
+	# (BOOLEAN)
+	shall_auto_complete_ = True
+
 
 # Class that describes all information on an issue
 class RoomIssue():
@@ -91,7 +97,5 @@ class AssignmentItem():
 	# (ARRAY OF DATETIME)
 	clean_dates_ = []
 
-	# Options
-	# Should interrupted assignments be completed automatically after interruption is over? 
-	# (BOOLEAN)
-	shall_auto_complete_ = True
+	# Settings which only concern this assignment
+	# (none so far)

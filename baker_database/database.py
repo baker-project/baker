@@ -20,6 +20,8 @@ class Database():
 	rooms_ = []
 	# Robot proprties
 	robot_properties_ = None
+	# Global settings
+	global_settings_ = None
 
 # =========================================================================================
 # Test functions
@@ -93,8 +95,7 @@ class Database():
 			"scheduled_rooms": [5,6,7,8],
 			"clean_dates": [datetime.now().strftime("%Y-%m-%d_%H:%M"), datetime.now().strftime("%Y-%m-%d_%H:%M")],
 			"last_completed_clean": datetime.now().strftime("%Y-%m-%d_%H:%M"),
-			"clean_interval": 0,
-			"shall_auto_complete": True
+			"clean_interval": 0
 		}
 		return assignment_dict
 
@@ -108,12 +109,15 @@ class Database():
 		test_assignment.clean_dates_ = []
 		test_assignment.last_completed_clean_ = datetime.now()
 		test_assignment.clean_interval_ = 0
-		test_assignment.shall_auto_complete_ = True
 		self.assignments_.append(test_assignment)
 
 # =========================================================================================
 # Private methods
 # =========================================================================================
+
+	def updateGlobalSettings(self, dict):
+		self.global_settings_ = database_classes.GlobalSettings()
+		self.global_settings_.shall_auto_complete_ = dict.get("shall_auto_complete")
 
 	def updateRobotProperties(self, dict):
 		self.robot_properties_ = database_classes.RobotProperties()
@@ -295,8 +299,7 @@ class Database():
 					"scheduled_rooms": current_assignment.scheduled_rooms_,
 					"last_completed_clean": date_str,
 					"clean_interval": clean_interval_int,
-					"clean_dates": expl_dates,
-					"shall_auto_complete": current_assignment.shall_auto_complete_
+					"clean_dates": expl_dates
 				}
 			else:
 				print "[FATAL]: An element in assignments_ array is not an assignment object!"
@@ -316,31 +319,37 @@ class Database():
 	# Load database data from files
 	def loadDatabase(self):
 		# Load the room data
-		file = open(self.extracted_file_path + str("rooms.json"), "r").read()
+		file = open(self.extracted_file_path + str("resources/json/rooms.json"), "r").read()
 		rooms_dict = json.loads(file)
 		self.updateRoomsList(rooms_dict)
 		# Load the assignment data
-		file = open(self.extracted_file_path + str("assignments.json"), "r").read()
+		file = open(self.extracted_file_path + str("resources/json/assignments.json"), "r").read()
 		assignments_dict = json.loads(file)
 		self.updateAssignmentsList(assignments_dict)
 		# Load the robot properties
-		file = open(self.extracted_file_path + str("robot_properties.json"), "r").read()
+		file = open(self.extracted_file_path + str("resources/json/robot_properties.json"), "r").read()
 		robot_properties_dict = json.loads(file)
 		self.updateRobotProperties(robot_properties_dict)
+		# Load the global settings
+		file = open(self.extracted_file_path + str("resources/json/global_settings.json"), "r").read()
+		global_settings_dict = json.loads(file)
+		self.updateGlobalSettings(global_settings_dict)
 
 	# Save database data to files
 	def saveDatabase(self):
 		# Save the room data
 		rooms_dict = self.getRoomsDictFromRoomsList()
 		rooms_text = json.dumps(rooms_dict, indent=4, sort_keys=True)
-		file = open(self.extracted_file_path + str("rooms.json"), "w")
+		file = open(self.extracted_file_path + str("resources/json/rooms.json"), "w")
 		file.write(rooms_text)
 		# Save the assignment data
 		assignments_dict = self.getAssignmentsDictFromAssignmentsList()
 		assignments_text = json.dumps(assignments_dict, indent=4, sort_keys=True)
-		file = open(self.extracted_file_path + str("assignments.json"), "w")
+		file = open(self.extracted_file_path + str("resources/json/assignments.json"), "w")
 		file.write(assignments_text)
 		# Save robot properties? No.....
+		# [...]
+		# Save global settings? No.....
 		# [...]
 
 
@@ -371,6 +380,8 @@ class Database():
 # Initialize and load data from the files
 db = Database()
 db.loadDatabase()
+#db.createTestRoomObject()
+#db.createTestAssignmentObject()
 
 # Play around with the containing data
 print db.getRoom(21).room_issues_[0].issue_id_
@@ -379,9 +390,8 @@ print db.robot_properties_.exploration_coverage_radius_
 print db.getRoom(21).room_map_
 print db.getRoom(42).room_map_
 print db.getAssignment(42).scheduled_rooms_data_[1].room_id_
-#db.createTestRoomObject()
-#db.createTestAssignmentObject()
 print db.getAssignment(21).assignment_name_
+print db.global_settings_.shall_auto_complete_
 
 # Save database
 db.saveDatabase()

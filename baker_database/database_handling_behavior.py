@@ -27,6 +27,13 @@ class DatabaseHandlingBehavior(behavior_container.BehaviorContainer):
 
 	# Method for extracting all due assignments and all due rooms
 	def updateAllDueAssignmentsAndRooms(self):
+		# Get rooms which had an unsuccessful cleanup before, provided they do not have an unresolvable issue
+		# This can be deactivated if do_auto_complete is set false
+		if (self.database_.global_settings_.shall_auto_complete == True):
+			for room in self.database_.rooms_:
+				if (room.last_cleanup_successful == False):
+					self.due_rooms_.append(room)
+		# Get rooms from the assignments
 		for assignment in self.database_.assignments_:
 			# Check if there was an explicit date the assignment had to be done
 			# Append all corresponding rooms to the fringe
