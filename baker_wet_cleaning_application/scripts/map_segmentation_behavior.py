@@ -10,13 +10,16 @@ import behavior_container
 
 class MapSegmentationBehavior(behavior_container.BehaviorContainer):
 
-	def __init__(self, interrupt_var_, service_str_):
-		self.interrupt_var = interrupt_var_
-		self.service_str = service_str_
+	def __init__(self, behavior_name, interrupt_var, service_str):
+		self.behavior_name_ = behavior_name
+		self.interrupt_var_ = interrupt_var
+		self.service_str_ = service_str
 
 	# Method for setting parameters for the behavior
-	def setParameters(self, map_data_):
-		self.map_data = map_data_
+	def setParameters(self, map_data, robot_radius, map_segmentation_algorithm=0):
+		self.map_data_ = map_data
+		self.robot_radius_ = robot_radius
+		self.map_segmentation_algorithm_ = map_segmentation_algorithm
 
 	# Method for returning to the standard pose of the robot
 	def returnToRobotStandardState(self):
@@ -28,14 +31,14 @@ class MapSegmentationBehavior(behavior_container.BehaviorContainer):
 	def executeCustomBehavior(self):
 		# compute map division into rooms (ipa_room_segmentation)
 		segmentation_goal = MapSegmentationGoal()
-		segmentation_goal.input_map = self.map_data.map
-		# rospy.init_node('exploration_node') idk why this is here...
-		segmentation_goal.map_resolution = self.map_data.map_resolution
-		segmentation_goal.map_origin = self.map_data.map_origin
+		segmentation_goal.input_map = self.map_data_.map
+		segmentation_goal.map_resolution = self.map_data_.map_resolution
+		segmentation_goal.map_origin = self.map_data_.map_origin
 		segmentation_goal.return_format_in_meter = True
 		segmentation_goal.return_format_in_pixel = True
-		segmentation_goal.robot_radius = 0.3
-		segmentation_client = actionlib.SimpleActionClient(str(self.service_str), MapSegmentationAction)
+		segmentation_goal.robot_radius = self.robot_radius_
+		segmentation_goal.room_segmentation_algorithm = self.map_segmentation_algorithm_
+		segmentation_client = actionlib.SimpleActionClient(str(self.service_str_), MapSegmentationAction)
 		self.printMsg("Running segmentation action...")
-		self.segmentation_result = self.runAction(segmentation_client, segmentation_goal)
+		self.segmentation_result_ = self.runAction(segmentation_client, segmentation_goal)
 		self.printMsg("Map Segmentation completed")
