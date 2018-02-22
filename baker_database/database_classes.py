@@ -69,6 +69,14 @@ class RoomItem():
 	# (POINT32)
 	room_center_coords_ = None
 
+	# NEW DATABASE ENTRIES (Yet to be handled in database.py)
+	# Room surfcae type [0=?, ..., n=?]
+	# (INTEGER)
+	room_surface_type = 0
+	# Room surface area
+	# (Float)
+	room_surface_area = 0.0
+
 	# RoomItems must be hashable for convenience
 	def __hash__(self):
 		return self.room_id_

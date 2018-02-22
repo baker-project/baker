@@ -39,7 +39,9 @@
             }
         }, 
         "room_map": "TestRaum.png", 
-        "room_name": "Garage"
+        "room_name": "Garage",
+        "room_surface_type": 12,
+        "room_surface_area": 12.34
     }, 
     "42": {
         "last_cleanup_successful": false, 
@@ -81,6 +83,8 @@
             }
         }, 
         "room_map": "42TestRaum.png", 
-        "room_name": "Kitchen"
+        "room_name": "Kitchen",
+        "room_surface_type": 12,
+        "room_surface_area": 12.34
     }
 }

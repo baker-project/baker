@@ -178,6 +178,10 @@ class Database():
 			# Get the room center coordinates
 			room_center_coords_list = dict.get(room_key).get("room_center_coords")
 			current_room.room_center_coords_ = Point32(x=room_center_coords_list[0], y=room_center_coords_list[1], z=room_center_coords_list[2])
+			# Get the room surface type
+			current_room.room_surface_type_ = dict.get(room_key).get("room_surface_type")
+			# Get the room surface area
+			current_room.room_surface_area_ = dict.get(room_key).get("room_surface_area")
 			# Get the information if the last clean has not yet been completed
 			current_room.last_cleanup_successful_ = dict.get(room_key).get("last_cleanup_successful")
 			# Get the last successful clean date if there is any, otherwise set None
@@ -236,7 +240,9 @@ class Database():
 					"last_cleanup_successful": current_room.last_cleanup_successful_,
 					"room_issues": issues_dict,
 					"room_map": current_room.room_map_,
-					"room_center_coords": room_center_coords_list
+					"room_center_coords": room_center_coords_list,
+					"room_surfcae_type": current_room.room_surface_type_,
+					"room_surface_area": current_room.room_surface_area_
 				}
 			else:
 				print "[FATAL]: An element in rooms_ array is not a room object!"
