@@ -93,7 +93,6 @@ class Database():
 			"assignment_name": "Assignment Number Two",
 			"assignment_id": 21,
 			"scheduled_rooms": [5,6,7,8],
-			"clean_dates": [datetime.now().strftime("%Y-%m-%d_%H:%M"), datetime.now().strftime("%Y-%m-%d_%H:%M")],
 			"last_completed_clean": datetime.now().strftime("%Y-%m-%d_%H:%M"),
 			"clean_interval": 0
 		}
@@ -106,7 +105,6 @@ class Database():
 		test_assignment.assignment_name_ = "Assignment Number One"
 		test_assignment.assignment_id_ = 42
 		test_assignment.scheduled_rooms_ = [1,2,3,4]
-		test_assignment.clean_dates_ = []
 		test_assignment.last_completed_clean_ = datetime.now()
 		test_assignment.clean_interval_ = 0
 		self.assignments_.append(test_assignment)
@@ -118,6 +116,11 @@ class Database():
 	def updateGlobalSettings(self, dict):
 		self.global_settings_ = database_classes.GlobalSettings()
 		self.global_settings_.shall_auto_complete_ = dict.get("shall_auto_complete")
+
+	def getGlobalSettingsDictFromGlobalSettings(self):
+		global_settings_dict = {}
+		global_settings_dict["shall_auto_complete"] = self.global_settings_.shall_auto_complete_
+		return global_settings_dict
 
 	def updateRobotProperties(self, dict):
 		self.robot_properties_ = database_classes.RobotProperties()
@@ -182,6 +185,8 @@ class Database():
 			current_room.room_surface_type_ = dict.get(room_key).get("room_surface_type")
 			# Get the room surface area
 			current_room.room_surface_area_ = dict.get(room_key).get("room_surface_area")
+			# Get the room trashcan count
+			current_room.room_trashcan_count_ = dict.get(room_key).get("room_trashcan_count")
 			# Get the information if the last clean has not yet been completed
 			current_room.last_cleanup_successful_ = dict.get(room_key).get("last_cleanup_successful")
 			# Get the last successful clean date if there is any, otherwise set None
@@ -242,7 +247,8 @@ class Database():
 					"room_map": current_room.room_map_,
 					"room_center_coords": room_center_coords_list,
 					"room_surfcae_type": current_room.room_surface_type_,
-					"room_surface_area": current_room.room_surface_area_
+					"room_surface_area": current_room.room_surface_area_,
+					"room_trashcan_count": current_room.room_trashcan_count_
 				}
 			else:
 				print "[FATAL]: An element in rooms_ array is not a room object!"
@@ -271,12 +277,7 @@ class Database():
 				current_assignment.last_completed_clean_ = None
 			# Get the clean interval
 			clean_interval_int = dict.get(assignment_key).get("clean_interval")
-			current_assignment.clean_interval_ = timedelta(days = clean_interval_int)
-			# Get the explicit clean dates
-			current_assignment.clean_dates_ = []
-			dates_str = dict.get(assignment_key).get("clean_dates")
-			for date in dates_str:
-				current_assignment.clean_dates_.append(datetime.strptime(date, "%Y-%m-%d_%H:%M"))
+			current_assignment.clean_interval_ = timedelta(days = clean_interval_int)	
 			# Append current_assignment to assignments_ list
 			self.assignments_.append(current_assignment)
 
@@ -292,10 +293,6 @@ class Database():
 					date_str = current_assignment.last_completed_clean_.strftime("%Y-%m-%d_%H:%M")
 				else:
 					date_str = None
-				# Make a string list of all explicit cleaning dates
-				expl_dates = []
-				for clean_date in current_assignment.clean_dates_:
-					expl_dates.append(clean_date.strftime("%Y-%m-%d_%H:%M"))
 				# Get the clean interval
 				clean_interval_int = current_assignment.clean_interval_.days
 				# Fill the dictionary with the data
@@ -304,8 +301,7 @@ class Database():
 					"assignment_id": current_assignment.assignment_id_,
 					"scheduled_rooms": current_assignment.scheduled_rooms_,
 					"last_completed_clean": date_str,
-					"clean_interval": clean_interval_int,
-					"clean_dates": expl_dates
+					"clean_interval": clean_interval_int
 				}
 			else:
 				print "[FATAL]: An element in assignments_ array is not an assignment object!"
@@ -353,9 +349,12 @@ class Database():
 		assignments_text = json.dumps(assignments_dict, indent=4, sort_keys=True)
 		file = open(self.extracted_file_path + str("resources/json/assignments.json"), "w")
 		file.write(assignments_text)
+		# Save global settings
+		global_settings_dict = self.getGlobalSettingsDictFromGlobalSettings()
+		global_settings_text = json.dumps(global_settings_dict, indent=4, sort_keys=True)
+		file = open(self.extracted_file_path + str("resources/json/global_settings.json"), "w")
+		file.write(global_settings_text)
 		# Save robot properties? No.....
-		# [...]
-		# Save global settings? No.....
 		# [...]
 
 
@@ -398,6 +397,7 @@ print db.getRoom(42).room_map_
 print db.getAssignment(42).scheduled_rooms_data_[1].room_id_
 print db.getAssignment(21).assignment_name_
 print db.global_settings_.shall_auto_complete_
+print db.getRoom(21).room_trashcan_count_
 
 # Save database
 db.saveDatabase()

@@ -17,11 +17,21 @@ class RobotProperties():
 	wall_follow_goal_position_tolerance_ = 0
 	wall_follow_goal_angle_tolerance_ = 0
 
+
+
+
+
+
 # Class which contains all global application settings
 class GlobalSettings():
-	# Should interrupted assignments be completed automatically after interruption is over? 
+	# Should incomplete assignments be completed in the next opportunity?
 	# (BOOLEAN)
 	shall_auto_complete_ = True
+
+
+
+
+
 
 
 # Class that describes all information on an issue
@@ -42,14 +52,35 @@ class RoomIssue():
 	# (DATETIME)
 	issue_date_ = None
 
+
+
+
+
+
 # Item that contains information on a room
 class RoomItem():
+	# DATA AQUIRED FROM THE DATABASE
+	# ==============================
+
 	# Name of the room for user 
 	# (STRING)
 	room_name_ = ""
 	# Room ID 
 	# (INTEGER)
 	room_id_ = 0
+	# Room surfcae type [0=?, ..., n=?]
+	# (INTEGER)
+	room_surface_type_ = 0
+	# Room surface area
+	# (FLOAT)
+	room_surface_area_ = 0.0
+	# Amount of trashcans in the room %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% NYI
+	# (INTEGER)
+	room_trashcan_count_ = 0
+
+	# DATA AQUIRED FROM OTHER SOURCES
+	# ===============================
+
 	# Date of the last successful clean 
 	# (DATETIME)
 	last_successful_clean_date_ = None
@@ -68,19 +99,24 @@ class RoomItem():
 	# Coords of the room center 
 	# (POINT32)
 	room_center_coords_ = None
-	# Room surfcae type [0=?, ..., n=?]
-	# (INTEGER)
-	room_surface_type_ = 0
-	# Room surface area
-	# (Float)
-	room_surface_area_ = 0.0
+
+	# MISCELLANEOUS STUFF
+	# ===================
 
 	# RoomItems must be hashable for convenience
 	def __hash__(self):
 		return self.room_id_
 
+
+
+
+
+
 # Item that contains assignment data
 class AssignmentItem():
+	# DATA AQUIRED FROM THE DATABASE
+	# ==============================
+
 	# Name of schedule for user 
 	# (STRING)
 	assignment_name_ = ""
@@ -90,18 +126,19 @@ class AssignmentItem():
 	# IDs of Rooms which are handled by this assignment 
 	# (ARRAY OF INTEGER)
 	scheduled_rooms_ = []
+	# Interval in which the rooms are supposed to be cleaned 
+	# (TIMEDELTA)
+	clean_interval_ = None
+
+	# DATA AQUIRED FROM OTHER SOURCES
+	# ===============================
+
 	# The RoomItem objects behind the IDs
 	# RoomItem
 	scheduled_rooms_data_ = []
 	# Date of the last clean which completed successfully 
 	# (DATETIME)
 	last_completed_clean_ = None
-	# Interval in which the rooms are supposed to be cleaned 
-	# (TIMEDELTA)
-	clean_interval_ = None
-	# List of dates where the assignment should be done anyway 
-	# (ARRAY OF DATETIME)
-	clean_dates_ = []
 
 	# Settings which only concern this assignment
 	# (none so far)
