@@ -59,6 +59,7 @@ class RoomIssue():
 
 # Item that contains information on a room
 class RoomItem():
+
 	# DATA AQUIRED FROM THE DATABASE
 	# ==============================
 
@@ -68,18 +69,30 @@ class RoomItem():
 	# Room ID 
 	# (INTEGER)
 	room_id_ = 0
+	# Position ID (eg "4.26")
+	# (INTEGER)
+	room_position_id_ = 0
+	# Floor (e.g. "OG1")
+	# (STRING)
+	room_floor_id_ = ""
+	# Building (e.g. "Hauptgebaeude")
+	# (STRING)
+	room_building_id_ = ""
 	# Room surfcae type [0=?, ..., n=?]
 	# (INTEGER)
 	room_surface_type_ = 0
+	# Room cleaning method [0=?, ..., n=?]
+	# (INTEGER)
+	room_cleaning_method_ = 0
 	# Room surface area
 	# (FLOAT)
 	room_surface_area_ = 0.0
-	# Amount of trashcans in the room %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% NYI
+	# Amount of trashcans in the room
 	# (INTEGER)
 	room_trashcan_count_ = 0
 
-	# DATA AQUIRED FROM OTHER SOURCES
-	# ===============================
+	# DATA CALCULATED OR AQUIRED FROM OTHER SOURCES
+	# =============================================
 
 	# Date of the last successful clean 
 	# (DATETIME)
@@ -114,25 +127,30 @@ class RoomItem():
 
 # Item that contains assignment data
 class AssignmentItem():
+
 	# DATA AQUIRED FROM THE DATABASE
 	# ==============================
 
 	# Name of schedule for user 
 	# (STRING)
 	assignment_name_ = ""
-	# Assignment ID 
-	# (INTEGER)
-	assignment_id_ = 0
+	# Territory ID
+	# (INTEGER)NYI
+	territory_id_ = 0
+	# Week type [0=Even, 1=Uneven]
+	# (INTEGER)NYI
+	assignment_week_type_ = 0
+	# Day type [0=Monday, ..., 6=Sunday]
+	# (INTEGER)NYI
+	assignment_day_type_ = 0
+	
+
+	# DATA CALCULATED OR AQUIRED FROM OTHER SOURCES
+	# =============================================
+
 	# IDs of Rooms which are handled by this assignment 
 	# (ARRAY OF INTEGER)
 	scheduled_rooms_ = []
-	# Interval in which the rooms are supposed to be cleaned 
-	# (TIMEDELTA)
-	clean_interval_ = None
-
-	# DATA AQUIRED FROM OTHER SOURCES
-	# ===============================
-
 	# The RoomItem objects behind the IDs
 	# RoomItem
 	scheduled_rooms_data_ = []
@@ -140,5 +158,14 @@ class AssignmentItem():
 	# (DATETIME)
 	last_completed_clean_ = None
 
-	# Settings which only concern this assignment
-	# (none so far)
+
+	# DEPRECATED ENTRIES
+	# ==================
+
+	# Interval in which the rooms are supposed to be cleaned 
+	# (TIMEDELTA)
+	clean_interval_ = None
+	# Assignment ID 
+	# (INTEGER)
+	assignment_id_ = 0
+

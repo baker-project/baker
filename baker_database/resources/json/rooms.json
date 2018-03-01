@@ -2,11 +2,14 @@
     "21": {
         "last_cleanup_successful": false, 
         "last_successful_clean_date": null, 
+        "room_building_id": null, 
         "room_center_coords": [
             1, 
             2, 
             3
         ], 
+        "room_cleaning_method": null, 
+        "room_floor_id": null, 
         "room_id": 21, 
         "room_issues": {
             "1": {
@@ -40,6 +43,7 @@
         }, 
         "room_map": "TestRaum.png", 
         "room_name": "Garage", 
+        "room_position_id": null, 
         "room_surface_area": 12.34, 
         "room_surfcae_type": null, 
         "room_trashcan_count": 2
@@ -47,11 +51,14 @@
     "42": {
         "last_cleanup_successful": false, 
         "last_successful_clean_date": null, 
+        "room_building_id": null, 
         "room_center_coords": [
             1, 
             2, 
             3
         ], 
+        "room_cleaning_method": null, 
+        "room_floor_id": null, 
         "room_id": 42, 
         "room_issues": {
             "1": {
@@ -85,6 +92,7 @@
         }, 
         "room_map": "42TestRaum.png", 
         "room_name": "Kitchen", 
+        "room_position_id": null, 
         "room_surface_area": 12.34, 
         "room_surfcae_type": null, 
         "room_trashcan_count": 1

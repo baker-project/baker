@@ -160,7 +160,6 @@ class Database():
 				# Get the room issue coordinates
 				issue_coords_list = issues_dict.get(issue_key).get("issue_coords")
 				current_issue.issue_coords_ = Point32(x=issue_coords_list[0], y=issue_coords_list[1], z=issue_coords_list[2])
-				#current_issue.issue_coords_ = None
 				# Get the date the issue was detected
 				date_str = datetime.strptime(issues_dict.get(issue_key).get("issue_date"), "%Y-%m-%d_%H:%M")
 				current_issue.issue_date_ = date_str
@@ -171,6 +170,12 @@ class Database():
 			current_room.room_name_ = dict.get(room_key).get("room_name")
 			# Get the ID of the room
 			current_room.room_id_ = dict.get(room_key).get("room_id")
+			# Get the position ID of the room
+			current_room.room_position_id_ = dict.get(room_key).get("room_position_id")
+			# Get the floor of the room
+			current_room.room_floor_id_ = dict.get(room_key).get("room_floor_id")
+			# Get the building ID of the room
+			current_room.room_building_id_ = dict.get(room_key).get("room_building_id")
 			# Get the map of the room
 			current_room.room_map_ = dict.get(room_key).get("room_map")
 			# Get an open cv representation of the map
@@ -183,6 +188,8 @@ class Database():
 			current_room.room_center_coords_ = Point32(x=room_center_coords_list[0], y=room_center_coords_list[1], z=room_center_coords_list[2])
 			# Get the room surface type
 			current_room.room_surface_type_ = dict.get(room_key).get("room_surface_type")
+			# Get the cleaning method of the room
+			current_room.room_cleaning_method_ = dict.get(room_key).get("room_cleaning_method")
 			# Get the room surface area
 			current_room.room_surface_area_ = dict.get(room_key).get("room_surface_area")
 			# Get the room trashcan count
@@ -241,12 +248,16 @@ class Database():
 				room_dict[str(current_room.room_id_)] = {
 					"room_id": current_room.room_id_,
 					"room_name": current_room.room_name_,
+					"room_position_id": current_room.room_position_id_,
+					"room_floor_id": current_room.room_floor_id_,
+					"room_building_id": current_room.room_building_id_,
 					"last_successful_clean_date": date_str,
 					"last_cleanup_successful": current_room.last_cleanup_successful_,
 					"room_issues": issues_dict,
 					"room_map": current_room.room_map_,
 					"room_center_coords": room_center_coords_list,
 					"room_surfcae_type": current_room.room_surface_type_,
+					"room_cleaning_method": current_room.room_cleaning_method_,
 					"room_surface_area": current_room.room_surface_area_,
 					"room_trashcan_count": current_room.room_trashcan_count_
 				}
