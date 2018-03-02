@@ -85,10 +85,11 @@ class CSVToJsonEncoder():
 			i = i + 1
 			# Save the database
 			self.database_.saveDatabase()
+		
 		# Create assignments from the schedule
 		i = 0
-		for assignment_name in ["MO_0", "TU_0", "WE_0", "TH_0", "FR_0", "SA_0", "SU_0", "MO_1", "TU_1", "WE_1", "TH_1", "FR_1", "SA_1", "SU_1"]:
-			print assignment_name
+		assignment_name_list = ["MO_0", "TU_0", "WE_0", "TH_0", "FR_0", "SA_0", "SU_0", "MO_1", "TU_1", "WE_1", "TH_1", "FR_1", "SA_1", "SU_1"]
+		for i in range(len(assignment_name_list)) :
 			if (i < 7):
 				week_type = 0
 				week_day = i
@@ -97,24 +98,26 @@ class CSVToJsonEncoder():
 				week_day = i - 7
 			current_col = 10 + i
 			current_assignment = self.database_.getAssignmentByWeekTypeDay(week_type, week_day)
-			print current_assignment.assignment_name_
 			if (current_assignment == None):
 				current_assignment = database_classes.AssignmentItem()
 				self.database_.assignments_.append(current_assignment)
-			current_assignment.assignment_name_ = assignment_name
+			current_assignment.assignment_name_ = assignment_name_list[i]
 			current_assignment.assignment_week_type_ = week_type
 			current_assignment.assignment_week_day_ = week_day
+			# Once a file stream went through, it won't work anymore
+			# TODO: Find prettier solution
+			self.loadCSVFiles()
 			j = 0
 			for row in self.csv_territory_plan_:
 				if (j > 1):
 					if (row[current_col] == "X" or row[current_col] == "x"):
-						current_assignment.scheduled_rooms_cleaning_.append(getRoomByPosFloor(row[1], row[2]).room_id_)
+						current_assignment.scheduled_rooms_cleaning_.append(self.database_.getRoomByPosFloor(row[1], row[2]).room_id_)
 					elif (row[current_col] == "P" or row[current_col] == "p"):
-						current_assignment.scheduled_rooms_trashcan_.append(getRoomByPosFloor(row[1], row[2]).room_id_)
+						current_assignment.scheduled_rooms_trashcan_.append(self.database_.getRoomByPosFloor(row[1], row[2]).room_id_)
 				j = j + 1
+			# Save the database
+			self.database_.saveDatabase()
 			i = i + 1
-		# Save the database
-		self.database_.saveDatabase()
 	
 	
 	# Save the database

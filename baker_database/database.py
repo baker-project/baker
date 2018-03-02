@@ -405,7 +405,7 @@ class Database():
 			if ((assignment.assignment_week_type_ == week_type) and (assignment.assignment_week_day_ == week_day)):
 				result = assignment
 				break
-		return assignment
+		return result
 
 
 """

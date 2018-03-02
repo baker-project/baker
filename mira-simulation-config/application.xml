@@ -14,7 +14,7 @@
 
 	<namespace name="robot">
 		<parameter name="Robot.RobotModelProvider.Model">
-			<MaxForwardVelocity>0.5</MaxForwardVelocity>
+			<MaxForwardVelocity>0.6</MaxForwardVelocity>
 			<MaxBackwardVelocity>-0.3</MaxBackwardVelocity>
 			<MaxRotVelocity>60</MaxRotVelocity>
 		</parameter>
