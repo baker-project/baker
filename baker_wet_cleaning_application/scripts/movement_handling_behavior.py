@@ -106,6 +106,9 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				if self.handleInterrupt() == 2:
 					return
 	
+				#rospy.sleep(20)
+				#continue
+
 				# Robot movement into next room
 				"""
 				For movement to room:
