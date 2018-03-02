@@ -11,7 +11,7 @@ def getTodaysWeekType():
 	return weekNumber % 2
 
 def getTodaysDayType():
-	return date.today().weelday() 
+	return date.today().weekday() 
 
 
 class DatabaseHandler():
@@ -20,10 +20,14 @@ class DatabaseHandler():
 	due_assignment_ = None
 	# Overdue assignments
 	overdue_assignments_ = []
-	# Contains all due rooms from the due assignments and removes them right after they were cleaned
-	due_rooms_ = []
-	# Contains all overdue rooms and removed them right after they were cleaned
-	overdue_rooms_ = []
+	# Contains all due cleaning rooms from the due assignments and removes them right after they were cleaned
+	due_rooms_cleaning_ = []
+	# Contains all overdue cleaning rooms and removed them right after they were cleaned
+	overdue_rooms_cleaning_ = []
+	# Contains all due trashcan rooms from the due assignments and removes them right after they were cleaned
+	due_rooms_trashcan_ = []
+	# Contains all overdue trashcan rooms and removed them right after they were cleaned
+	overdue_rooms_trashcan_ = []
 
 	def __init__(self, database):
 		self.database_ = database
@@ -41,26 +45,29 @@ class DatabaseHandler():
 		# If wanted: Get all overdue assignments
 		if (self.database_.global_settings_.do_auto_complete_ == True):
 			# Iterate through all assignments
-			# Find those which are tagged to be unsuccessful
+			# [Cancelled] Find those which are tagged to be unsuccessful
+			# [Missed] Find those whose time stamp is further than 14 days in the past
+			# But: Assignments with date None shall not be added! They are new!
 			pass
 
 		# Get all rooms from the due assignment
 		for room in self.due_assignment_.scheduled_rooms_data_:
 			self.due_rooms_.append(room)
 
-		# Remove all rooms which have been cleaned already
-		# (If the assignment had been re- started half way, the completed rooms get removed)
-		for room in self.due_rooms_:
-			pass
-
 		# If wanted: Get all overdue rooms
+
 		# Remove those rooms which are already in the due_rooms_ list
-		# Remove those rooms which have a good last_successful_clean_date_
 		if (self.database_.global_settings_.do_auto_complete_ == True):
 			for room in self.due_rooms_:
 				if ((room in self.overdue_rooms_) 
 				or False):
 					self.overdue_rooms_.remove(room)
+
+		# Remove all rooms in the due_rooms_ list which have been cleaned already
+		for room in self.due_rooms_:
+			pass
+
+		# If wanted: Remove all rooms in the overdue_rooms_ list which have been cleaned already
 
 		# Tag all rooms to be unsuccessfully cleaned
 		for room in self.due_rooms_:

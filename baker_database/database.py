@@ -91,10 +91,8 @@ class Database():
 		assignment_dict = {}
 		assignment_dict[42] = {
 			"assignment_name": "Assignment Number Two",
-			"assignment_id": 21,
-			"scheduled_rooms": [5,6,7,8],
-			"last_completed_clean": datetime.now().strftime("%Y-%m-%d_%H:%M"),
-			"clean_interval": 0
+			"scheduled_rooms_cleaning": [5,6,7,8],
+			"last_completed_clean": datetime.now().strftime("%Y-%m-%d_%H:%M")
 		}
 		return assignment_dict
 
@@ -103,10 +101,8 @@ class Database():
 	def createTestAssignmentObject(self):
 		test_assignment = database_classes.AssignmentItem()
 		test_assignment.assignment_name_ = "Assignment Number One"
-		test_assignment.assignment_id_ = 42
-		test_assignment.scheduled_rooms_ = [1,2,3,4]
+		test_assignment.scheduled_rooms_cleaning_ = [1,2,3,4]
 		test_assignment.last_completed_clean_ = datetime.now()
-		test_assignment.clean_interval_ = 0
 		self.assignments_.append(test_assignment)
 
 # =========================================================================================
@@ -116,10 +112,14 @@ class Database():
 	def updateGlobalSettings(self, dict):
 		self.global_settings_ = database_classes.GlobalSettings()
 		self.global_settings_.shall_auto_complete_ = dict.get("shall_auto_complete")
+		self.global_settings_.max_aux_time_ = dict.get("max_aux_time")
+		self.global_settings_.assignment_timedelta_ = dict.get("assignment_timedelta")
 
 	def getGlobalSettingsDictFromGlobalSettings(self):
 		global_settings_dict = {}
 		global_settings_dict["shall_auto_complete"] = self.global_settings_.shall_auto_complete_
+		global_settings_dict["max_aux_time"] = self.global_settings_.max_aux_time_
+		global_settings_dict["assignment_timedelta"] = self.global_settings_.assignment_timedelta_
 		return global_settings_dict
 
 	def updateRobotProperties(self, dict):
@@ -176,13 +176,18 @@ class Database():
 			current_room.room_floor_id_ = dict.get(room_key).get("room_floor_id")
 			# Get the building ID of the room
 			current_room.room_building_id_ = dict.get(room_key).get("room_building_id")
+			# Get the territory the room is in
+			current_room.room_territory_id_ = dict.get(room_key).get("room_territory_id")
 			# Get the map of the room
 			current_room.room_map_ = dict.get(room_key).get("room_map")
-			# Get an open cv representation of the map
-			room_map_file_path = str(self.extracted_file_path) + str("resources/maps/") + str(current_room.room_map_)
-			map_opencv = cv2.imread(room_map_file_path, 0)
-			bridge = CvBridge()
-			current_room.room_map_data_ = bridge.cv2_to_imgmsg(map_opencv, encoding = "mono8")
+			# Get an open cv representation of the map or None if there is no map
+			if (current_room.room_map_ != None):
+				room_map_file_path = str(self.extracted_file_path) + str("resources/maps/") + str(current_room.room_map_)
+				map_opencv = cv2.imread(room_map_file_path, 0)
+				bridge = CvBridge()
+				current_room.room_map_data_ = bridge.cv2_to_imgmsg(map_opencv, encoding = "mono8")
+			else:
+				current_room.room_map_data = None
 			# Get the room center coordinates
 			room_center_coords_list = dict.get(room_key).get("room_center_coords")
 			current_room.room_center_coords_ = Point32(x=room_center_coords_list[0], y=room_center_coords_list[1], z=room_center_coords_list[2])
@@ -240,10 +245,13 @@ class Database():
 				else:
 					date_str = None
 				# Fill in the room center coordinates
-				rcc_x = current_room.room_center_coords_.x
-				rcc_y = current_room.room_center_coords_.y
-				rcc_z = current_room.room_center_coords_.z
-				room_center_coords_list = [rcc_x, rcc_y, rcc_z]
+				if (current_room.room_center_coords_ != None):
+					rcc_x = current_room.room_center_coords_.x
+					rcc_y = current_room.room_center_coords_.y
+					rcc_z = current_room.room_center_coords_.z
+					room_center_coords_list = [rcc_x, rcc_y, rcc_z]
+				else:
+					room_center_coords_list = [-1, -1, -1]
 				# Fill the dictionary with the data
 				room_dict[str(current_room.room_id_)] = {
 					"room_id": current_room.room_id_,
@@ -251,12 +259,13 @@ class Database():
 					"room_position_id": current_room.room_position_id_,
 					"room_floor_id": current_room.room_floor_id_,
 					"room_building_id": current_room.room_building_id_,
+					"room_territory_id": current_room.room_territory_id_,
 					"last_successful_clean_date": date_str,
 					"last_cleanup_successful": current_room.last_cleanup_successful_,
 					"room_issues": issues_dict,
 					"room_map": current_room.room_map_,
 					"room_center_coords": room_center_coords_list,
-					"room_surfcae_type": current_room.room_surface_type_,
+					"room_surface_type": current_room.room_surface_type_,
 					"room_cleaning_method": current_room.room_cleaning_method_,
 					"room_surface_area": current_room.room_surface_area_,
 					"room_trashcan_count": current_room.room_trashcan_count_
@@ -273,22 +282,26 @@ class Database():
 			current_assignment = database_classes.AssignmentItem()
 			# Get the name of the assignment
 			current_assignment.assignment_name_ = dict.get(assignment_key).get("assignment_name")
-			# Get the assignment ID
-			current_assignment.assignment_id_ = dict.get(assignment_key).get("assignment_id")
-			# Get the list of room IDs which are scheduled in this assignment
-			current_assignment.scheduled_rooms_ = dict.get(assignment_key).get("scheduled_rooms")
-			# Get the RoomItem representation behind the ID
-			for room_id in current_assignment.scheduled_rooms_:
-				current_assignment.scheduled_rooms_data_.append(self.getRoom(room_id))
+			# Get the week type the assignment is active
+			current_assignment.assignment_week_type_ = dict.get(assignment_key).get("assignment_week_type")
+			# Get week day the assignment is active
+			current_assignment.assignment_week_day_ = dict.get(assignment_key).get("assignment_week_day")
+			# Get the list of room IDs for cleaning which are scheduled in this assignment
+			current_assignment.scheduled_rooms_cleaning_ = dict.get(assignment_key).get("scheduled_rooms_cleaning")
+			# Get the list of room IDs for trashcan which are scheduled in this assignment
+			current_assignment.scheduled_rooms_trashcan_ = dict.get(assignment_key).get("scheduled_rooms_trashcan")
+			# Get the RoomItem representation behind the ID for all rooms to clean
+			for room_id in current_assignment.scheduled_rooms_cleaning_:
+				current_assignment.scheduled_rooms_cleaning_data_.append(self.getRoom(room_id))
+			# Get the RoomItem representation behind the ID for all rooms to empty the trashcan
+			for room_id in current_assignment.scheduled_rooms_trashcan_:
+				current_assignment.scheduled_rooms_trashcan_data_.append(self.getRoom(room_id))
 			# Get a date string or None if there is no date
 			date_str = dict.get(assignment_key).get("last_completed_clean")
 			if (date_str != None):
 				current_assignment.last_completed_clean_ = datetime.strptime(date_str, "%Y-%m-%d_%H:%M")
 			else:
 				current_assignment.last_completed_clean_ = None
-			# Get the clean interval
-			clean_interval_int = dict.get(assignment_key).get("clean_interval")
-			current_assignment.clean_interval_ = timedelta(days = clean_interval_int)	
 			# Append current_assignment to assignments_ list
 			self.assignments_.append(current_assignment)
 
@@ -304,15 +317,14 @@ class Database():
 					date_str = current_assignment.last_completed_clean_.strftime("%Y-%m-%d_%H:%M")
 				else:
 					date_str = None
-				# Get the clean interval
-				clean_interval_int = current_assignment.clean_interval_.days
 				# Fill the dictionary with the data
-				assignment_dict[str(current_assignment.assignment_id_)] = {
+				assignment_dict[current_assignment.assignment_name_] = {
 					"assignment_name": current_assignment.assignment_name_,
-					"assignment_id": current_assignment.assignment_id_,
-					"scheduled_rooms": current_assignment.scheduled_rooms_,
-					"last_completed_clean": date_str,
-					"clean_interval": clean_interval_int
+					"assignment_week_type": current_assignment.assignment_week_type_,
+					"assignment_week_day": current_assignment.assignment_week_day_,
+					"scheduled_rooms_cleaning": current_assignment.scheduled_rooms_cleaning_,
+					"scheduled_rooms_trashcan": current_assignment.scheduled_rooms_trashcan_,
+					"last_completed_clean": date_str
 				}
 			else:
 				print "[FATAL]: An element in assignments_ array is not an assignment object!"
@@ -377,16 +389,26 @@ class Database():
 				result = self.rooms_[i]
 		return result
 
-	# Retreive an assignment by providing an assignment_id
-	def getAssignment(self, assignment_id):
+	# Retreive a room by providing a position id and a floor id
+	def getRoomByPosFloor(self, pos_id, floor_id):
 		result = None
-		for i in range(len(self.assignments_)):
-			if(self.assignments_[i].assignment_id_ == assignment_id):
-				result = self.assignments_[i]
+		for room in self.rooms_:
+			if ((room.room_position_id_ == pos_id) and (room.room_floor_id_ == floor_id)):
+				result = room
+				break
 		return result
 
+	# Retreive an assignment by providing a week day and week type
+	def getAssignmentByWeekTypeDay(self, week_type, week_day):
+		result = None
+		for assignment in self.assignments_:
+			if ((assignment.assignment_week_type_ == week_type) and (assignment.assignment_week_day_ == week_day)):
+				result = assignment
+				break
+		return assignment
 
 
+"""
 
 
 # =========================================================================================
@@ -405,10 +427,12 @@ print db.getRoom(21).room_name_
 print db.robot_properties_.exploration_coverage_radius_
 print db.getRoom(21).room_map_
 print db.getRoom(42).room_map_
-print db.getAssignment(42).scheduled_rooms_data_[1].room_id_
+print db.getAssignment(42).scheduled_rooms_cleaning_data_[1].room_id_
 print db.getAssignment(21).assignment_name_
 print db.global_settings_.shall_auto_complete_
 print db.getRoom(21).room_trashcan_count_
 
 # Save database
 db.saveDatabase()
+
+"""

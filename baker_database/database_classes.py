@@ -27,6 +27,13 @@ class GlobalSettings():
 	# Should incomplete assignments be completed in the next opportunity?
 	# (BOOLEAN)
 	shall_auto_complete_ = True
+	# Maximum time the robot has for completing missed cleanups
+	# (TIMEDELTA)
+	max_aux_time_ = None
+	# Amount of days between two executions of the same assignment. Default is two weeks (14)
+	# (INTEGER)
+	assignment_timedelta_ = 14
+	
 
 
 
@@ -70,14 +77,17 @@ class RoomItem():
 	# (INTEGER)
 	room_id_ = 0
 	# Position ID (eg "4.26")
-	# (INTEGER)
-	room_position_id_ = 0
+	# (STRING)
+	room_position_id_ = ""
 	# Floor (e.g. "OG1")
 	# (STRING)
 	room_floor_id_ = ""
 	# Building (e.g. "Hauptgebaeude")
 	# (STRING)
 	room_building_id_ = ""
+	# Territory the room belongs to
+	# (STRING)
+	room_territory_id_ = ""
 	# Room surfcae type [0=?, ..., n=?]
 	# (INTEGER)
 	room_surface_type_ = 0
@@ -134,38 +144,30 @@ class AssignmentItem():
 	# Name of schedule for user 
 	# (STRING)
 	assignment_name_ = ""
-	# Territory ID
-	# (INTEGER)NYI
-	territory_id_ = 0
 	# Week type [0=Even, 1=Uneven]
-	# (INTEGER)NYI
+	# (INTEGER)
 	assignment_week_type_ = 0
 	# Day type [0=Monday, ..., 6=Sunday]
-	# (INTEGER)NYI
-	assignment_day_type_ = 0
+	# (INTEGER)
+	assignment_week_day_ = 0
+	# IDs of rooms which are to be cleaned completely. This uses RoomItem.room_id_!!
+	# (ARRAY OF INTEGER)
+	scheduled_rooms_cleaning_ = []
+	# IDs of rooms where only the trashcan has to be emptied. This uses RoomItem.room_id_!!
+	# (ARRAY OF INTEGER)
+	scheduled_rooms_trashcan_ = []
 	
 
 	# DATA CALCULATED OR AQUIRED FROM OTHER SOURCES
 	# =============================================
 
-	# IDs of Rooms which are handled by this assignment 
-	# (ARRAY OF INTEGER)
-	scheduled_rooms_ = []
-	# The RoomItem objects behind the IDs
-	# RoomItem
-	scheduled_rooms_data_ = []
+	# The RoomItem objects behind the IDs for cleaning
+	# (ARRAY OF RoomItem)
+	scheduled_rooms_cleaning_data_ = []
+	# The RoomItem objects behind the IDs for trashcan
+	# (ARRAY OF RoomItem)
+	scheduled_rooms_trashcan_data_ = []
 	# Date of the last clean which completed successfully 
 	# (DATETIME)
 	last_completed_clean_ = None
-
-
-	# DEPRECATED ENTRIES
-	# ==================
-
-	# Interval in which the rooms are supposed to be cleaned 
-	# (TIMEDELTA)
-	clean_interval_ = None
-	# Assignment ID 
-	# (INTEGER)
-	assignment_id_ = 0
 

@@ -1,20 +1,26 @@
 {
     "21": {
-        "assignment_id": 21, 
         "assignment_name": "Assignment Number Twenty-One", 
-        "clean_interval": 6, 
+        "assignment_week_type": 0,
+        "assignment_week_day": 4,
         "last_completed_clean": "2012-12-03_14:46", 
-        "scheduled_rooms": [
+        "scheduled_rooms_cleaning": [
             21
+        ], 
+        "scheduled_rooms_trashcan": [
+            42
         ]
     }, 
     "42": {
-        "assignment_id": 42, 
         "assignment_name": "Assignment Number Fourty-Two", 
-        "clean_interval": 65, 
+        "assignment_week_type": 0,
+        "assignment_week_day": 4,
         "last_completed_clean": "2012-12-03_14:45", 
-        "scheduled_rooms": [
+        "scheduled_rooms_cleaning": [
             42
+        ], 
+        "scheduled_rooms_trashcan": [
+            21
         ]
     }
 }

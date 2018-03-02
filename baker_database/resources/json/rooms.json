@@ -45,7 +45,8 @@
         "room_name": "Garage", 
         "room_position_id": null, 
         "room_surface_area": 12.34, 
-        "room_surfcae_type": null, 
+        "room_surface_type": null, 
+        "room_territory_id": null, 
         "room_trashcan_count": 2
     }, 
     "42": {
@@ -94,7 +95,8 @@
         "room_name": "Kitchen", 
         "room_position_id": null, 
         "room_surface_area": 12.34, 
-        "room_surfcae_type": null, 
+        "room_surface_type": null, 
+        "room_territory_id": null, 
         "room_trashcan_count": 1
     }
 }
