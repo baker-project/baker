@@ -102,6 +102,10 @@ class CSVToJsonEncoder():
 				current_assignment = database_classes.AssignmentItem()
 				self.database_.assignments_.append(current_assignment)
 			current_assignment.assignment_name_ = assignment_name_list[i]
+			if (i != 0):
+				current_assignment.prev_assignment_ = assignment_name_list[i - 1]
+			else:
+				current_assignment.prev_assignment_ = assignment_name_list[13]
 			current_assignment.assignment_week_type_ = week_type
 			current_assignment.assignment_week_day_ = week_day
 			# Once a file stream went through, it won't work anymore

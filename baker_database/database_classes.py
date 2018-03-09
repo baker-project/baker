@@ -107,6 +107,8 @@ class RoomItem():
 	# Date of the last successful clean 
 	# (DATETIME)
 	last_successful_clean_date_ = None
+	# TODO: split clean dates into two dates for trashcan and cleaning
+	# TODO: remove the boolean values
 	# Was the last scheduled cleanup interrupted / cancelled and therefore should it be resumed? 
 	# (BOOLEAN)
 	last_cleanup_successful_ = False
@@ -170,4 +172,7 @@ class AssignmentItem():
 	# Date of the last clean which completed successfully 
 	# (DATETIME)
 	last_completed_clean_ = None
+	# Assignment name of the previous assignment 
+	# (STRING)
+	prev_assignment_ = ""
 

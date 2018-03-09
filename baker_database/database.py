@@ -280,6 +280,8 @@ class Database():
 		self.assignments_ = []
 		for assignment_key in dict:
 			current_assignment = database_classes.AssignmentItem()
+			# Get the name of the previous assignment
+			current_assignment.prev_assignment_ = dict.get(assignment_key).get("prev_assignment")
 			# Get the name of the assignment
 			current_assignment.assignment_name_ = dict.get(assignment_key).get("assignment_name")
 			# Get the week type the assignment is active
@@ -319,6 +321,7 @@ class Database():
 					date_str = None
 				# Fill the dictionary with the data
 				assignment_dict[current_assignment.assignment_name_] = {
+					"prev_assignment": current_assignment.prev_assignment_,
 					"assignment_name": current_assignment.assignment_name_,
 					"assignment_week_type": current_assignment.assignment_week_type_,
 					"assignment_week_day": current_assignment.assignment_week_day_,
