@@ -104,14 +104,12 @@ class RoomItem():
 	# DATA CALCULATED OR AQUIRED FROM OTHER SOURCES
 	# =============================================
 
-	# Date of the last successful clean 
+	# Date of the last successful cleaning
 	# (DATETIME)
-	last_successful_clean_date_ = None
-	# TODO: split clean dates into two dates for trashcan and cleaning
-	# TODO: remove the boolean values
-	# Was the last scheduled cleanup interrupted / cancelled and therefore should it be resumed? 
-	# (BOOLEAN)
-	last_cleanup_successful_ = False
+	last_successful_cleaning_date_ = None
+	# Date of the last successful trashcan emptying
+	# (DATETIME)
+	last_successful_trashcan_date_ = None
 	# List of issues in a room. Array of RoomIssue 
 	# (ARRAY OF ROOMISSUE)
 	room_issues_ = []

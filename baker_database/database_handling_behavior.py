@@ -13,6 +13,12 @@ def getTodaysWeekType():
 def getTodaysWeekDay():
 	return date.today().weekday() 
 
+# Create a segmented map for sequencing
+def getRoomsMap(rooms_array):
+	for room in rooms_array:
+
+
+
 
 class DatabaseHandler():
 	database_ = None
@@ -38,9 +44,13 @@ class DatabaseHandler():
 		return ((datetime_stamp != None) and (datetime_stamp - date.today > a_timedelta))
 
 	# Check via date if a room must be cleaned
-	def roomeDateIsDue(datetime_stamp, delta_time):
-		r_timedelta = datetime.timedelta(days=delta_time)
-		return ((datetime_stamp != None) and (datetime_stamp - date.today > r_timedelta))
+	# A past assigned room is overdue if 
+	# 1. Its date is not None
+	# 2. The room would have been due in the past according to the given last successful clean date
+	def roomDateIsOverdue(self, datetime_stamp, shift_days):
+		r_shift_days = datetime.timedelta(days=shift_days)
+		assignment_timedelta = self.database_.global_settings_.assignment_timedelta_
+		return ((datetime_stamp != None) and (datetime_stamp - date.today - r_shift_days > assignment_timedelta))
 
 	# Method for extracting all due rooms from the due assignment
 	def getAllDueAssignmentsAndRooms(self):
@@ -69,20 +79,27 @@ class DatabaseHandler():
 					self.overdue_assignments_.append(assignment)
 				it_assignment = it_assignment.prev_assignment_
 			# Get the rooms which should be contained in the overdue array
-			# This is the case, if they are not already in due or overdue array and if the date requires it
+			# This is the case, if 
+			# 1. They are not already in due or overdue array 
+			# 2. In case of trashcan: If the room is not yet in one of the arrays for cleaning
+			# 3. If the date requires it
 			for i in range(len(self.overdue_assignments_)):
 				it_assignment = self.overdue_assignments_[i]
 				for room in assignment.scheduled_rooms_cleaning_data_:
-					if (not(room in self.overdue_rooms_cleaning_) and (DATE) and not(room in self.due_rooms_cleaning_)):
+					if (not(room in self.overdue_rooms_cleaning_) 
+					and (self.roomDateIsOverdue(room.last_successful_clean_date_, i)) 
+					and not(room in self.due_rooms_cleaning_)):
 						self.overdue_rooms_cleaning_.append(room)
 				for room in assignment.scheduled_rooms_trashcan_data_:
-					if (not(room in self.overdue_rooms_trashcan_) and (DATE) and not(room in self.due_rooms_trashcan_)):
-					self.overdue_rooms_trashcan_.append(room)
+					if (not(room in self.overdue_rooms_trashcan_) 
+					and not (room in self.due_rooms_cleaning_))
+					and (self.roomDateIsOverdue(room.last_successful_clean_date_, i)) 
+					and not(room in self.due_rooms_trashcan_):
+						self.overdue_rooms_trashcan_.append(room)
 
 
 	# Method for setting a room as completed
 	def checkoutCompletedRoom(self, room, is_overdue):
-		room.last_cleanup_successful_ = True
 		room.last_successful_clean_date_ = datetime.datetime.now()
 		if (is_overdue == True):
 			for it_room in self.overdue_rooms_:
@@ -94,11 +111,3 @@ class DatabaseHandler():
 					due_rooms_.remove(it_room)
 		# Save all changes to the database
 		database_.saveDatabase()
-
-	# Method for setting an overdue assignment as completed if it is complete
-	def checkoutAssignment(self, assignment):
-		pass
-
-	# Method for creating a map representation of the rooms to be cleaned
-	def getRoomsMap(self, want_overdue):
-		pass

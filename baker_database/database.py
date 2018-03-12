@@ -33,7 +33,7 @@ class Database():
 		rooms_dict[42] = {
 			"room_name": "D3.06",
 			"room_id": 42,
-			"last_successful_clean_date": datetime.now().strftime("%Y-%m-%d_%H:%M"),
+			"last_successful_cleaning_date": datetime.now().strftime("%Y-%m-%d_%H:%M"),
 			"last_cleanup_successful": "False",
 			"room_map": None,
 			"room_coords": [0, 0, 0],
@@ -78,7 +78,7 @@ class Database():
 		test_room.room_issues_.append(issue2)
 		test_room.room_id_ = 42
 		test_room.last_cleanup_successful_ = False
-		test_room.last_successful_clean_date_ = None
+		test_room.last_successful_cleaning_date_ = None
 		test_room.room_map_ = None
 		test_room.room_center_coords_ = None
 		test_room.room_name_ = "Kitchen"
@@ -199,14 +199,18 @@ class Database():
 			current_room.room_surface_area_ = dict.get(room_key).get("room_surface_area")
 			# Get the room trashcan count
 			current_room.room_trashcan_count_ = dict.get(room_key).get("room_trashcan_count")
-			# Get the information if the last clean has not yet been completed
-			current_room.last_cleanup_successful_ = dict.get(room_key).get("last_cleanup_successful")
-			# Get the last successful clean date if there is any, otherwise set None
-			date_str = dict.get(room_key).get("last_successful_clean_date")
+			# Get the last successful cleaning date if there is any, otherwise set None
+			date_str = dict.get(room_key).get("last_successful_cleaning_date")
 			if (date_str != None):
-				current_room.last_successful_clean_date_ = datetime.strptime(date_str, "%Y-%m-%d_%H:%M")
+				current_room.last_successful_cleaning_date_ = datetime.strptime(date_str, "%Y-%m-%d_%H:%M")
 			else:
-				current_room.last_successful_clean_date_ = None
+				current_room.last_successful_cleaning_date_ = None
+			# Get the last successful trashcan date if there is any, otherwise set None
+			date_str = dict.get(room_key).get("last_successful_trashcan_date")
+			if (date_str != None):
+				current_room.last_successful_trashcan_date_ = datetime.strptime(date_str, "%Y-%m-%d_%H:%M")
+			else:
+				current_room.last_successful_trashcan_date_ = None
 			# Append current room object to the rooms_ list
 			self.rooms_.append(current_room)
 
@@ -223,7 +227,7 @@ class Database():
 					# Check if current_issue is an issue
 					if (isinstance(current_issue, database_classes.RoomIssue) == True):
 						# Fill in a string representation of the date
-						date_str = current_issue.issue_date_.strftime("%Y-%m-%d_%H:%M")
+						date_str_issue = current_issue.issue_date_.strftime("%Y-%m-%d_%H:%M")
 						# Fill in the issue coordinates
 						ic_x = current_issue.issue_coords_.x
 						ic_y = current_issue.issue_coords_.y
@@ -235,15 +239,20 @@ class Database():
 							"issue_type": current_issue.issue_type_,
 							"issue_images": current_issue.issue_images_,
 							"issue_coords": issue_coords_list,
-							"issue_date": date_str
+							"issue_date": date_str_issue
 						}
 					else:
 						print "[FATAL]: An element in issues array is not an issue object!"
-				# Fill in the last successful clean date if there is any, otherwise fill in None
-				if (current_room.last_successful_clean_date_ != None):
-					date_str = current_room.last_successful_clean_date_.strftime("%Y-%m-%d_%H:%M")
+				# Fill in the last successful cleaning date if there is any, otherwise fill in None
+				if (current_room.last_successful_cleaning_date_ != None):
+					date_str_cleaning = current_room.last_successful_cleaning_date_.strftime("%Y-%m-%d_%H:%M")
 				else:
-					date_str = None
+					date_str_cleaning = None
+				# Fill in the last successful trashcan date if there is any, otherwise fill in None
+				if (current_room.last_successful_trashcan_date_ != None):
+					date_str_trashcan = current_room.last_successful_trashcan_date_.strftime("%Y-%m-%d_%H:%M")
+				else:
+					date_str_trashcan = None
 				# Fill in the room center coordinates
 				if (current_room.room_center_coords_ != None):
 					rcc_x = current_room.room_center_coords_.x
@@ -260,8 +269,8 @@ class Database():
 					"room_floor_id": current_room.room_floor_id_,
 					"room_building_id": current_room.room_building_id_,
 					"room_territory_id": current_room.room_territory_id_,
-					"last_successful_clean_date": date_str,
-					"last_cleanup_successful": current_room.last_cleanup_successful_,
+					"last_successful_cleaning_date": date_str_cleaning,
+					"last_successful_trashcan_date": date_str_trashcan,
 					"room_issues": issues_dict,
 					"room_map": current_room.room_map_,
 					"room_center_coords": room_center_coords_list,
@@ -411,8 +420,8 @@ class Database():
 		return result
 
 
-"""
 
+"""
 
 # =========================================================================================
 # Test routine
@@ -430,8 +439,6 @@ print db.getRoom(21).room_name_
 print db.robot_properties_.exploration_coverage_radius_
 print db.getRoom(21).room_map_
 print db.getRoom(42).room_map_
-print db.getAssignment(42).scheduled_rooms_cleaning_data_[1].room_id_
-print db.getAssignment(21).assignment_name_
 print db.global_settings_.shall_auto_complete_
 print db.getRoom(21).room_trashcan_count_
 

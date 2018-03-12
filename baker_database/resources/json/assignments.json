@@ -1,26 +1,28 @@
 {
-    "21": {
-        "assignment_name": "Assignment Number Twenty-One", 
-        "assignment_week_type": 0,
-        "assignment_week_day": 4,
-        "last_completed_clean": "2012-12-03_14:46", 
+    "Assignment Number Fourty-Two": {
+        "assignment_name": "Assignment Number Fourty-Two", 
+        "assignment_week_day": 4, 
+        "assignment_week_type": 0, 
+        "last_completed_clean": "2012-12-03_14:45", 
+        "prev_assignment": null, 
         "scheduled_rooms_cleaning": [
-            21
+            42
         ], 
         "scheduled_rooms_trashcan": [
-            42
+            21
         ]
     }, 
-    "42": {
-        "assignment_name": "Assignment Number Fourty-Two", 
-        "assignment_week_type": 0,
-        "assignment_week_day": 4,
-        "last_completed_clean": "2012-12-03_14:45", 
+    "Assignment Number Twenty-One": {
+        "assignment_name": "Assignment Number Twenty-One", 
+        "assignment_week_day": 4, 
+        "assignment_week_type": 0, 
+        "last_completed_clean": "2012-12-03_14:46", 
+        "prev_assignment": null, 
         "scheduled_rooms_cleaning": [
-            42
+            21
         ], 
         "scheduled_rooms_trashcan": [
-            21
+            42
         ]
     }
 }

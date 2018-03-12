@@ -1,7 +1,7 @@
 {
     "21": {
-        "last_cleanup_successful": false, 
-        "last_successful_clean_date": null, 
+        "last_successful_cleaning_date": null, 
+        "last_successful_trashcan_date": null, 
         "room_building_id": null, 
         "room_center_coords": [
             1, 
@@ -50,8 +50,8 @@
         "room_trashcan_count": 2
     }, 
     "42": {
-        "last_cleanup_successful": false, 
-        "last_successful_clean_date": null, 
+        "last_successful_cleaning_date": null, 
+        "last_successful_trashcan_date": null, 
         "room_building_id": null, 
         "room_center_coords": [
             1, 
