@@ -122,6 +122,12 @@ class RoomItem():
 	# Coords of the room center 
 	# (POINT32)
 	room_center_coords_ = None
+	# Minimum coordinate value of the room
+	# (POINT32)
+	room_min_coords_ = None
+	# Maximum coordinate calue of the room
+	# (POINT32)
+	room_max_coords_ = None
 
 	# MISCELLANEOUS STUFF
 	# ===================

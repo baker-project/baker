@@ -5,6 +5,11 @@ import database_classes
 import datetime
 from datetime import date
 
+import geometry_msgs
+import numpy as np
+import cv2
+from cv_bridge import CvBridge, CvBridgeError
+
 
 def getTodaysWeekType():
 	weekNumber = date.today().isocalendar()[1]
@@ -13,11 +18,27 @@ def getTodaysWeekType():
 def getTodaysWeekDay():
 	return date.today().weekday() 
 
-# Create a segmented map for sequencing
-def getRoomsMap(rooms_array):
+
+# Get the room information in pixels
+def getRoomInformationInPixel(rooms_array, image_width, image_height):
+	room_information_in_pixel = []
+	bridge = CvBridge()
+	tmp_map_opencv = np.zeros((image_height, image_width), np.uint8)
+	segmentation_id = 0
 	for room in rooms_array:
-
-
+		room_map_opencv = bridge.imgmsg_to_cv2(room.room_map_data_, desired_encoding = "passthrough")
+		for x in range(image_width):
+			for y in range(image_height):
+				if (room_map_opencv[y, x] == 255):
+					tmp_map_opencv[y, x] = segmentation_id + 1
+		room_information = RoomInformation()
+		room_information.room_center = room.room_center_coordinates_
+		room_information.room_min_max.append(room.room_min_coords_)
+		room_information.room_min_max.append(room.room_max_coords_)
+		room_information_in_pixel.append(room_information)
+		segmentation_id = segmentation_id + 1
+	segmented_map = bridge.cv2_to_imgmsg(tmp_map_opencv, encoding = "mono8")
+	return [room_information_in_pixel, segmented_map]
 
 
 class DatabaseHandler():
@@ -99,15 +120,22 @@ class DatabaseHandler():
 
 
 	# Method for setting a room as completed
-	def checkoutCompletedRoom(self, room, is_overdue):
-		room.last_successful_clean_date_ = datetime.datetime.now()
-		if (is_overdue == True):
-			for it_room in self.overdue_rooms_:
-				if (it_room.room_id_ == room.room_id_):
-					due_rooms_.remove(it_room)
+	def checkoutCompletedRoom(self, room, is_overdue, is_trashcan):
+		# Set values in the database
+		if (is_trashcan == True):
+			room.last_successful_trashcan_date_ = datetime.datetime.now()
 		else:
-			for it_room in self.due_rooms_:
-				if (it_room.room_id_ == room.room_id_):
-					due_rooms_.remove(it_room)
+			room.last_successful_cleaning_date_ = datetime.datetime.now()
+		# Remove room from the respective list
+		if (is_overdue == True):
+			if (is_trashcan == True):
+				self.overdue_rooms_trashcan_.remove(room)
+			else:
+				self.overdue_rooms_cleaning_.remove(room)
+		else:
+			if (is_trashcan == True):
+				self.due_rooms_trashcan_.remove(room)
+			else:
+				self.due_rooms_cleaning_.remove(room)
 		# Save all changes to the database
 		database_.saveDatabase()

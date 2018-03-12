@@ -191,6 +191,12 @@ class Database():
 			# Get the room center coordinates
 			room_center_coords_list = dict.get(room_key).get("room_center_coords")
 			current_room.room_center_coords_ = Point32(x=room_center_coords_list[0], y=room_center_coords_list[1], z=room_center_coords_list[2])
+			# Get the room min coordinates
+			room_min_coords_list = dict.get(room_key).get("room_min_coords")
+			current_room.room_min_coords_ = Point32(x=room_min_coords_list[0], y=room_min_coords_list[1], z=room_min_coords_list[2])
+			# Get the room max coordinates
+			room_max_coords_list = dict.get(room_key).get("room_max_coords")
+			current_room.room_max_coords_ = Point32(x=room_max_coords_list[0], y=room_max_coords_list[1], z=room_max_coords_list[2])
 			# Get the room surface type
 			current_room.room_surface_type_ = dict.get(room_key).get("room_surface_type")
 			# Get the cleaning method of the room
@@ -255,12 +261,28 @@ class Database():
 					date_str_trashcan = None
 				# Fill in the room center coordinates
 				if (current_room.room_center_coords_ != None):
-					rcc_x = current_room.room_center_coords_.x
-					rcc_y = current_room.room_center_coords_.y
-					rcc_z = current_room.room_center_coords_.z
-					room_center_coords_list = [rcc_x, rcc_y, rcc_z]
+					coord_x = current_room.room_center_coords_.x
+					coord_y = current_room.room_center_coords_.y
+					coord_z = current_room.room_center_coords_.z
+					room_center_coords_list = [coord_x, coord_y, coord_z]
 				else:
 					room_center_coords_list = [-1, -1, -1]
+				# Fill in the room min coordinates
+				if (current_room.room_min_coords_ != None):
+					coord_x = current_room.room_min_coords_.x
+					coord_y = current_room.room_min_coords_.y
+					coord_z = current_room.room_min_coords_.z
+					room_min_coords_list = [coord_x, coord_y, coord_z]
+				else:
+					room_min_coords_list = [-1, -1, -1]
+				# Fill in the room max coordinates
+				if (current_room.room_max_coords_ != None):
+					coord_x = current_room.room_max_coords_.x
+					coord_y = current_room.room_max_coords_.y
+					coord_z = current_room.room_max_coords_.z
+					room_max_coords_list = [coord_x, coord_y, coord_z]
+				else:
+					room_max_coords_list = [-1, -1, -1]
 				# Fill the dictionary with the data
 				room_dict[str(current_room.room_id_)] = {
 					"room_id": current_room.room_id_,
@@ -274,6 +296,8 @@ class Database():
 					"room_issues": issues_dict,
 					"room_map": current_room.room_map_,
 					"room_center_coords": room_center_coords_list,
+					"room_min_coords": room_min_coords_list,
+					"room_max_coords": room_max_coords_list,
 					"room_surface_type": current_room.room_surface_type_,
 					"room_cleaning_method": current_room.room_cleaning_method_,
 					"room_surface_area": current_room.room_surface_area_,
