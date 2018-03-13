@@ -119,15 +119,12 @@ class RoomItem():
 	# CV_Bridge representation of the map
 	# (CV_BRIDGE)
 	room_map_data_ = None
-	# Coords of the room center 
-	# (POINT32)
-	room_center_coords_ = None
-	# Minimum coordinate value of the room
-	# (POINT32)
-	room_min_coords_ = None
-	# Maximum coordinate calue of the room
-	# (POINT32)
-	room_max_coords_ = None
+	# Room Information in pixel [Center, Min, Max]
+	# (ARRAY OF POINT32)
+	room_information_in_pixel_ = []
+	# Room information in meter [Center, Min, Max]
+	# (ARRAY OF POINT32)
+	room_information_in_meter_ = []
 
 	# MISCELLANEOUS STUFF
 	# ===================

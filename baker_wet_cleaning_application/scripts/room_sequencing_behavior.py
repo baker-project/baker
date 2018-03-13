@@ -31,9 +31,11 @@ class RoomSequencingBehavior(behavior_container.BehaviorContainer):
 		self.service_str_ = service_str
 
 	# Method for setting parameters for the behavior
-	def setParameters(self, map_data, segmentation_data, robot_radius):
+	"""def setParameters(self, map_data, segmentation_data, robot_radius):"""
+	def setParameters(self, map_data, room_information_in_pixel, robot_radius):
 		self.map_data_ = map_data
-		self.segmentation_data_ = segmentation_data
+		"""self.segmentation_data_ = segmentation_data"""
+		self.room_information_in_pixel_ = room_information_in_pixel
 		self.robot_radius_ = robot_radius
 
 	# Method for returning to the standard pose of the robot
@@ -66,7 +68,8 @@ class RoomSequencingBehavior(behavior_container.BehaviorContainer):
 		room_sequence_goal.map_resolution = self.map_data_.map_resolution
 		room_sequence_goal.map_origin = self.map_data_.map_origin
 		room_sequence_goal.robot_radius = self.robot_radius_
-		room_sequence_goal.room_information_in_pixel = self.segmentation_data_.room_information_in_pixel
+		"""room_sequence_goal.room_information_in_pixel = self.segmentation_data_.room_information_in_pixel"""
+		room_sequence_goal.room_information_in_pixel = self.room_information_in_pixel_
 		(robot_pose_translation, robot_pose_rotation, robot_pose_rotation_euler) = self.currentRobotPose()
 		if (robot_pose_translation!=None):
 			room_sequence_goal.robot_start_coordinate.position = Point32(x=robot_pose_translation[0], y=robot_pose_translation[1])  # actual current coordinates should be inserted

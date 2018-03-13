@@ -188,15 +188,15 @@ class Database():
 				current_room.room_map_data_ = bridge.cv2_to_imgmsg(map_opencv, encoding = "mono8")
 			else:
 				current_room.room_map_data = None
-			# Get the room center coordinates
-			room_center_coords_list = dict.get(room_key).get("room_center_coords")
-			current_room.room_center_coords_ = Point32(x=room_center_coords_list[0], y=room_center_coords_list[1], z=room_center_coords_list[2])
-			# Get the room min coordinates
-			room_min_coords_list = dict.get(room_key).get("room_min_coords")
-			current_room.room_min_coords_ = Point32(x=room_min_coords_list[0], y=room_min_coords_list[1], z=room_min_coords_list[2])
-			# Get the room max coordinates
-			room_max_coords_list = dict.get(room_key).get("room_max_coords")
-			current_room.room_max_coords_ = Point32(x=room_max_coords_list[0], y=room_max_coords_list[1], z=room_max_coords_list[2])
+			# Get the room coordinates
+			pixel_coords = dict.get(room_key).get("room_information_in_pixel")
+			current_room.room_information_in_pixel_.append(Point32(x=pixel_coords[0][0], y=pixel_coords[0][1], z=pixel_coords[0][2]))
+			current_room.room_information_in_pixel_.append(Point32(x=pixel_coords[1][0], y=pixel_coords[1][1], z=pixel_coords[1][2]))
+			current_room.room_information_in_pixel_.append(Point32(x=pixel_coords[2][0], y=pixel_coords[2][1], z=pixel_coords[2][2]))
+			meter_coords = dict.get(room_key).get("room_information_in_meter")
+			current_room.room_information_in_meter_.append(Point32(x=meter_coords[0][0], y=meter_coords[0][1], z=meter_coords[0][2]))
+			current_room.room_information_in_meter_.append(Point32(x=meter_coords[1][0], y=meter_coords[1][1], z=meter_coords[1][2]))
+			current_room.room_information_in_meter_.append(Point32(x=meter_coords[2][0], y=meter_coords[2][1], z=meter_coords[2][2]))
 			# Get the room surface type
 			current_room.room_surface_type_ = dict.get(room_key).get("room_surface_type")
 			# Get the cleaning method of the room
@@ -259,30 +259,32 @@ class Database():
 					date_str_trashcan = current_room.last_successful_trashcan_date_.strftime("%Y-%m-%d_%H:%M")
 				else:
 					date_str_trashcan = None
-				# Fill in the room center coordinates
-				if (current_room.room_center_coords_ != None):
-					coord_x = current_room.room_center_coords_.x
-					coord_y = current_room.room_center_coords_.y
-					coord_z = current_room.room_center_coords_.z
-					room_center_coords_list = [coord_x, coord_y, coord_z]
+				# Fill in the room coordinates
+				if ((current_room.room_information_in_meter_ != None) and (current_room.room_information_in_pixel_ != None)):
+					px_center_x = current_room.room_information_in_pixel_[0].x
+					px_center_y = current_room.room_information_in_pixel_[0].y
+					px_center_z = current_room.room_information_in_pixel_[0].z
+					px_min_x = current_room.room_information_in_pixel_[1].x
+					px_min_y = current_room.room_information_in_pixel_[1].y
+					px_min_z = current_room.room_information_in_pixel_[1].z
+					px_max_x = current_room.room_information_in_pixel_[2].x
+					px_max_y = current_room.room_information_in_pixel_[2].y
+					px_max_z = current_room.room_information_in_pixel_[2].z
+					meter_center_x = current_room.room_information_in_meter_[0].x
+					meter_center_y = current_room.room_information_in_meter_[0].y
+					meter_center_z = current_room.room_information_in_meter_[0].z
+					meter_min_x = current_room.room_information_in_meter_[1].x
+					meter_min_y = current_room.room_information_in_meter_[1].y
+					meter_min_z = current_room.room_information_in_meter_[1].z
+					meter_max_x = current_room.room_information_in_meter_[2].x
+					meter_max_y = current_room.room_information_in_meter_[2].y
+					meter_max_z = current_room.room_information_in_meter_[2].z
+					room_information_in_pixel_list = [[px_center_x, px_center_y, px_center_z], [px_min_x, px_min_y, px_min_z], [px_max_x, px_max_y, px_max_z]]
+					room_information_in_meter_list = [[meter_center_x, meter_center_y, meter_center_z], [meter_min_x, meter_min_y, meter_min_z], [meter_max_x, meter_max_y, meter_max_z]]
 				else:
-					room_center_coords_list = [-1, -1, -1]
-				# Fill in the room min coordinates
-				if (current_room.room_min_coords_ != None):
-					coord_x = current_room.room_min_coords_.x
-					coord_y = current_room.room_min_coords_.y
-					coord_z = current_room.room_min_coords_.z
-					room_min_coords_list = [coord_x, coord_y, coord_z]
-				else:
-					room_min_coords_list = [-1, -1, -1]
-				# Fill in the room max coordinates
-				if (current_room.room_max_coords_ != None):
-					coord_x = current_room.room_max_coords_.x
-					coord_y = current_room.room_max_coords_.y
-					coord_z = current_room.room_max_coords_.z
-					room_max_coords_list = [coord_x, coord_y, coord_z]
-				else:
-					room_max_coords_list = [-1, -1, -1]
+					room_information_in_pixel_list = [None, None, None]
+					room_information_in_meter_list = [None, None, None]
+
 				# Fill the dictionary with the data
 				room_dict[str(current_room.room_id_)] = {
 					"room_id": current_room.room_id_,
@@ -295,9 +297,8 @@ class Database():
 					"last_successful_trashcan_date": date_str_trashcan,
 					"room_issues": issues_dict,
 					"room_map": current_room.room_map_,
-					"room_center_coords": room_center_coords_list,
-					"room_min_coords": room_min_coords_list,
-					"room_max_coords": room_max_coords_list,
+					"room_information_in_pixel": room_information_in_pixel_list,
+					"room_information_in_meter": room_information_in_meter_list,
 					"room_surface_type": current_room.room_surface_type_,
 					"room_cleaning_method": current_room.room_cleaning_method_,
 					"room_surface_area": current_room.room_surface_area_,
@@ -460,6 +461,8 @@ db.loadDatabase()
 # Play around with the containing data
 print db.getRoom(21).room_issues_[0].issue_id_
 print db.getRoom(21).room_name_
+print db.getRoom(21).room_information_in_pixel_
+print db.getRoom(21).room_information_in_meter_
 print db.robot_properties_.exploration_coverage_radius_
 print db.getRoom(21).room_map_
 print db.getRoom(42).room_map_

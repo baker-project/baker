@@ -6,6 +6,7 @@ import os
 
 import database
 import database_classes
+import database_handler
 
 
 class CSVToJsonEncoder():

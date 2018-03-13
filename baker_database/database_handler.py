@@ -19,27 +19,45 @@ def getTodaysWeekDay():
 	return date.today().weekday() 
 
 
-# Get the room information in pixels
-def getRoomInformationInPixel(rooms_array, image_width, image_height):
+# Get the room information in pixel
+def getMapAndRoomInformationInPixel(rooms_array):
 	room_information_in_pixel = []
 	bridge = CvBridge()
-	tmp_map_opencv = np.zeros((image_height, image_width), np.uint8)
 	segmentation_id = 0
 	for room in rooms_array:
+		# Get an OPENCV representation of the image
 		room_map_opencv = bridge.imgmsg_to_cv2(room.room_map_data_, desired_encoding = "passthrough")
+		# Get the dimension of the map through the first map image
+		if (segmentation_id == 0):
+			image_height, image_width = room_map_opencv.shape
+			tmp_map_opencv = np.zeros((image_height, image_width), np.uint8)
+		# Add the room to the final map
 		for x in range(image_width):
 			for y in range(image_height):
 				if (room_map_opencv[y, x] == 255):
 					tmp_map_opencv[y, x] = segmentation_id + 1
+		# Create a RoomInformation instance of the room
 		room_information = RoomInformation()
-		room_information.room_center = room.room_center_coordinates_
-		room_information.room_min_max.append(room.room_min_coords_)
-		room_information.room_min_max.append(room.room_max_coords_)
+		room_information.room_center = room.room_information_in_pixel_[0]
+		room_information.room_min_max.append(room.room_information_in_pixel_[1])
+		room_information.room_min_max.append(room.room_information_in_pixel_[2])
 		room_information_in_pixel.append(room_information)
 		segmentation_id = segmentation_id + 1
 	segmented_map = bridge.cv2_to_imgmsg(tmp_map_opencv, encoding = "mono8")
-	return [room_information_in_pixel, segmented_map]
+	return room_information_in_pixel, segmented_map
 
+
+
+# Get the room information in meter
+def getRoomInformationInMeter(rooms_array):
+	room_information_in_meter = []
+	for room in rooms_array:
+		room_information = RoomInformation()
+		room_information.room_center = room.room_information_in_meter_[0]
+		room_information.room_min_max.append(room.room_information_in_meter_[1])
+		room_information.room_min_max.append(room.room_information_in_meter_[2])
+		room_information_in_meter.append(room_information)
+	return room_information_in_meter
 
 class DatabaseHandler():
 	database_ = None

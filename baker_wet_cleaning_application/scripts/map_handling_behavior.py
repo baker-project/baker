@@ -8,6 +8,8 @@ import map_receiving_behavior
 import map_segmentation_behavior
 import room_sequencing_behavior
 import map_segment_extracting_behavior
+import database
+import database_handler
 
 class MapHandlingBehavior(behavior_container.BehaviorContainer):
 
@@ -39,11 +41,16 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 	# Implemented Behavior
 	def executeCustomBehavior(self):
 
+
 		# Map receiving
 		self.map_receiver_ = map_receiving_behavior.MapReceivingBehavior("Map receiving", self.interrupt_var_, self.map_receiving_service_str_, self.map_segmented_receiving_service_str_)
 		self.map_receiver_.setParameters()
 		self.map_receiver_.executeCustomBehavior()
 		self.map_data_ = self.map_receiver_.map_data_
+
+		"""
+		DEPRECATED SEGMENTATION ROUTINE
+
 		self.map_segmented_data_ = self.map_receiver_.map_segmented_data_
 
 		# Interruption opportunity
@@ -65,6 +72,17 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 			)
 		self.map_segmenter_.executeCustomBehavior()
 		self.segmentation_data_ = self.map_segmenter_.segmentation_result_
+		"""
+
+		# Initialize and load database
+		self.database_ = database.Database(extracted_file_path="")
+		self.database_.loadDatabase()
+		# Initialize database handler and collect all pending rooms
+		self.database_handler_ = database_handler.DatabaseHandler(self.database_)
+		self.database_handler_.getAllDueAssignmentsAndRooms()
+		# Get a segmented map and RoomInformationArray
+		self.segmented_map_, self.room_information_in_pixel_ = getMapAndRoomInformationInPixel(self.database_handler_.due_ruums_)
+
 		
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:

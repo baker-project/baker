@@ -30,7 +30,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 
 		
 	# Method for setting parameters for the behavior
-	def setParameters(self, map_data, segmentation_data, sequence_data, robot_frame_id, robot_radius, coverage_radius, field_of_view):
+	def setParameters(self, map_data, segmented_map, room_information_in_meter, sequence_data, robot_frame_id, robot_radius, coverage_radius, field_of_view):
 		# Service strings
 		self.room_exploration_service_str_ = '/room_exploration/room_exploration_server'
 		self.move_base_path_service_str_ = '/move_base_path'
@@ -41,7 +41,9 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 		self.coverage_monitor_dynamic_reconfigure_service_str_ = '/room_exploration/coverage_monitor_server'
 		self.stop_coverage_monitoring_service_str_ = "/room_exploration/coverage_monitor_server/stop_coverage_monitoring"
 		self.map_data_ = map_data
-		self.segmentation_data_ = segmentation_data
+		"""self.segmentation_data_ = segmentation_data"""
+		self.segmented_map_ = segmented_map
+		self.room_information_in_meter_ = room_information_in_meter
 		self.sequence_data_ = sequence_data
 		self.robot_frame_id_ = robot_frame_id
 		self.robot_radius_ = robot_radius
@@ -49,7 +51,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 		self.field_of_view_ = field_of_view
 		# Get a opencv representation of the segmented image
 		self.bridge_ = CvBridge()
-		self.opencv_segmented_map_ = self.bridge_.imgmsg_to_cv2(self.segmentation_data_.segmented_map, desired_encoding = "passthrough")
+		self.opencv_segmented_map_ = self.bridge_.imgmsg_to_cv2(self.segmented_map_, desired_encoding = "passthrough")
 
 	# Method for returning to the standard pose of the robot
 	def returnToRobotStandardState(self):
@@ -86,8 +88,8 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				starting_position = Pose2D(x=1., y=0., theta=0.)
 				planning_mode = 2
 				"""
-				current_room_center = self.segmentation_data_.room_information_in_meter[current_room_index].room_center
-				current_room_map = self.getMapSegmentAsImageMsg(self.opencv_segmented_map_, current_room_index);
+				current_room_center = self.room_information_in_meter_[current_room_index].room_center
+				current_room_map = self.getMapSegmentAsImageMsg(self.opencv_segmented_map_, current_room_index)
 				self.room_explorer_.setParameters(
 					current_room_map,
 					self.map_data_.map_resolution,
@@ -116,9 +118,9 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				goal_orientation = Quaternion(x=0., y=0., z=0., w=0.)
 				header_frame_id = 'base_link'
 				"""
-				self.printMsg("Moving to room_center in meter=" + str(self.segmentation_data_.room_information_in_meter[current_room_index].room_center))
+				self.printMsg("Moving to room_center in meter=" + str(self.room_information_in_meter_[current_room_index].room_center))
 				self.move_base_handler_.setParameters(
-					self.segmentation_data_.room_information_in_meter[current_room_index].room_center,
+					self.room_information_in_meter_[current_room_index].room_center,
 					Quaternion(x=0., y=0., z=0., w=0.),	# todo: normalized quaternion
 					'base_link'
 					)
