@@ -5,6 +5,8 @@ import database_classes
 import datetime
 from datetime import date
 
+
+from ipa_building_msgs.msg import *
 import geometry_msgs
 import numpy as np
 import cv2
