@@ -158,4 +158,8 @@ class DatabaseHandler():
 			else:
 				self.due_rooms_cleaning_.remove(room)
 		# Save all changes to the database
-		database_.saveDatabase()
+		self.database_.saveDatabase()
+
+	# Method to run after all cleaning operations were performed
+	def cleanFinished(self):
+		self.database_.saveDatabase(temporal=False)

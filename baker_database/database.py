@@ -11,6 +11,9 @@ import cv2
 from cv_bridge import CvBridge, CvBridgeError
 # For support of the JSON format
 import json
+# For copying, finding and deleting JSON files
+from shutil import copyfile
+import os
 
 # Database class
 class Database():
@@ -22,6 +25,13 @@ class Database():
 	robot_properties_ = None
 	# Global settings
 	global_settings_ = None
+	# File names
+	rooms_filename_ = ""
+	assignments_filename_ = ""
+	tmp_rooms_filename_ = ""
+	tmp_assignments_filename_ = ""
+	global_settings_filename_ = ""
+	robot_properties_filename_ = ""
 
 # =========================================================================================
 # Test functions
@@ -375,47 +385,78 @@ class Database():
 
 	# Constructor method
 	def __init__(self, extracted_file_path=""):
-		if (extracted_file_path != None):
-			self.extracted_file_path = extracted_file_path
+		self.extracted_file_path = extracted_file_path
+		self.assignments_filename_ = self.extracted_file_path + str("resources/json/assignments.json")
+		self.rooms_filename_ = self.extracted_file_path + str("resources/json/rooms.json")
+		self.tmp_assignments_filename_ = self.extracted_file_path + str("resources/json/tmp_assignments.json")
+		self.tmp_rooms_filename_ = self.extracted_file_path + str("resources/json/tmp_rooms.json")
+		self.robot_properties_filename_ = self.extracted_file_path + str("resources/json/robot_properties.json")
+		self.global_settings_filename_ = self.extracted_file_path + str("resources/json/global_settings.json")
+		
+	# Discard temporal database --> A current progress will be forgotten
+	def discardTemporalDatabase(self):
+		if (os.path.isfile(self.tmp_rooms_filename_) == True):
+			os.remove(str(self.tmp_rooms_filename_))
+		if (os.path.isfile(self.tmp_assignments_filename_) == True):
+			os.remove(str(self.tmp_assignments_filename_))
+		self.loadDatabase()
 
 	# Load database data from files
 	def loadDatabase(self):
 		# Load the room data
-		file = open(self.extracted_file_path + str("resources/json/rooms.json"), "r").read()
+		if (os.path.isfile(self.tmp_rooms_filename_) == True):
+			file = open(self.tmp_rooms_filename_, "r").read()
+		else:
+			file = open(self.rooms_filename_, "r").read()
 		rooms_dict = json.loads(file)
 		self.updateRoomsList(rooms_dict)
 		# Load the assignment data
-		file = open(self.extracted_file_path + str("resources/json/assignments.json"), "r").read()
+		if (os.path.isfile(self.tmp_assignments_filename_) == True):
+			file = open(self.tmp_assignments_filename_, "r").read()
+		else:
+			file = open(self.assignments_filename_, "r").read()
 		assignments_dict = json.loads(file)
 		self.updateAssignmentsList(assignments_dict)
 		# Load the robot properties
-		file = open(self.extracted_file_path + str("resources/json/robot_properties.json"), "r").read()
+		file = open(self.robot_properties_filename_, "r").read()
 		robot_properties_dict = json.loads(file)
 		self.updateRobotProperties(robot_properties_dict)
 		# Load the global settings
-		file = open(self.extracted_file_path + str("resources/json/global_settings.json"), "r").read()
+		file = open(self.global_settings_filename_, "r").read()
 		global_settings_dict = json.loads(file)
 		self.updateGlobalSettings(global_settings_dict)
 
 	# Save database data to files
-	def saveDatabase(self):
+	def saveDatabase(self, temporal=True):
 		# Save the room data
 		rooms_dict = self.getRoomsDictFromRoomsList()
 		rooms_text = json.dumps(rooms_dict, indent=4, sort_keys=True)
-		file = open(self.extracted_file_path + str("resources/json/rooms.json"), "w")
+		if (temporal == True):
+			file = open(self.tmp_rooms_filename_, "w")
+		else:
+			file = open(self.rooms_filename_, "w")
 		file.write(rooms_text)
 		# Save the assignment data
 		assignments_dict = self.getAssignmentsDictFromAssignmentsList()
 		assignments_text = json.dumps(assignments_dict, indent=4, sort_keys=True)
-		file = open(self.extracted_file_path + str("resources/json/assignments.json"), "w")
+		if (temporal == True):
+			file = open(self.tmp_assignments_filename_, "w")
+		else:
+			file = open(self.assignments_filename_, "w")
 		file.write(assignments_text)
 		# Save global settings
 		global_settings_dict = self.getGlobalSettingsDictFromGlobalSettings()
 		global_settings_text = json.dumps(global_settings_dict, indent=4, sort_keys=True)
-		file = open(self.extracted_file_path + str("resources/json/global_settings.json"), "w")
+		file = open(self.global_settings_filename_, "w")
 		file.write(global_settings_text)
 		# Save robot properties? No.....
 		# [...]
+		# Remove all temporal files, if wanted
+		if (temporal == False):
+			if (os.path.isfile(self.tmp_rooms_filename_) == True):
+				os.remove(str(self.tmp_rooms_filename_))
+			if (os.path.isfile(self.tmp_assignments_filename_) == True):
+				os.remove(str(self.tmp_assignments_filename_))
 
 
 	# Retreive a room by providing a room_id
@@ -445,7 +486,6 @@ class Database():
 		return result
 
 
-
 """
 
 # =========================================================================================
@@ -468,6 +508,9 @@ print db.getRoom(21).room_map_
 print db.getRoom(42).room_map_
 print db.global_settings_.shall_auto_complete_
 print db.getRoom(21).room_trashcan_count_
+
+# Discard Changes
+db.discardTemporalDatabase()
 
 # Save database
 db.saveDatabase()
