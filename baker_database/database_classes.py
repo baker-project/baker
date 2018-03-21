@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+
 # Class which contains all the properties of the robot
 class RobotProperties():
 	# Exploration server constants
@@ -35,6 +36,22 @@ class GlobalSettings():
 	assignment_timedelta_ = 14
 	
 
+
+
+# Class which contains all global map data
+class GlobalMapData():
+	# Map resolution
+	# (FLOAT32)
+	map_resolution_ = 0
+	# Map origin
+	# (POINT32)
+	map_origin_ = None
+	# Map image file
+	# (CVBRIDGE)
+	map_image_ = None
+	# Map header frame id
+	# (STRING)
+	map_header_frame_id_ = ""
 
 
 
@@ -119,12 +136,12 @@ class RoomItem():
 	# CV_Bridge representation of the map
 	# (CV_BRIDGE)
 	room_map_data_ = None
-	# Room Information in pixel [Center, Min, Max]
-	# (ARRAY OF POINT32)
-	room_information_in_pixel_ = []
-	# Room information in meter [Center, Min, Max]
-	# (ARRAY OF POINT32)
-	room_information_in_meter_ = []
+	# Room Information in pixel
+	# (ROOMINFORMATION)
+	room_information_in_pixel_ = None
+	# Room information in meter
+	# (ROOMINFORMATION)
+	room_information_in_meter_ = None
 
 	# MISCELLANEOUS STUFF
 	# ===================

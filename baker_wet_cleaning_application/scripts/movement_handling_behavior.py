@@ -30,7 +30,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 
 		
 	# Method for setting parameters for the behavior
-	def setParameters(self, map_data, segmented_map, room_information_in_meter, sequence_data, robot_frame_id, robot_radius, coverage_radius, field_of_view):
+	def setParameters(self, database_handler, segmented_map, room_information_in_meter, sequence_data, robot_frame_id, robot_radius, coverage_radius, field_of_view):
 		# Service strings
 		self.room_exploration_service_str_ = '/room_exploration/room_exploration_server'
 		self.move_base_path_service_str_ = '/move_base_path'
@@ -40,8 +40,8 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 		self.stop_cleaning_service_str_ = '/brush_cleaning_module_interface/stop_brush_cleaner'
 		self.coverage_monitor_dynamic_reconfigure_service_str_ = '/room_exploration/coverage_monitor_server'
 		self.stop_coverage_monitoring_service_str_ = "/room_exploration/coverage_monitor_server/stop_coverage_monitoring"
-		self.map_data_ = map_data
-		"""self.segmentation_data_ = segmentation_data"""
+		self.database_handler_= database_handler
+		#self.segmentation_data_ = segmentation_data
 		self.segmented_map_ = segmented_map
 		self.room_information_in_meter_ = room_information_in_meter
 		self.sequence_data_ = sequence_data
@@ -69,6 +69,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 		for current_checkpoint_index in range(len(self.sequence_data_.checkpoints)):
 			for current_room_index in self.sequence_data_.checkpoints[current_checkpoint_index].room_indices:
 
+
 				self.printMsg("Attending to next room with current_room_index=" + str(current_room_index))
 
 				# Interruption opportunity
@@ -78,10 +79,9 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				# Room exploration
 				"""
 				For room exploration:
-				map_data = self.map_data_
 				input_map = self.getMapSegmentAsImageMsg(current_room_index)
-				map_resolution = self.map_data_.map_resolution
-				map_origin = self.map_data_.map_origin
+				map_resolution = self.database_handler_.database_.global_map_data_.map_resolution_
+				map_origin = self.database_handler_.database_.global_map_data_.map_origin_
 				robot_radius = 0.325
 				coverage_radius = 0.25
 				field_of_view = [Point32(x=0.04035, y=0.136), Point32(x=0.04035, y=-0.364), Point32(x=0.54035, y=-0.364), Point32(x=0.54035, y=0.136)] # this field of view represents the off-center iMop floor wiping device
@@ -92,8 +92,8 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				current_room_map = self.getMapSegmentAsImageMsg(self.opencv_segmented_map_, current_room_index)
 				self.room_explorer_.setParameters(
 					current_room_map,
-					self.map_data_.map_resolution,
-					self.map_data_.map_origin,
+					self.database_handler_.database_.global_map_data_.map_resolution_,
+					self.database_handler_.database_.global_map_data_.map_origin_,
 					robot_radius = self.robot_radius_,
 					coverage_radius = self.coverage_radius_,
 					field_of_view = self.field_of_view_,		# this field of view represents the off-center iMop floor wiping device
@@ -148,7 +148,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					print "Calling dynamic reconfigure at the coverage_monitor_server to set robot radius, coverage_radius, and coverage offset and start coverage monitoring."
 					client = dynamic_reconfigure.client.Client(self.coverage_monitor_dynamic_reconfigure_service_str_, timeout=5)
 					rospy.wait_for_service(self.coverage_monitor_dynamic_reconfigure_service_str_ + "/set_parameters")
-					client.update_configuration({"map_frame":self.map_data_.map.header.frame_id, "robot_frame":self.robot_frame_id_,
+					client.update_configuration({"map_frame":self.database_handler_.database_.global_map_data_.map_header_frame_id_, "robot_frame":self.robot_frame_id_,
 												 "coverage_radius":self.coverage_radius_,
 												 "coverage_circle_offset_transform_x":0.5*(self.field_of_view_[0].x+self.field_of_view_[2].x),
 												 "coverage_circle_offset_transform_y":0.5*(self.field_of_view_[0].y+self.field_of_view_[1].y),
@@ -201,6 +201,9 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				# Interruption opportunity
 				if self.handleInterrupt() == 2:
 					return
+
+				# Mark the current room as finished
+				# [...]
 
 				# coverage_monitor_server.cpp: turn off logging of the cleaned path (service "stop_coverage_monitoring")
 				self.printMsg("Stop coverage monitoring with " + self.stop_coverage_monitoring_service_str_)

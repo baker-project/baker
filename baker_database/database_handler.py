@@ -1,65 +1,19 @@
 #!/usr/bin/env python
 
+# For database
 import database
 import database_classes
+# For date and time calculations
 import datetime
 from datetime import date
-
-
+# For room information
 from ipa_building_msgs.msg import *
 import geometry_msgs
+# For map generation
 import numpy as np
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
 
-
-def getTodaysWeekType():
-	weekNumber = date.today().isocalendar()[1]
-	return weekNumber % 2
-
-def getTodaysWeekDay():
-	return date.today().weekday() 
-
-
-# Get the room information in pixel
-def getMapAndRoomInformationInPixel(rooms_array):
-	room_information_in_pixel = []
-	bridge = CvBridge()
-	segmentation_id = 0
-	for room in rooms_array:
-		# Get an OPENCV representation of the image
-		room_map_opencv = bridge.imgmsg_to_cv2(room.room_map_data_, desired_encoding = "passthrough")
-		# Get the dimension of the map through the first map image
-		if (segmentation_id == 0):
-			image_height, image_width = room_map_opencv.shape
-			tmp_map_opencv = np.zeros((image_height, image_width), np.uint8)
-		# Add the room to the final map
-		for x in range(image_width):
-			for y in range(image_height):
-				if (room_map_opencv[y, x] == 255):
-					tmp_map_opencv[y, x] = segmentation_id + 1
-		# Create a RoomInformation instance of the room
-		room_information = RoomInformation()
-		room_information.room_center = room.room_information_in_pixel_[0]
-		room_information.room_min_max.append(room.room_information_in_pixel_[1])
-		room_information.room_min_max.append(room.room_information_in_pixel_[2])
-		room_information_in_pixel.append(room_information)
-		segmentation_id = segmentation_id + 1
-	segmented_map = bridge.cv2_to_imgmsg(tmp_map_opencv, encoding = "mono8")
-	return room_information_in_pixel, segmented_map
-
-
-
-# Get the room information in meter
-def getRoomInformationInMeter(rooms_array):
-	room_information_in_meter = []
-	for room in rooms_array:
-		room_information = RoomInformation()
-		room_information.room_center = room.room_information_in_meter_[0]
-		room_information.room_min_max.append(room.room_information_in_meter_[1])
-		room_information.room_min_max.append(room.room_information_in_meter_[2])
-		room_information_in_meter.append(room_information)
-	return room_information_in_meter
 
 class DatabaseHandler():
 	database_ = None
@@ -75,6 +29,53 @@ class DatabaseHandler():
 	due_rooms_trashcan_ = []
 	# Contains all overdue trashcan rooms and removed them right after they were cleaned
 	overdue_rooms_trashcan_ = []
+
+	# ===============================================================================
+	# STATIC METHODS
+	# ===============================================================================
+
+	def getTodaysWeekType():
+		weekNumber = date.today().isocalendar()[1]
+		return weekNumber % 2
+
+	def getTodaysWeekDay():
+		return date.today().weekday()
+
+	# Get the room information in pixel
+	def getMapAndRoomInformationInPixel(rooms_array):
+		room_information_in_pixel = []
+		bridge = CvBridge()
+		segmentation_id = 0
+		for room in rooms_array:
+			# Get an OPENCV representation of the image
+			room_map_opencv = bridge.imgmsg_to_cv2(room.room_map_data_, desired_encoding = "passthrough")
+			# Get the dimension of the map through the first map image
+			if (segmentation_id == 0):
+				image_height, image_width = room_map_opencv.shape
+				tmp_map_opencv = np.zeros((image_height, image_width), np.uint8)
+			# Add the room to the final map
+			for x in range(image_width):
+				for y in range(image_height):
+					if (room_map_opencv[y, x] == 255):
+						tmp_map_opencv[y, x] = segmentation_id + 1
+			# Get room_information_in_pixels
+			room_information_in_pixel.append(room.room_information_in_pixel_)
+			segmentation_id = segmentation_id + 1
+		segmented_map = bridge.cv2_to_imgmsg(tmp_map_opencv, encoding = "mono8")
+		return room_information_in_pixel, segmented_map
+
+
+	# ===============================================================================
+	# OBJECT SPECIFIC METHODS
+	# ===============================================================================
+
+
+	# Get the room information in meter
+	def getRoomInformationInMeter(rooms_array):
+		room_information_in_meter = []
+		for room in rooms_array:
+			room_information_in_meter.append(room.room_information_in_meter_)
+		return room_information_in_meter
 
 	def __init__(self, database):
 		self.database_ = database
@@ -110,8 +111,7 @@ class DatabaseHandler():
 			self.due_rooms_trashcan_.append(room)
 
 		# If wanted: Get all overdue assignments in correct order
-		# But: Assignments with date "None" shall not be added! 
-		# They are new and therefore they could not have been done!
+		# But: Assignments with date "None" shall not be added! They are new and therefore they could not have been done!
 		if (self.database_.global_settings_.do_auto_complete_ == True):
 			it_assignment = assignment.prev_assignment_
 			while (it_assignment != assignment):
@@ -119,8 +119,7 @@ class DatabaseHandler():
 				if (self.assignmentDateIsDue(it_assignment.last_successful_clean_date_) == True):
 					self.overdue_assignments_.append(assignment)
 				it_assignment = it_assignment.prev_assignment_
-			# Get the rooms which should be contained in the overdue array
-			# This is the case, if 
+			# Get the rooms which should be contained in the overdue array. This is the case if...
 			# 1. They are not already in due or overdue array 
 			# 2. In case of trashcan: If the room is not yet in one of the arrays for cleaning
 			# 3. If the date requires it
@@ -158,6 +157,11 @@ class DatabaseHandler():
 			else:
 				self.due_rooms_cleaning_.remove(room)
 		# Save all changes to the database
+		self.database_.saveDatabase()
+
+	# Method to run if a change in the database shall be applied
+	# Applied changes can be discarded
+	def applyChangesToDatabase(self):
 		self.database_.saveDatabase()
 
 	# Method to run after all cleaning operations were performed

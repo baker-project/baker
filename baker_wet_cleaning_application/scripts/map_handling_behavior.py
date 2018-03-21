@@ -8,8 +8,6 @@ import map_receiving_behavior
 import map_segmentation_behavior
 import room_sequencing_behavior
 import map_segment_extracting_behavior
-import database
-import database_handler
 
 class MapHandlingBehavior(behavior_container.BehaviorContainer):
 
@@ -24,32 +22,35 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 	#========================================================================
 	
 	# Method for returning to the standard pose of the robot
-	def setParameters(self, robot_radius, pre_segmented_map=None):
+	def setParameters(self, robot_radius, database_handler, pre_segmented_map=None):
 		self.map_receiving_service_str_ = '/map_management_client/get_map_image'
 		self.map_segmented_receiving_service_str_ = '/map_management_client/get_map_segmented_image'
 		self.map_segmentation_service_str_ = '/room_segmentation/room_segmentation_server'
 		self.room_sequencing_service_str_ = '/room_sequence_planning/room_sequence_planning_server'
 		self.robot_radius_ = robot_radius
+		self.database_handler_ = database_handler
 
 	# Method for returning to the standard pose of the robot
 	def returnToRobotStandardState(self):
-		# data to be saved
-		# ...
+		# no data to be saved
 		# nothing to be undone
 		pass
 
 	# Implemented Behavior
 	def executeCustomBehavior(self):
 
+		"""
+		# DEPRECATED MAP RECEIVING ROUTINE
 
 		# Map receiving
 		self.map_receiver_ = map_receiving_behavior.MapReceivingBehavior("Map receiving", self.interrupt_var_, self.map_receiving_service_str_, self.map_segmented_receiving_service_str_)
 		self.map_receiver_.setParameters()
 		self.map_receiver_.executeCustomBehavior()
 		self.map_data_ = self.map_receiver_.map_data_
+		self.printMsg(self.map_data_.map.header.frame_id)
 
-		"""
-		DEPRECATED SEGMENTATION ROUTINE
+
+		# DEPRECATED SEGMENTATION ROUTINE
 
 		self.map_segmented_data_ = self.map_receiver_.map_segmented_data_
 
@@ -74,25 +75,16 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 		self.segmentation_data_ = self.map_segmenter_.segmentation_result_
 		"""
 
-		# Initialize and load database
-		self.database_ = database.Database(extracted_file_path="")
-		self.database_.loadDatabase()
-		# Initialize database handler and collect all pending rooms
-		self.database_handler_ = database_handler.DatabaseHandler(self.database_)
-		self.database_handler_.getAllDueAssignmentsAndRooms()
-		# Get a segmented map and RoomInformationArray
-		self.segmented_map_, self.room_information_in_pixel_ = getMapAndRoomInformationInPixel(self.database_handler_.due_ruums_)
-
-		
-		# Interruption opportunity
-		if self.handleInterrupt() == 2:
-			return
+		# Get a segmented map and RoomInformationArray from the database handler
+		self.segmented_map_, self.room_information_in_pixel_ = self.database_handler_.getMapAndRoomInformationInPixel(self.database_handler_.due_rooms_)
 		
 		# Room sequencing
 		self.room_sequencer_ = room_sequencing_behavior.RoomSequencingBehavior("Room sequencing", self.interrupt_var_, self.room_sequencing_service_str_)
 		self.room_sequencer_.setParameters(
-			self.map_data_, 
-			self.segmentation_data_,
+			#self.map_data_, 
+			#self.segmentation_data_,
+			self.database_handler_,
+			self.room_information_in_pixel_,
 			self.robot_radius_
 			)
 		self.room_sequencer_.executeCustomBehavior()

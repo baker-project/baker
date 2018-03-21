@@ -5,6 +5,8 @@ import actionlib
 import application_container
 import map_handling_behavior
 import movement_handling_behavior
+import database
+import database_handler
 
 from geometry_msgs.msg import Point32
 
@@ -31,10 +33,18 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.field_of_view_ = [Point32(x=0.04035, y=0.136), Point32(x=0.04035, y=-0.364),
 							   Point32(x=0.54035, y=-0.364), Point32(x=0.54035, y=0.136)]	# todo: read from MIRA
 
-		
-		# Receive map, segment, get sequence, extract maps
+
+		# Initialize and load database
+		self.database_ = database.Database(extracted_file_path="")
+		self.database_.loadDatabase()
+		# Initialize database handler and collect all pending rooms
+		self.database_handler_ = database_handler.DatabaseHandler(self.database_)
+		self.database_handler_.getAllDueAssignmentsAndRooms()
+
+		# Initialize and run map handling
 		self.map_handler_ = map_handling_behavior.MapHandlingBehavior("MapHandlingBehavior", self.application_status_)
 		self.map_handler_.setParameters(
+			self.database_handler_,
 			self.robot_radius_
 		)
 		self.map_handler_.executeBehavior()
@@ -48,8 +58,9 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		# Move to segments, Compute exploration path, Travel through it, repeat
 		self.movement_handler_ = movement_handling_behavior.MovementHandlingBehavior("MovementHandlingBehavior", self.application_status_)
 		self.movement_handler_.setParameters(
-			self.map_handler_.map_data_,
+			self.database_handler_,
 			self.map_handler_.segmentation_data_,
+			self.database_handler_.getRoomInformationInMeter(self.database_handler_.due_rooms_cleaning_),
 			self.map_handler_.room_sequencing_data_,
 			self.robot_frame_id_,
 			self.robot_radius_,
@@ -57,6 +68,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			self.field_of_view_
 		)
 		self.movement_handler_.executeBehavior()
+
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
 			return
@@ -91,7 +103,6 @@ if __name__ == '__main__':
 	try:
 		# Initialize node
 		rospy.init_node('application_wet_cleaning')
-		
 		# Initialize application
 		app = WetCleaningApplication("application_wet_cleaning", "interrupt_application_wet_cleaning")
 		# Execute application

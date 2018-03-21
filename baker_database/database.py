@@ -14,6 +14,8 @@ import json
 # For copying, finding and deleting JSON files
 from shutil import copyfile
 import os
+# For room information
+from ipa_building_msgs.msg import *
 
 # Database class
 class Database():
@@ -21,6 +23,8 @@ class Database():
 	assignments_ = []
 	# Rooms
 	rooms_ = []
+	# Global map data
+	global_map_data_ = None
 	# Robot proprties
 	robot_properties_ = None
 	# Global settings
@@ -198,15 +202,17 @@ class Database():
 				current_room.room_map_data_ = bridge.cv2_to_imgmsg(map_opencv, encoding = "mono8")
 			else:
 				current_room.room_map_data = None
-			# Get the room coordinates
+			# Get the room information
 			pixel_coords = dict.get(room_key).get("room_information_in_pixel")
-			current_room.room_information_in_pixel_.append(Point32(x=pixel_coords[0][0], y=pixel_coords[0][1], z=pixel_coords[0][2]))
-			current_room.room_information_in_pixel_.append(Point32(x=pixel_coords[1][0], y=pixel_coords[1][1], z=pixel_coords[1][2]))
-			current_room.room_information_in_pixel_.append(Point32(x=pixel_coords[2][0], y=pixel_coords[2][1], z=pixel_coords[2][2]))
+			current_room.room_information_in_pixel_ = RoomInformation()
+			current_room.room_information_in_pixel_.room_center = Point32(x=pixel_coords[0][0], y=pixel_coords[0][1], z=pixel_coords[0][2])
+			current_room.room_information_in_pixel_.room_min_max.points.append(Point32(x=pixel_coords[1][0], y=pixel_coords[1][1], z=pixel_coords[1][2]))
+			current_room.room_information_in_pixel_.room_min_max.points.append(Point32(x=pixel_coords[2][0], y=pixel_coords[2][1], z=pixel_coords[2][2]))
 			meter_coords = dict.get(room_key).get("room_information_in_meter")
-			current_room.room_information_in_meter_.append(Point32(x=meter_coords[0][0], y=meter_coords[0][1], z=meter_coords[0][2]))
-			current_room.room_information_in_meter_.append(Point32(x=meter_coords[1][0], y=meter_coords[1][1], z=meter_coords[1][2]))
-			current_room.room_information_in_meter_.append(Point32(x=meter_coords[2][0], y=meter_coords[2][1], z=meter_coords[2][2]))
+			current_room.room_information_in_meter_ = RoomInformation()
+			current_room.room_information_in_meter_.room_center = Point32(x=meter_coords[0][0], y=meter_coords[0][1], z=meter_coords[0][2])
+			current_room.room_information_in_meter_.room_min_max.points.append(Point32(x=meter_coords[1][0], y=meter_coords[1][1], z=meter_coords[1][2]))
+			current_room.room_information_in_meter_.room_min_max.points.append(Point32(x=meter_coords[2][0], y=meter_coords[2][1], z=meter_coords[2][2]))
 			# Get the room surface type
 			current_room.room_surface_type_ = dict.get(room_key).get("room_surface_type")
 			# Get the cleaning method of the room
@@ -269,26 +275,26 @@ class Database():
 					date_str_trashcan = current_room.last_successful_trashcan_date_.strftime("%Y-%m-%d_%H:%M")
 				else:
 					date_str_trashcan = None
-				# Fill in the room coordinates
+				# Fill in the room information
 				if ((current_room.room_information_in_meter_ != None) and (current_room.room_information_in_pixel_ != None)):
-					px_center_x = current_room.room_information_in_pixel_[0].x
-					px_center_y = current_room.room_information_in_pixel_[0].y
-					px_center_z = current_room.room_information_in_pixel_[0].z
-					px_min_x = current_room.room_information_in_pixel_[1].x
-					px_min_y = current_room.room_information_in_pixel_[1].y
-					px_min_z = current_room.room_information_in_pixel_[1].z
-					px_max_x = current_room.room_information_in_pixel_[2].x
-					px_max_y = current_room.room_information_in_pixel_[2].y
-					px_max_z = current_room.room_information_in_pixel_[2].z
-					meter_center_x = current_room.room_information_in_meter_[0].x
-					meter_center_y = current_room.room_information_in_meter_[0].y
-					meter_center_z = current_room.room_information_in_meter_[0].z
-					meter_min_x = current_room.room_information_in_meter_[1].x
-					meter_min_y = current_room.room_information_in_meter_[1].y
-					meter_min_z = current_room.room_information_in_meter_[1].z
-					meter_max_x = current_room.room_information_in_meter_[2].x
-					meter_max_y = current_room.room_information_in_meter_[2].y
-					meter_max_z = current_room.room_information_in_meter_[2].z
+					px_center_x = current_room.room_information_in_pixel_.room_center.x
+					px_center_y = current_room.room_information_in_pixel_.room_center.y
+					px_center_z = current_room.room_information_in_pixel_.room_center.z
+					px_min_x = current_room.room_information_in_pixel_.room_min_max.points[0].x
+					px_min_y = current_room.room_information_in_pixel_.room_min_max.points[0].y
+					px_min_z = current_room.room_information_in_pixel_.room_min_max.points[0].z
+					px_max_x = current_room.room_information_in_pixel_.room_min_max.points[1].x
+					px_max_y = current_room.room_information_in_pixel_.room_min_max.points[1].y
+					px_max_z = current_room.room_information_in_pixel_.room_min_max.points[1].z
+					meter_center_x = current_room.room_information_in_meter_.room_center.x
+					meter_center_y = current_room.room_information_in_meter_.room_center.y
+					meter_center_z = current_room.room_information_in_meter_.room_center.z
+					meter_min_x = current_room.room_information_in_meter_.room_min_max.points[0].x
+					meter_min_y = current_room.room_information_in_meter_.room_min_max.points[0].y
+					meter_min_z = current_room.room_information_in_meter_.room_min_max.points[0].z
+					meter_max_x = current_room.room_information_in_meter_.room_min_max.points[1].x
+					meter_max_y = current_room.room_information_in_meter_.room_min_max.points[1].y
+					meter_max_z = current_room.room_information_in_meter_.room_min_max.points[1].z
 					room_information_in_pixel_list = [[px_center_x, px_center_y, px_center_z], [px_min_x, px_min_y, px_min_z], [px_max_x, px_max_y, px_max_z]]
 					room_information_in_meter_list = [[meter_center_x, meter_center_y, meter_center_z], [meter_min_x, meter_min_y, meter_min_z], [meter_max_x, meter_max_y, meter_max_z]]
 				else:
@@ -486,12 +492,12 @@ class Database():
 		return result
 
 
-"""
+
 
 # =========================================================================================
 # Test routine
 # =========================================================================================
-
+"""
 # Initialize and load data from the files
 db = Database()
 db.loadDatabase()
