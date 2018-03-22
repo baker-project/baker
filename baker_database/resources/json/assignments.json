@@ -1,28 +1,128 @@
 {
-    "Assignment Number Fourty-Two": {
-        "assignment_name": "Assignment Number Fourty-Two", 
+    "FR_0": {
+        "assignment_name": "FR_0", 
         "assignment_week_day": 4, 
         "assignment_week_type": 0, 
-        "last_completed_clean": "2012-12-03_14:45", 
-        "prev_assignment": null, 
-        "scheduled_rooms_cleaning": [
-            42
-        ], 
-        "scheduled_rooms_trashcan": [
-            21
-        ]
+        "last_completed_clean": null, 
+        "prev_assignment": "TH_0", 
+        "scheduled_rooms_cleaning": [], 
+        "scheduled_rooms_trashcan": []
     }, 
-    "Assignment Number Twenty-One": {
-        "assignment_name": "Assignment Number Twenty-One", 
+    "FR_1": {
+        "assignment_name": "FR_1", 
         "assignment_week_day": 4, 
+        "assignment_week_type": 1, 
+        "last_completed_clean": null, 
+        "prev_assignment": "TH_1", 
+        "scheduled_rooms_cleaning": [], 
+        "scheduled_rooms_trashcan": []
+    }, 
+    "MO_0": {
+        "assignment_name": "MO_0", 
+        "assignment_week_day": 0, 
         "assignment_week_type": 0, 
-        "last_completed_clean": "2012-12-03_14:46", 
-        "prev_assignment": null, 
-        "scheduled_rooms_cleaning": [
-            21
-        ], 
-        "scheduled_rooms_trashcan": [
-            42
-        ]
+        "last_completed_clean": null, 
+        "prev_assignment": "SU_1", 
+        "scheduled_rooms_cleaning": [], 
+        "scheduled_rooms_trashcan": []
+    }, 
+    "MO_1": {
+        "assignment_name": "MO_1", 
+        "assignment_week_day": 0, 
+        "assignment_week_type": 1, 
+        "last_completed_clean": null, 
+        "prev_assignment": "SU_0", 
+        "scheduled_rooms_cleaning": [], 
+        "scheduled_rooms_trashcan": []
+    }, 
+    "SA_0": {
+        "assignment_name": "SA_0", 
+        "assignment_week_day": 5, 
+        "assignment_week_type": 0, 
+        "last_completed_clean": null, 
+        "prev_assignment": "FR_0", 
+        "scheduled_rooms_cleaning": [], 
+        "scheduled_rooms_trashcan": []
+    }, 
+    "SA_1": {
+        "assignment_name": "SA_1", 
+        "assignment_week_day": 5, 
+        "assignment_week_type": 1, 
+        "last_completed_clean": null, 
+        "prev_assignment": "FR_1", 
+        "scheduled_rooms_cleaning": [], 
+        "scheduled_rooms_trashcan": []
+    }, 
+    "SU_0": {
+        "assignment_name": "SU_0", 
+        "assignment_week_day": 6, 
+        "assignment_week_type": 0, 
+        "last_completed_clean": null, 
+        "prev_assignment": "SA_0", 
+        "scheduled_rooms_cleaning": [], 
+        "scheduled_rooms_trashcan": []
+    }, 
+    "SU_1": {
+        "assignment_name": "SU_1", 
+        "assignment_week_day": 6, 
+        "assignment_week_type": 1, 
+        "last_completed_clean": null, 
+        "prev_assignment": "SA_1", 
+        "scheduled_rooms_cleaning": [], 
+        "scheduled_rooms_trashcan": []
+    }, 
+    "TH_0": {
+        "assignment_name": "TH_0", 
+        "assignment_week_day": 3, 
+        "assignment_week_type": 0, 
+        "last_completed_clean": null, 
+        "prev_assignment": "WE_0", 
+        "scheduled_rooms_cleaning": [], 
+        "scheduled_rooms_trashcan": []
+    }, 
+    "TH_1": {
+        "assignment_name": "TH_1", 
+        "assignment_week_day": 3, 
+        "assignment_week_type": 1, 
+        "last_completed_clean": null, 
+        "prev_assignment": "WE_1", 
+        "scheduled_rooms_cleaning": [], 
+        "scheduled_rooms_trashcan": []
+    }, 
+    "TU_0": {
+        "assignment_name": "TU_0", 
+        "assignment_week_day": 1, 
+        "assignment_week_type": 0, 
+        "last_completed_clean": null, 
+        "prev_assignment": "MO_0", 
+        "scheduled_rooms_cleaning": [], 
+        "scheduled_rooms_trashcan": []
+    }, 
+    "TU_1": {
+        "assignment_name": "TU_1", 
+        "assignment_week_day": 1, 
+        "assignment_week_type": 1, 
+        "last_completed_clean": null, 
+        "prev_assignment": "MO_1", 
+        "scheduled_rooms_cleaning": [], 
+        "scheduled_rooms_trashcan": []
+    }, 
+    "WE_0": {
+        "assignment_name": "WE_0", 
+        "assignment_week_day": 2, 
+        "assignment_week_type": 0, 
+        "last_completed_clean": null, 
+        "prev_assignment": "TU_0", 
+        "scheduled_rooms_cleaning": [], 
+        "scheduled_rooms_trashcan": []
+    }, 
+    "WE_1": {
+        "assignment_name": "WE_1", 
+        "assignment_week_day": 2, 
+        "assignment_week_type": 1, 
+        "last_completed_clean": null, 
+        "prev_assignment": "TU_1", 
+        "scheduled_rooms_cleaning": [], 
+        "scheduled_rooms_trashcan": []
     }
 }

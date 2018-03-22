@@ -1,29 +1,29 @@
 {
-    "exploration_robot_radius": 0.325,
-    "exploration_coverage_radius": 0.25,
+    "exploration_coverage_radius": 0.25, 
     "exploration_field_of_view": [
         [
-            0.04035,
+            0.04035, 
             0.136
-        ],
+        ], 
         [
-            0.04035,
+            0.04035, 
             -0.364
-        ],
+        ], 
         [
-            0.54035,
+            0.54035, 
             -0.364
-        ],
+        ], 
         [
-            0.54035,
+            0.54035, 
             0.136
         ]
-    ],
-    "exploration_header_frame_id": "base_link",
-    "path_follow_path_tolerance": 0.2,
-    "path_follow_goal_position_tolerance": 0.5,
-    "path_follow_goal_angle_tolerance": 1.57,
-    "wall_follow_path_tolerance": 0.2,
-    "wall_follow_goal_position_tolerance": 0.4,
-    "wall_follow_goal_angle_tolerance": 3.14
+    ], 
+    "exploration_header_frame_id": "base_link", 
+    "exploration_robot_radius": 0.325, 
+    "path_follow_goal_angle_tolerance": 0.2, 
+    "path_follow_goal_position_tolerance": 0.5, 
+    "path_follow_path_tolerance": 0.2, 
+    "wall_follow_goal_angle_tolerance": 3.14, 
+    "wall_follow_goal_position_tolerance": 0.4, 
+    "wall_follow_path_tolerance": 0.2
 }

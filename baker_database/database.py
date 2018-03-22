@@ -6,6 +6,7 @@ import database_classes
 from datetime import datetime, date, time, timedelta
 # For Point32
 from geometry_msgs.msg import Point32
+from geometry_msgs.msg import Pose
 # For map receiving, for image receiving
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
@@ -36,6 +37,8 @@ class Database():
 	tmp_assignments_filename_ = ""
 	global_settings_filename_ = ""
 	robot_properties_filename_ = ""
+	global_map_data_filename_ = ""
+	global_map_image_filename_ = ""
 
 # =========================================================================================
 # Test functions
@@ -135,6 +138,29 @@ class Database():
 		global_settings_dict["max_aux_time"] = self.global_settings_.max_aux_time_
 		global_settings_dict["assignment_timedelta"] = self.global_settings_.assignment_timedelta_
 		return global_settings_dict
+
+	def updateGlobalMapData(self, dict):
+		self.global_map_data_ = database_classes.GlobalMapData()
+		# Get an open cv representation of the map or None if there is no map
+		map_file_path = str(self.extracted_file_path) + str(self.global_map_image_filename_)
+		map_opencv = cv2.imread(map_file_path, 0)
+		bridge = CvBridge()
+		self.global_map_data_.map_image_ = bridge.cv2_to_imgmsg(map_opencv, encoding = "mono8")
+		# Get the map resolution
+		self.global_map_data_.map_resolution_ = dict.get("map_resolution")
+		# Get the map origin
+		map_origin_coords = dict.get("map_origin")
+		pose = Pose()
+		pose.position.x = map_origin_coords[0]
+		pose.position.y = map_origin_coords[1]
+		pose.position.z = map_origin_coords[2]
+		pose.orientation.w = map_origin_coords[3]
+		pose.orientation.x = map_origin_coords[4]
+		pose.orientation.y = map_origin_coords[5]
+		pose.orientation.z = map_origin_coords[6]
+		self.global_map_data_.map_origin_ = pose
+		# Get the map header frame id
+		self.global_map_data_.map_header_frame_id_ = dict.get("map_header_frame_id")
 
 	def updateRobotProperties(self, dict):
 		self.robot_properties_ = database_classes.RobotProperties()
@@ -398,7 +424,9 @@ class Database():
 		self.tmp_rooms_filename_ = self.extracted_file_path + str("resources/json/tmp_rooms.json")
 		self.robot_properties_filename_ = self.extracted_file_path + str("resources/json/robot_properties.json")
 		self.global_settings_filename_ = self.extracted_file_path + str("resources/json/global_settings.json")
-		
+		self.global_map_data_filename_ = self.extracted_file_path + str("resources/json/global_map_data.json")
+		self.global_map_image_filename_ = self.extracted_file_path + str("resources/maps/global_map.png")
+
 	# Discard temporal database --> A current progress will be forgotten
 	def discardTemporalDatabase(self):
 		if (os.path.isfile(self.tmp_rooms_filename_) == True):
@@ -431,6 +459,10 @@ class Database():
 		file = open(self.global_settings_filename_, "r").read()
 		global_settings_dict = json.loads(file)
 		self.updateGlobalSettings(global_settings_dict)
+		# Load the global map data
+		file = open(self.global_map_data_filename_, "r").read()
+		global_map_data_dict = json.loads(file)
+		self.updateGlobalMapData(global_map_data_dict)
 
 	# Save database data to files
 	def saveDatabase(self, temporal=True):
@@ -450,12 +482,16 @@ class Database():
 		else:
 			file = open(self.assignments_filename_, "w")
 		file.write(assignments_text)
+		"""
 		# Save global settings
 		global_settings_dict = self.getGlobalSettingsDictFromGlobalSettings()
 		global_settings_text = json.dumps(global_settings_dict, indent=4, sort_keys=True)
 		file = open(self.global_settings_filename_, "w")
 		file.write(global_settings_text)
+		"""
 		# Save robot properties? No.....
+		# [...]
+		# Save global map data? No.....
 		# [...]
 		# Remove all temporal files, if wanted
 		if (temporal == False):
@@ -497,13 +533,13 @@ class Database():
 # =========================================================================================
 # Test routine
 # =========================================================================================
-"""
+
 # Initialize and load data from the files
 db = Database()
 db.loadDatabase()
 #db.createTestRoomObject()
 #db.createTestAssignmentObject()
-
+"""
 # Play around with the containing data
 print db.getRoom(21).room_issues_[0].issue_id_
 print db.getRoom(21).room_name_
@@ -517,8 +553,7 @@ print db.getRoom(21).room_trashcan_count_
 
 # Discard Changes
 db.discardTemporalDatabase()
-
-# Save database
-db.saveDatabase()
-
 """
+# Save database
+db.saveDatabase(temporal=False)
+

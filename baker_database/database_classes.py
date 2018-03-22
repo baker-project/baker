@@ -29,8 +29,8 @@ class GlobalSettings():
 	# (BOOLEAN)
 	shall_auto_complete_ = True
 	# Maximum time the robot has for completing missed cleanups
-	# (TIMEDELTA)
-	max_aux_time_ = None
+	# (FLOAT)
+	max_aux_time_ = 0
 	# Amount of days between two executions of the same assignment. Default is two weeks (14)
 	# (INTEGER)
 	assignment_timedelta_ = 14
@@ -44,8 +44,8 @@ class GlobalMapData():
 	# (FLOAT32)
 	map_resolution_ = 0
 	# Map origin
-	# (POINT32)
-	map_origin_ = None
+	# (ARRAY OF FLOAT)
+	map_origin_ = []
 	# Map image file
 	# (CVBRIDGE)
 	map_image_ = None
@@ -132,7 +132,7 @@ class RoomItem():
 	room_issues_ = []
 	# Filename of the room map file
 	# (STRING)
-	room_map_ = None
+	room_map_ = ""
 	# CV_Bridge representation of the map
 	# (CV_BRIDGE)
 	room_map_data_ = None
