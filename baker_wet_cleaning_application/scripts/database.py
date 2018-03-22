@@ -527,6 +527,15 @@ class Database():
 				break
 		return result
 
+	# Retreive an assignment by providing the name of it
+	def getAssignmentByName(self, name):
+		result = None
+		for assignment in self.assignments_:
+			if (assignment.assignment_name_ == name):
+				result = assignment
+				break
+		return assignment
+
 
 """
 

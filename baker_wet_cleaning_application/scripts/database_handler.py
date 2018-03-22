@@ -34,11 +34,11 @@ class DatabaseHandler():
 	# STATIC METHODS
 	# ===============================================================================
 
-	def getTodaysWeekType():
+	def getTodaysWeekType(self):
 		weekNumber = date.today().isocalendar()[1]
 		return weekNumber % 2
 
-	def getTodaysWeekDay():
+	def getTodaysWeekDay(self):
 		return date.today().weekday()
 
 	# Get the room information in pixel
@@ -71,7 +71,7 @@ class DatabaseHandler():
 
 
 	# Get the room information in meter
-	def getRoomInformationInMeter(rooms_array):
+	def getRoomInformationInMeter(self, rooms_array):
 		room_information_in_meter = []
 		for room in rooms_array:
 			room_information_in_meter.append(room.room_information_in_meter_)
@@ -81,7 +81,7 @@ class DatabaseHandler():
 		self.database_ = database
 
 	# Check via date if an assignment is due
-	def assignmentDateIsDue(datetime_stamp):
+	def assignmentDateIsDue(self, datetime_stamp):
 		a_timedelta = datetime.timedelta(days=self.database_.global_settings_.assignment_timedelta_)
 		return ((datetime_stamp != None) and (datetime_stamp - date.today > a_timedelta))
 
@@ -99,8 +99,8 @@ class DatabaseHandler():
 
 		# Get the due assignment
 		for assignment in self.database_.assignments_:
-			if ((assignment.assignment_week_type_ == getTodaysWeekType()) 
-			and (assignment.assignment_week_day_ == getTodaysWeekDay())):
+			if ((assignment.assignment_week_type_ == self.getTodaysWeekType()) 
+			and (assignment.assignment_week_day_ == self.getTodaysWeekDay())):
 				self.due_assignment_ = assignment
 				break
 
@@ -112,13 +112,13 @@ class DatabaseHandler():
 
 		# If wanted: Get all overdue assignments in correct order
 		# But: Assignments with date "None" shall not be added! They are new and therefore they could not have been done!
-		if (self.database_.global_settings_.do_auto_complete_ == True):
-			it_assignment = assignment.prev_assignment_
-			while (it_assignment != assignment):
+		if (self.database_.global_settings_.shall_auto_complete_ == True):
+			it_assignment = self.database_.getAssignmentByName(assignment.prev_assignment_)
+			while (it_assignment.assignment_name_ != assignment.assignment_name_):
 			# Find those assignments whose time stamp is further than 14 days in the past
-				if (self.assignmentDateIsDue(it_assignment.last_successful_clean_date_) == True):
+				if (self.assignmentDateIsDue(it_assignment.last_completed_clean_) == True):
 					self.overdue_assignments_.append(assignment)
-				it_assignment = it_assignment.prev_assignment_
+				it_assignment = self.database_.getAssignmentByName(it_assignment.prev_assignment_)
 			# Get the rooms which should be contained in the overdue array. This is the case if...
 			# 1. They are not already in due or overdue array 
 			# 2. In case of trashcan: If the room is not yet in one of the arrays for cleaning
@@ -127,14 +127,14 @@ class DatabaseHandler():
 				it_assignment = self.overdue_assignments_[i]
 				for room in assignment.scheduled_rooms_cleaning_data_:
 					if (not(room in self.overdue_rooms_cleaning_) 
-					and (self.roomDateIsOverdue(room.last_successful_clean_date_, i)) 
+					and (self.roomDateIsOverdue(room.last_successful_cleaning_date_, i)) 
 					and not(room in self.due_rooms_cleaning_)):
 						self.overdue_rooms_cleaning_.append(room)
 				for room in assignment.scheduled_rooms_trashcan_data_:
 					if (not(room in self.overdue_rooms_trashcan_) 
-					and not (room in self.due_rooms_cleaning_))
-					and (self.roomDateIsOverdue(room.last_successful_clean_date_, i)) 
-					and not(room in self.due_rooms_trashcan_):
+					and not (room in self.due_rooms_cleaning_)
+					and (self.roomDateIsOverdue(room.last_successful_cleaning_date_, i)) 
+					and not(room in self.due_rooms_trashcan_)):
 						self.overdue_rooms_trashcan_.append(room)
 
 
