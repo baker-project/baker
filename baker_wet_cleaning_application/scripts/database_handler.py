@@ -42,17 +42,17 @@ class DatabaseHandler():
 		return date.today().weekday()
 
 	# Get the room information in pixel
-	def getMapAndRoomInformationInPixel(rooms_array):
+	def getMapAndRoomInformationInPixel(self, rooms_array):
 		room_information_in_pixel = []
 		bridge = CvBridge()
 		segmentation_id = 0
+		# Get the dimension of the image an create the temp map
+		complete_map_opencv = bridge.imgmsg_to_cv2(self.database_.global_map_data_.map_image_, desired_encoding = "passthrough")
+		image_height, image_width = complete_map_opencv.shape
+		tmp_map_opencv = np.zeros((image_height, image_width), np.uint8)
 		for room in rooms_array:
 			# Get an OPENCV representation of the image
 			room_map_opencv = bridge.imgmsg_to_cv2(room.room_map_data_, desired_encoding = "passthrough")
-			# Get the dimension of the map through the first map image
-			if (segmentation_id == 0):
-				image_height, image_width = room_map_opencv.shape
-				tmp_map_opencv = np.zeros((image_height, image_width), np.uint8)
 			# Add the room to the final map
 			for x in range(image_width):
 				for y in range(image_height):
@@ -61,6 +61,7 @@ class DatabaseHandler():
 			# Get room_information_in_pixels
 			room_information_in_pixel.append(room.room_information_in_pixel_)
 			segmentation_id = segmentation_id + 1
+		cv2.imshow('image', tmp_map_opencv)
 		segmented_map = bridge.cv2_to_imgmsg(tmp_map_opencv, encoding = "mono8")
 		return room_information_in_pixel, segmented_map
 

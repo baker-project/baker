@@ -19,6 +19,8 @@ from cv_bridge import CvBridge, CvBridgeError
 from geometry_msgs.msg import Point32
 # For timedelta
 from datetime import timedelta
+# For CSV creation
+import csv
 
 class DatabaseCreator():
 
@@ -95,7 +97,7 @@ class DatabaseCreator():
 			room = database_classes.RoomItem()
 			room.room_name_ = "room_" + str(i)
 			room.room_id_ = i
-			room.room_position_id_ = "1." + str(i)
+			room.room_position_id_ = "1_" + str(i)
 			room.room_floor_id_ = "1st Floor"
 			room.room_building_id_ = "Building C"
 			room.room_territory_id_ = "42"
@@ -153,8 +155,6 @@ class DatabaseCreator():
 		file = open("resources/json/robot_properties.json", "w")
 		file.write(global_robot_properties_text)
 
-
-
 		# Save global settings
 		# ====================
 
@@ -167,10 +167,9 @@ class DatabaseCreator():
 		file = open("resources/json/robot_settings.json", "w")
 		file.write(global_settings_text)
 
-
-
 		# Save global map data
 		# ====================
+
 		map_origin_array = [
 			self.map_data_.map_origin.position.x,
 			self.map_data_.map_origin.position.y,
@@ -178,7 +177,7 @@ class DatabaseCreator():
 			self.map_data_.map_origin.orientation.w,
 			self.map_data_.map_origin.orientation.x,
 			self.map_data_.map_origin.orientation.y,
-			self.map_data_.map_origin.orientation.z,
+			self.map_data_.map_origin.orientation.z
 		]
 		global_map_data_dict = {
 			"map_resolution": self.map_data_.map_resolution,
@@ -202,6 +201,62 @@ class DatabaseCreator():
 
 
 
+	def createRoomBook(self):
+		file = open(str("csv/ROOMPLAN.csv"), "w")
+		file.write("Pos.,Etg.,Gebaude,Raum Nr.,Raum-bezeichnung,Reinigungs-bereich,Belag,Reinigungs-methode,Flache,Papierkorbe,m,Mo-Fr p.Einheit,Sa p.Einheit,So p.Einheit,FT p.Tag,Einheit,")
+		file = open(str("csv/ROOMPLAN.csv"), "a")
+		file.write("\n")
+		for room in self.database_.rooms_:
+			file.write(str(room.room_position_id_) + ",")
+			file.write(str(room.room_floor_id_) + ",")
+			file.write(str(room.room_building_id_) + ",")
+			file.write(str(room.room_id_) + ",")
+			file.write(str(room.room_name_) + ",")
+			file.write("Reinigungsbereich,")
+			file.write(str(room.room_surface_type_) + ",")
+			file.write(str(room.room_cleaning_method_) + ",")
+			file.write(str(room.room_surface_area_) + ",")
+			file.write(str(room.room_trashcan_count_) + ",")
+			file.write(",")
+			file.write("?,")
+			file.write("?,")
+			file.write("?,")
+			file.write("Woche,")
+			file.write("\n")
+
+
+
+
+	def createTerritoryPlan(self):
+		file = open(str("csv/TERRITORYPLAN.csv"), "w")
+		file.write(",,,,,,,,,,,,,,,,,,,,,,,")
+		file = open(str("csv/TERRITORYPLAN.csv"), "a")
+		file.write("\n")
+		file.write("Rev.,Pos.,Etg.,Bez.1,Bez.2,R.-Gr.,Bez.3,Belag,Flache,Reinigungsintervall,Mo,Di,Mi,Do,Fr,Sa,So,Mo,Di,Mi,Do,Fr,Sa,So")
+		file.write("\n")
+		for room in self.database_.rooms_:
+			file.write(str(room.room_territory_id_) + ",")
+			file.write(str(room.room_position_id_) + ",")
+			file.write(str(room.room_floor_id_) + ",")
+			file.write("Bezeichnung 1,")
+			file.write("Bezeichnung 2,")
+			file.write("Raumgruppe,")
+			file.write("Bezeichnung 3,")
+			file.write(str(room.room_surface_type_) + ",")
+			file.write(str(room.room_surface_area_) + ",")
+			file.write("INTERVAL_STRING,")
+			file.write(",,,,,,,,,,,,,,")
+			file.write("\n")
+
+
+
+
+	def createCSVFiles(self):
+		self.createRoomBook()
+		self.createTerritoryPlan()
+
+
+
 	# Method for returning the segment of the map corresponding to the order number as cv_bridge
 	def getMapSegmentAsImage(self, opencv_segmented_map, current_room_index):
 		image_height, image_width = opencv_segmented_map.shape
@@ -220,6 +275,7 @@ class DatabaseCreator():
 rospy.init_node('database_creation')
 database_creator = DatabaseCreator()
 database_creator.runDatabaseCreation()
+database_creator.createCSVFiles()
 
 
 

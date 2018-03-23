@@ -6,7 +6,6 @@ import os
 
 import database
 import database_classes
-import database_handler
 
 
 class CSVToJsonEncoder():
@@ -67,14 +66,14 @@ class CSVToJsonEncoder():
 				room.room_trashcan_count_ = int(row[9])
 				existing_rooms.append(room.room_id_)
 				# Save the database
-				self.database_.saveDatabase()	
+				self.database_.saveDatabase(temporal=False)	
 			i = i + 1
 		# Remove all rooms which were not listed in the room plan
 		for room in self.database_.rooms_:
 			if (not(room.room_id_ in existing_rooms)):
 				self.database_.rooms_.remove(room)
 			# Save the database
-			self.database_.saveDatabase()
+			self.database_.saveDatabase(temporal=False)
 		# Feed in all the data from the territory plan
 		i = 0
 		for row in self.csv_territory_plan_:
@@ -82,10 +81,11 @@ class CSVToJsonEncoder():
 				pos_id = row[1]
 				floor_id = row[2]
 				room = self.database_.getRoomByPosFloor(pos_id, floor_id)
+				print room
 				room.room_territory_id_ = row[0]
 			i = i + 1
 			# Save the database
-			self.database_.saveDatabase()
+			self.database_.saveDatabase(temporal=False)
 		
 		# Create assignments from the schedule
 		i = 0
@@ -121,13 +121,13 @@ class CSVToJsonEncoder():
 						current_assignment.scheduled_rooms_trashcan_.append(self.database_.getRoomByPosFloor(row[1], row[2]).room_id_)
 				j = j + 1
 			# Save the database
-			self.database_.saveDatabase()
+			self.database_.saveDatabase(temporal=False)
 			i = i + 1
 	
 	
 	# Save the database
 	def saveDatabaseToFile(self):
-		self.database_.saveDatabase()
+		self.database_.saveDatabase(temporal=False)
 		
 		
 	# Public method. This one shall be called. Only this one shall be called.
@@ -143,6 +143,6 @@ class CSVToJsonEncoder():
 # =========================================================================================
 
 # Initialize and load data from the files
-encoder = CSVToJsonEncoder(csv_file_path="csv/", database_file_path="csv/")
+encoder = CSVToJsonEncoder(csv_file_path="csv/", database_file_path="")
 encoder.loadCSVFiles()
 encoder.feedDatabaseWithCSVData()

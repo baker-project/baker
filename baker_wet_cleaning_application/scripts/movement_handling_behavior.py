@@ -101,6 +101,8 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					planning_mode = 2
 				)
 				self.room_explorer_.executeBehavior()
+
+				# If no trajectory was created - move on to next room
 				if (self.room_explorer_.exploration_result_ == None):
 					continue
 				
@@ -203,7 +205,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					return
 
 				# Mark the current room as finished
-				# [...]
+				self.database_handler_.checkoutCompletedRoom(self.database_handler_.due_rooms_cleaning_[self.sequence_data_.checkpoints[current_checkpoint_index].room_indices[current_room_index]], False, False)
 
 				# coverage_monitor_server.cpp: turn off logging of the cleaned path (service "stop_coverage_monitoring")
 				self.printMsg("Stop coverage monitoring with " + self.stop_coverage_monitoring_service_str_)

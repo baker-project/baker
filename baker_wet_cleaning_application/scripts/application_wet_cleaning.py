@@ -41,11 +41,15 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.database_handler_ = database_handler.DatabaseHandler(self.database_)
 		self.database_handler_.getAllDueAssignmentsAndRooms()
 
+		# Check if there is no room to be done
+		if (self.database_handler_.due_rooms_cleaning_ == []):
+			return
+
 		# Initialize and run map handling
 		self.map_handler_ = map_handling_behavior.MapHandlingBehavior("MapHandlingBehavior", self.application_status_)
 		self.map_handler_.setParameters(
-			self.database_handler_,
-			self.robot_radius_
+			self.robot_radius_,
+			self.database_handler_
 		)
 		self.map_handler_.executeBehavior()
 		
@@ -54,7 +58,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			return
 		
 		#self.printMsg("self.map_handler_.room_sequencing_data_.checkpoints=" + str(self.map_handler_.room_sequencing_data_.checkpoints))
-		
+
 		# Move to segments, Compute exploration path, Travel through it, repeat
 		self.movement_handler_ = movement_handling_behavior.MovementHandlingBehavior("MovementHandlingBehavior", self.application_status_)
 		self.movement_handler_.setParameters(

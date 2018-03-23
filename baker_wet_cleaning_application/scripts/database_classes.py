@@ -22,7 +22,6 @@ class RobotProperties():
 
 
 
-
 # Class which contains all global application settings
 class GlobalSettings():
 	# Should incomplete assignments be completed in the next opportunity?
@@ -154,7 +153,6 @@ class RoomItem():
 
 
 
-
 # Item that contains assignment data
 class AssignmentItem():
 
@@ -176,7 +174,6 @@ class AssignmentItem():
 	# IDs of rooms where only the trashcan has to be emptied. This uses RoomItem.room_id_!!
 	# (ARRAY OF INTEGER)
 	scheduled_rooms_trashcan_ = []
-	
 
 	# DATA CALCULATED OR AQUIRED FROM OTHER SOURCES
 	# =============================================

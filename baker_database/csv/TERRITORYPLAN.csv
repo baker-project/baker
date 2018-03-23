@@ -1,3 +1,13 @@
 ,,,,,,,,,,,,,,,,,,,,,,,
-Rev.,Pos.,Etg.,Bez.1,Bez.2,R.-Gr.,Bez.3,Belag,Fläche,Reinigungsintervall,Mo,Di,Mi,Do,Fr,Sa,So,Mo,Di,Mi,Do,Fr,Sa,So
-1,0,1,2,3,4,5,6,7,8,,X,,x,p,,X,,x,,,,P,
+Rev.,Pos.,Etg.,Bez.1,Bez.2,R.-Gr.,Bez.3,Belag,Flache,Reinigungsintervall,Mo,Di,Mi,Do,Fr,Sa,So,Mo,Di,Mi,Do,Fr,Sa,So
+42,1_0,1st Floor,Bezeichnung 1,Bezeichnung 2,Raumgruppe,Bezeichnung 3,0,3.141,INTERVAL_STRING,x,p,,,,,,,,,,x,p,
+42,1_1,1st Floor,Bezeichnung 1,Bezeichnung 2,Raumgruppe,Bezeichnung 3,0,3.141,INTERVAL_STRING,,x,p,,,,,,,,,,x,p
+42,1_2,1st Floor,Bezeichnung 1,Bezeichnung 2,Raumgruppe,Bezeichnung 3,0,3.141,INTERVAL_STRING,,,x,p,,,,,,,,,,x
+42,1_3,1st Floor,Bezeichnung 1,Bezeichnung 2,Raumgruppe,Bezeichnung 3,0,3.141,INTERVAL_STRING,,,,x,p,,,,,,,,,
+42,1_4,1st Floor,Bezeichnung 1,Bezeichnung 2,Raumgruppe,Bezeichnung 3,0,3.141,INTERVAL_STRING,,,,,x,p,,,,,,,,
+42,1_5,1st Floor,Bezeichnung 1,Bezeichnung 2,Raumgruppe,Bezeichnung 3,0,3.141,INTERVAL_STRING,,,,,,x,p,,,,,,,
+42,1_6,1st Floor,Bezeichnung 1,Bezeichnung 2,Raumgruppe,Bezeichnung 3,0,3.141,INTERVAL_STRING,,,,,,,x,p,,,,,,
+42,1_7,1st Floor,Bezeichnung 1,Bezeichnung 2,Raumgruppe,Bezeichnung 3,0,3.141,INTERVAL_STRING,,,,,,,,x,p,,,,,
+42,1_8,1st Floor,Bezeichnung 1,Bezeichnung 2,Raumgruppe,Bezeichnung 3,0,3.141,INTERVAL_STRING,,,,,,,,,x,p,,,,
+42,1_9,1st Floor,Bezeichnung 1,Bezeichnung 2,Raumgruppe,Bezeichnung 3,0,3.141,INTERVAL_STRING,,,,,,,,,,x,p,,,
+42,1_10,1st Floor,Bezeichnung 1,Bezeichnung 2,Raumgruppe,Bezeichnung 3,0,3.141,INTERVAL_STRING,,,,,,,,,,,x,p,,

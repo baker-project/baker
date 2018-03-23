@@ -76,7 +76,8 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 		"""
 
 		# Get a segmented map and RoomInformationArray from the database handler
-		self.segmented_map_, self.room_information_in_pixel_ = self.database_handler_.getMapAndRoomInformationInPixel(self.database_handler_.due_rooms_)
+		self.segmented_map_, self.room_information_in_pixel_ = self.database_handler_.getMapAndRoomInformationInPixel(self.database_handler_.due_rooms_cleaning_)
+
 		
 		# Room sequencing
 		self.room_sequencer_ = room_sequencing_behavior.RoomSequencingBehavior("Room sequencing", self.interrupt_var_, self.room_sequencing_service_str_)
