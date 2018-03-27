@@ -105,36 +105,22 @@ class DatabaseCreator():
 			room.room_cleaning_method_ = 2
 			room.room_surface_area_ = 3.141
 			room.room_trashcan_count_ = 4
-			room.last_successful_cleaning_date_ = None
-			room.last_successful_trashcan_date_ = None
+			#room.last_successful_cleaning_date_ = None
+			#room.last_successful_trashcan_date_ = None
+			room.room_cleaning_datestamps_ = [None, None, None]
 			room.room_issues = []
 			room.room_map_ = img_file_name
 			room.room_map_data = self.openCv2CvBridge(cv_image)
 			room.room_information_in_pixel_ = self.segmentation_result_.room_information_in_pixel[i]
 			room.room_information_in_meter_ = self.segmentation_result_.room_information_in_meter[i]
+			room.room_scheduled_days_ = ["","","","","","","","","","","","","",""]
 			self.database_.rooms_.append(room)
-
-	def createAssignmentEntries(self):
-		assignment_name_list = ["MO_0", "TU_0", "WE_0", "TH_0", "FR_0", "SA_0", "SU_0", "MO_1", "TU_1", "WE_1", "TH_1", "FR_1", "SA_1", "SU_1"]
-		for i in range(14):
-			assignment = database_classes.AssignmentItem()
-			assignment.assignment_name_ = assignment_name_list[i]
-			if (i >= 1):
-				assignment.prev_assignment_ = assignment_name_list[i - 1]
-			else:
-				assignment.prev_assignment_ = assignment_name_list[13]
-			assignment.assignment_week_day_ = i % 7
-			assignment.assignment_week_type_ = i // 7
-			assignment.last_completed_clean_ = None
-			assignment.scheduled_rooms_cleaning_ = []
-			assignment.scheduled_rooms_trashcan_ = []
-			self.database_.assignments_.append(assignment)
 
 
 
 
 	def saveDatabase(self):
-		self.database_.saveDatabase(temporal=False)
+		self.database_.saveRoomDatabase(temporal=False)
 
 		# Save global robot properties
 		# ============================
@@ -196,14 +182,13 @@ class DatabaseCreator():
 		self.createDatabase()
 		self.createSegmentedMap()
 		self.createRoomEntries()
-		self.createAssignmentEntries()
 		self.saveDatabase()
 
 
 
 	def createRoomBook(self):
 		file = open(str("csv/ROOMPLAN.csv"), "w")
-		file.write("Pos.,Etg.,Gebaude,Raum Nr.,Raum-bezeichnung,Reinigungs-bereich,Belag,Reinigungs-methode,Flache,Papierkorbe,m,Mo-Fr p.Einheit,Sa p.Einheit,So p.Einheit,FT p.Tag,Einheit,")
+		file.write("Pos.,Etg.,Gebaude,Raum Nr.,Raum-bezeichnung,Reinigungs-bereich,Belag,Reinigungs-methode,Flache,Papierkorbe,m,Mo-Fr p.Einheit,Sa p.Einheit,So p.Einheit,FT p.Tag,Einheit,Mo,Di,Mi,Do,Fr,Sa,So,Mo,Di,Mi,Do,Fr,Sa,So,")
 		file = open(str("csv/ROOMPLAN.csv"), "a")
 		file.write("\n")
 		for room in self.database_.rooms_:
@@ -222,38 +207,8 @@ class DatabaseCreator():
 			file.write("?,")
 			file.write("?,")
 			file.write("Woche,")
-			file.write("\n")
-
-
-
-
-	def createTerritoryPlan(self):
-		file = open(str("csv/TERRITORYPLAN.csv"), "w")
-		file.write(",,,,,,,,,,,,,,,,,,,,,,,")
-		file = open(str("csv/TERRITORYPLAN.csv"), "a")
-		file.write("\n")
-		file.write("Rev.,Pos.,Etg.,Bez.1,Bez.2,R.-Gr.,Bez.3,Belag,Flache,Reinigungsintervall,Mo,Di,Mi,Do,Fr,Sa,So,Mo,Di,Mi,Do,Fr,Sa,So")
-		file.write("\n")
-		for room in self.database_.rooms_:
-			file.write(str(room.room_territory_id_) + ",")
-			file.write(str(room.room_position_id_) + ",")
-			file.write(str(room.room_floor_id_) + ",")
-			file.write("Bezeichnung 1,")
-			file.write("Bezeichnung 2,")
-			file.write("Raumgruppe,")
-			file.write("Bezeichnung 3,")
-			file.write(str(room.room_surface_type_) + ",")
-			file.write(str(room.room_surface_area_) + ",")
-			file.write("INTERVAL_STRING,")
 			file.write(",,,,,,,,,,,,,,")
 			file.write("\n")
-
-
-
-
-	def createCSVFiles(self):
-		self.createRoomBook()
-		self.createTerritoryPlan()
 
 
 
@@ -275,7 +230,7 @@ class DatabaseCreator():
 rospy.init_node('database_creation')
 database_creator = DatabaseCreator()
 database_creator.runDatabaseCreation()
-database_creator.createCSVFiles()
+database_creator.createRoomBook()
 
 
 

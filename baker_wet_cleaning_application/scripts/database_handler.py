@@ -17,30 +17,44 @@ from cv_bridge import CvBridge, CvBridgeError
 
 class DatabaseHandler():
 	database_ = None
-	# The assignment which is due today
-	due_assignment_ = None
-	# Overdue assignments
-	overdue_assignments_ = []
-	# Contains all due cleaning rooms from the due assignments and removes them right after they were cleaned
-	due_rooms_cleaning_ = []
-	# Contains all overdue cleaning rooms and removed them right after they were cleaned
-	overdue_rooms_cleaning_ = []
-	# Contains all due trashcan rooms from the due assignments and removes them right after they were cleaned
-	due_rooms_trashcan_ = []
-	# Contains all overdue trashcan rooms and removed them right after they were cleaned
-	overdue_rooms_trashcan_ = []
+	# Contains all due rooms
+	due_rooms_ = []
+	# Contains all overdue rooms
+	overdue_rooms_ = []
 
 	# ===============================================================================
 	# STATIC METHODS
 	# ===============================================================================
 
-	def getTodaysWeekType(self):
+	@staticmethod
+	def getTodaysWeekType():
 		weekNumber = date.today().isocalendar()[1]
 		return weekNumber % 2
 
-	def getTodaysWeekDay(self):
+	@staticmethod
+	def getTodaysWeekDay():
 		return date.today().weekday()
 
+	@staticmethod
+	def getTodaysScheduleIndex():
+		return DatabaseHandler.getTodaysWeekType() * 7 + DatabaseHandler.getTodaysWeekDay()
+
+	@staticmethod
+	def noCleaningYetPerformed(room):
+		trashcan_date = room.room_cleaning_timestamps_[0]
+		dry_date = room.room_cleaning_timestamps_[1]
+		wet_date = room.room_cleaning_timestamps_[2]
+		method = room.room_cleaning_method_
+		result = False
+		if (method == 0) and (dry_date == None):
+			result = True
+		elif (method == 1) and (wet_date == None):
+			result = True
+		elif (method == 2) and ((wet_date == None) or (dry_date == None)):
+			result = True
+		return result
+
+	
 	# Get the room information in pixel
 	def getMapAndRoomInformationInPixel(self, rooms_array):
 		room_information_in_pixel = []
@@ -96,67 +110,74 @@ class DatabaseHandler():
 		return ((datetime_stamp != None) and (datetime_stamp - date.today - r_shift_days > assignment_timedelta))
 
 	# Method for extracting all due rooms from the due assignment
-	def getAllDueAssignmentsAndRooms(self):
+	def getAllDueRooms(self):
+		# A room is due if one of its timestamps indicates this
+		self.due_rooms_ = []
+		today_index = self.getTodaysScheduleIndex()
+		for room in self.database_.rooms_:
+			if (room.room_scheduled_days[today_index] != ""):
+				self.due_rooms_.append(room)
 
-		# Get the due assignment
-		for assignment in self.database_.assignments_:
-			if ((assignment.assignment_week_type_ == self.getTodaysWeekType()) 
-			and (assignment.assignment_week_day_ == self.getTodaysWeekDay())):
-				self.due_assignment_ = assignment
-				break
 
-		# Get all rooms unfinished from the due assignment and put them in the respective room array
-		for room in self.due_assignment_.scheduled_rooms_cleaning_data_:
-			self.due_rooms_cleaning_.append(room)
-		for room in self.due_assignment_.scheduled_rooms_trashcan_data_:
-			self.due_rooms_trashcan_.append(room)
+	# Method for extracting all overdue rooms from the due assignment
+	def getAllOverdueRooms(self):
+		# A room is overdue if
+		# 1. The room is cleaned wet & the timestamp for wet cleaning is overdue
+		# 2. The room is cleaned dry & the timestamp for dry cleaning is overdue
+		# 3. The room is cleaned in both ways & one of the timestamps stated above is overdue
+		# 4. The rooms trashcan timestamp is overdue
 
-		# If wanted: Get all overdue assignments in correct order
-		# But: Assignments with date "None" shall not be added! They are new and therefore they could not have been done!
-		if (self.database_.global_settings_.shall_auto_complete_ == True):
-			it_assignment = self.database_.getAssignmentByName(assignment.prev_assignment_)
-			while (it_assignment.assignment_name_ != assignment.assignment_name_):
-			# Find those assignments whose time stamp is further than 14 days in the past
-				if (self.assignmentDateIsDue(it_assignment.last_completed_clean_) == True):
-					self.overdue_assignments_.append(assignment)
-				it_assignment = self.database_.getAssignmentByName(it_assignment.prev_assignment_)
-			# Get the rooms which should be contained in the overdue array. This is the case if...
-			# 1. They are not already in due or overdue array 
-			# 2. In case of trashcan: If the room is not yet in one of the arrays for cleaning
-			# 3. If the date requires it
-			for i in range(len(self.overdue_assignments_)):
-				it_assignment = self.overdue_assignments_[i]
-				for room in assignment.scheduled_rooms_cleaning_data_:
-					if (not(room in self.overdue_rooms_cleaning_) 
-					and (self.roomDateIsOverdue(room.last_successful_cleaning_date_, i)) 
-					and not(room in self.due_rooms_cleaning_)):
-						self.overdue_rooms_cleaning_.append(room)
-				for room in assignment.scheduled_rooms_trashcan_data_:
-					if (not(room in self.overdue_rooms_trashcan_) 
-					and not (room in self.due_rooms_cleaning_)
-					and (self.roomDateIsOverdue(room.last_successful_cleaning_date_, i)) 
-					and not(room in self.due_rooms_trashcan_)):
-						self.overdue_rooms_trashcan_.append(room)
+		# A room is not overdue if
+		# 1. The last trashcan emptying has been done
+		# 2. The last cleaning process has been done
+		
+		# Therefore, remove all rooms which are fine.
+
+		# Get all rooms which are not listed in the due rooms list yet
+		potential_overdue_rooms = []	
+		for room in self.database_.rooms_:
+			if not(room in self.due_rooms_):
+				self.overdue_rooms_.append(room)
+		today_index = 0
+		current_schedule_index = today_index - 1
+		day_delta = 1
+		while (current_schedule_index != today_index):
+			# Handle the case that today_index is a monday of an even week
+			if (current_schedule_index == -1):
+				current_schedule_index = 13
+				continue
+			# Iterate through all potential rooms
+			for room in self.overdue_rooms_:
+				if (room.room_scheduled_days_[current_schedule_index != ""]):
+					trashcan_date = room.room_cleaning_timestamps_[0]
+					dry_date = room.room_cleaning_timestamps_[1]
+					wet_date = room.room_cleaning_timestamps_[2]
+					
+			current_schedule_index = current_schedule_index - 1
+			day_delta = day_delta + 1
+			
+
+	# Method for sorting a list of rooms after the cleaning method
+	def sortRoomsList(self, rooms_list):
+		rooms_wet_cleaning = []
+		rooms_dry_cleaning = []
+		for room in rooms_list:
+			# dry cleaning
+			if (room.room_cleaning_method_ == 0):
+				rooms_dry_cleaning.append(room)
+			# wet cleaning
+			if (room.room_cleaning_method_ == 1):
+				rooms_wet_cleaning.append(room)
+			# both
+			if (room.room_cleaning_method_ == 2):
+				rooms_dry_cleaning.append(room)
+				rooms_wet_cleaning.append(room)
+		return rooms_dry_cleaning, rooms_wet_cleaning
 
 
 	# Method for setting a room as completed
-	def checkoutCompletedRoom(self, room, is_overdue, is_trashcan):
-		# Set values in the database
-		if (is_trashcan == True):
-			room.last_successful_trashcan_date_ = datetime.datetime.now()
-		else:
-			room.last_successful_cleaning_date_ = datetime.datetime.now()
-		# Remove room from the respective list
-		if (is_overdue == True):
-			if (is_trashcan == True):
-				self.overdue_rooms_trashcan_.remove(room)
-			else:
-				self.overdue_rooms_cleaning_.remove(room)
-		else:
-			if (is_trashcan == True):
-				self.due_rooms_trashcan_.remove(room)
-			else:
-				self.due_rooms_cleaning_.remove(room)
+	def checkoutCompletedRoom(self, room, assignment_type):
+
 		# Save all changes to the database
 		self.database_.saveDatabase()
 
@@ -168,3 +189,8 @@ class DatabaseHandler():
 	# Method to run after all cleaning operations were performed
 	def cleanFinished(self):
 		self.database_.saveDatabase(temporal=False)
+
+
+
+dbh = DatabaseHandler(None)
+dbh.getAllOverdueRooms()

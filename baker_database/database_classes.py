@@ -22,7 +22,6 @@ class RobotProperties():
 
 
 
-
 # Class which contains all global application settings
 class GlobalSettings():
 	# Should incomplete assignments be completed in the next opportunity?
@@ -84,8 +83,8 @@ class RoomIssue():
 # Item that contains information on a room
 class RoomItem():
 
-	# DATA AQUIRED FROM THE DATABASE
-	# ==============================
+	# DATA AQUIRED FROM THE ROOM AND TERRITORY PLAN
+	# =============================================
 
 	# Name of the room for user 
 	# (STRING)
@@ -117,16 +116,16 @@ class RoomItem():
 	# Amount of trashcans in the room
 	# (INTEGER)
 	room_trashcan_count_ = 0
+	# Days the room shall be cleaned. (Item position = day, Item = cleaning type)
+	# (ARRAY OF STRING)
+	room_scheduled_days_ = []
 
 	# DATA CALCULATED OR AQUIRED FROM OTHER SOURCES
 	# =============================================
 
-	# Date of the last successful cleaning
-	# (DATETIME)
-	last_successful_cleaning_date_ = None
-	# Date of the last successful trashcan emptying
-	# (DATETIME)
-	last_successful_trashcan_date_ = None
+	# List of all last successful cleaning dates. [Trashcan, Dry, Wet]
+	# (ARRAY OF DATETIME)
+	room_cleaning_datestamps_ = [None, None, None]
 	# List of issues in a room. Array of RoomIssue 
 	# (ARRAY OF ROOMISSUE)
 	room_issues_ = []
@@ -143,54 +142,18 @@ class RoomItem():
 	# (ROOMINFORMATION)
 	room_information_in_meter_ = None
 
+	# TODO: REMOVE
+	# Date of the last successful cleaning
+	# (DATETIME)
+	last_successful_cleaning_date_ = None
+	# Date of the last successful trashcan emptying
+	# (DATETIME)
+	last_successful_trashcan_date_ = None
+
 	# MISCELLANEOUS STUFF
 	# ===================
 
 	# RoomItems must be hashable for convenience
 	def __hash__(self):
 		return self.room_id_
-
-
-
-
-
-
-# Item that contains assignment data
-class AssignmentItem():
-
-	# DATA AQUIRED FROM THE DATABASE
-	# ==============================
-
-	# Name of schedule for user 
-	# (STRING)
-	assignment_name_ = ""
-	# Week type [0=Even, 1=Uneven]
-	# (INTEGER)
-	assignment_week_type_ = 0
-	# Day type [0=Monday, ..., 6=Sunday]
-	# (INTEGER)
-	assignment_week_day_ = 0
-	# IDs of rooms which are to be cleaned completely. This uses RoomItem.room_id_!!
-	# (ARRAY OF INTEGER)
-	scheduled_rooms_cleaning_ = []
-	# IDs of rooms where only the trashcan has to be emptied. This uses RoomItem.room_id_!!
-	# (ARRAY OF INTEGER)
-	scheduled_rooms_trashcan_ = []
-	
-
-	# DATA CALCULATED OR AQUIRED FROM OTHER SOURCES
-	# =============================================
-
-	# The RoomItem objects behind the IDs for cleaning
-	# (ARRAY OF RoomItem)
-	scheduled_rooms_cleaning_data_ = []
-	# The RoomItem objects behind the IDs for trashcan
-	# (ARRAY OF RoomItem)
-	scheduled_rooms_trashcan_data_ = []
-	# Date of the last clean which completed successfully 
-	# (DATETIME)
-	last_completed_clean_ = None
-	# Assignment name of the previous assignment 
-	# (STRING)
-	prev_assignment_ = ""
 
