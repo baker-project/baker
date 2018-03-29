@@ -1,5 +1,6 @@
 {
     "0": {
+        "open_cleaning_tasks": [], 
         "room_building_id": "Building C", 
         "room_cleaning_datestamps": [
             null, 
@@ -48,9 +49,6 @@
         "room_name": "room_0", 
         "room_position_id": "1_0", 
         "room_scheduled_days": [
-            "11", 
-            "12", 
-            "13", 
             "", 
             "", 
             "", 
@@ -61,7 +59,10 @@
             "", 
             "", 
             "", 
-            "x"
+            "", 
+            "", 
+            "", 
+            ""
         ], 
         "room_surface_area": 3.141, 
         "room_surface_type": 0, 
@@ -69,6 +70,7 @@
         "room_trashcan_count": 4
     }, 
     "1": {
+        "open_cleaning_tasks": [], 
         "room_building_id": "Building C", 
         "room_cleaning_datestamps": [
             null, 
@@ -117,7 +119,7 @@
         "room_name": "room_1", 
         "room_position_id": "1_1", 
         "room_scheduled_days": [
-            "21", 
+            "", 
             "", 
             "", 
             "", 
@@ -138,6 +140,7 @@
         "room_trashcan_count": 4
     }, 
     "10": {
+        "open_cleaning_tasks": [], 
         "room_building_id": "Building C", 
         "room_cleaning_datestamps": [
             null, 
@@ -186,7 +189,6 @@
         "room_name": "room_10", 
         "room_position_id": "1_10", 
         "room_scheduled_days": [
-            "x", 
             "", 
             "", 
             "", 
@@ -199,7 +201,8 @@
             "", 
             "", 
             "", 
-            "x"
+            "", 
+            ""
         ], 
         "room_surface_area": 3.141, 
         "room_surface_type": 0, 
@@ -207,6 +210,7 @@
         "room_trashcan_count": 4
     }, 
     "2": {
+        "open_cleaning_tasks": [], 
         "room_building_id": "Building C", 
         "room_cleaning_datestamps": [
             null, 
@@ -255,7 +259,7 @@
         "room_name": "room_2", 
         "room_position_id": "1_2", 
         "room_scheduled_days": [
-            "31", 
+            "", 
             "", 
             "", 
             "", 
@@ -276,6 +280,7 @@
         "room_trashcan_count": 4
     }, 
     "3": {
+        "open_cleaning_tasks": [], 
         "room_building_id": "Building C", 
         "room_cleaning_datestamps": [
             null, 
@@ -345,6 +350,7 @@
         "room_trashcan_count": 4
     }, 
     "4": {
+        "open_cleaning_tasks": [], 
         "room_building_id": "Building C", 
         "room_cleaning_datestamps": [
             null, 
@@ -414,6 +420,7 @@
         "room_trashcan_count": 4
     }, 
     "5": {
+        "open_cleaning_tasks": [], 
         "room_building_id": "Building C", 
         "room_cleaning_datestamps": [
             null, 
@@ -483,6 +490,7 @@
         "room_trashcan_count": 4
     }, 
     "6": {
+        "open_cleaning_tasks": [], 
         "room_building_id": "Building C", 
         "room_cleaning_datestamps": [
             null, 
@@ -552,6 +560,7 @@
         "room_trashcan_count": 4
     }, 
     "7": {
+        "open_cleaning_tasks": [], 
         "room_building_id": "Building C", 
         "room_cleaning_datestamps": [
             null, 
@@ -621,6 +630,7 @@
         "room_trashcan_count": 4
     }, 
     "8": {
+        "open_cleaning_tasks": [], 
         "room_building_id": "Building C", 
         "room_cleaning_datestamps": [
             null, 
@@ -690,6 +700,7 @@
         "room_trashcan_count": 4
     }, 
     "9": {
+        "open_cleaning_tasks": [], 
         "room_building_id": "Building C", 
         "room_cleaning_datestamps": [
             null, 

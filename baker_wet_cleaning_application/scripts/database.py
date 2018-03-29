@@ -70,13 +70,21 @@ class Database():
 
 	def updateApplicationData(self, dict):
 		self.application_data_ = database_classes.ApplicationData()
-		self.application_data_.last_execution_date_ = self.stringToDatetime(dict.get("last_execution_date"))
+		date_str = dict.get("last_execution_date")
+		if (date_str != None):
+			self.application_data_.last_execution_date_ = self.stringToDatetime(date_str)
+		else:
+			self.application_data_.last_execution_date_ = None
 
 
 
 	def getApplicationDataDictFromApplicationData(self):
 		application_data_dict = {}
-		application_data["last_execution_date"] = selfdatetimeToString(self.application_data_.last_execution_date_)
+		date_datetime = self.application_data_.last_execution_date_
+		if (date_datetime != None):
+			application_data["last_execution_date"] = selfdatetimeToString(date_datetime)
+		else:
+			application_data["last_execution_date"] = None
 		return application_data_dict
 	
 	
@@ -211,6 +219,8 @@ class Database():
 			current_room.room_trashcan_count_ = dict.get(room_key).get("room_trashcan_count")
 			# Get the days where the room has to be cleaned in a specified way
 			current_room.room_scheduled_days_ = dict.get(room_key).get("room_scheduled_days")
+			# Get the yet open cleaning tasks
+			current_room.open_cleaning_tasks_ = dict.get(room_key).get("open_cleaning_tasks")
 			
 			## Get the last successful cleaning date if there is any, otherwise set None
 			#date_str = dict.get(room_key).get("last_successful_cleaning_date")
@@ -319,7 +329,8 @@ class Database():
 					"room_surface_area": current_room.room_surface_area_,
 					"room_trashcan_count": current_room.room_trashcan_count_,
 					"room_scheduled_days": current_room.room_scheduled_days_,
-					"room_cleaning_datestamps": datestamp_list
+					"room_cleaning_datestamps": datestamp_list,
+					"open_cleaning_tasks": current_room.open_cleaning_tasks_
 				}
 			else:
 				print "[FATAL]: An element in rooms_ array is not a room object!"
@@ -399,7 +410,7 @@ class Database():
 
 
 	# Save the application data
-	def saveApplicationData(self, temporal=True)
+	def saveApplicationData(self, temporal=True):
 		application_data_dict = self.getApplicationDataDictFromApplicationData()
 		application_data_text = json.dumps(application_data_dict, indent=4, sort_keys=True)
 		if (temporal == True):

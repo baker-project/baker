@@ -20,8 +20,6 @@ class RobotProperties():
 
 
 
-
-
 # Class which contains all global application settings
 class GlobalSettings():
 	# Should incomplete assignments be completed in the next opportunity?
@@ -33,7 +31,6 @@ class GlobalSettings():
 	# Amount of days between two executions of the same assignment. Default is two weeks (14)
 	# (INTEGER)
 	assignment_timedelta_ = 14
-	
 
 
 
@@ -54,6 +51,10 @@ class GlobalMapData():
 
 
 
+# Class which contains all application-wide data to be recorded
+class ApplicationData():
+	# Last date the application was run
+	last_execution_date_ = None
 
 
 
@@ -74,9 +75,6 @@ class RoomIssue():
 	# Date the issue was discovered 
 	# (DATETIME)
 	issue_date_ = None
-
-
-
 
 
 
@@ -107,7 +105,7 @@ class RoomItem():
 	# Room surfcae type [0=?, ..., n=?]
 	# (INTEGER)
 	room_surface_type_ = 0
-	# Room cleaning method [0=?, ..., n=?]
+	# Room cleaning method [0=dry, 1=wet, 2=both]
 	# (INTEGER)
 	room_cleaning_method_ = 0
 	# Room surface area
@@ -141,6 +139,9 @@ class RoomItem():
 	# Room information in meter
 	# (ROOMINFORMATION)
 	room_information_in_meter_ = None
+	# The cleaning tasks which currently are to be performed. [-1=trashcan_only, 0=dry_only, 1=wet_only]
+	# (ARRAY OF INTEGER)
+	open_cleaning_tasks_ = [] 
 
 	# TODO: REMOVE
 	# Date of the last successful cleaning

@@ -114,6 +114,7 @@ class DatabaseCreator():
 			room.room_information_in_pixel_ = self.segmentation_result_.room_information_in_pixel[i]
 			room.room_information_in_meter_ = self.segmentation_result_.room_information_in_meter[i]
 			room.room_scheduled_days_ = ["","","","","","","","","","","","","",""]
+			room.open_cleaning_tasks_ = []
 			self.database_.rooms_.append(room)
 
 

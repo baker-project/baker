@@ -39,22 +39,13 @@ class DatabaseHandler():
 	def getTodaysScheduleIndex():
 		return DatabaseHandler.getTodaysWeekType() * 7 + DatabaseHandler.getTodaysWeekDay()
 
-	@staticmethod
-	def noCleaningYetPerformed(room):
-		trashcan_date = room.room_cleaning_timestamps_[0]
-		dry_date = room.room_cleaning_timestamps_[1]
-		wet_date = room.room_cleaning_timestamps_[2]
-		method = room.room_cleaning_method_
-		result = False
-		if (method == 0) and (dry_date == None):
-			result = True
-		elif (method == 1) and (wet_date == None):
-			result = True
-		elif (method == 2) and ((wet_date == None) or (dry_date == None)):
-			result = True
-		return result
 
-	
+	# ===============================================================================
+	# OBJECT SPECIFIC METHODS
+	# ===============================================================================
+
+
+
 	# Get the room information in pixel
 	def getMapAndRoomInformationInPixel(self, rooms_array):
 		room_information_in_pixel = []
@@ -80,10 +71,6 @@ class DatabaseHandler():
 		return room_information_in_pixel, segmented_map
 
 
-	# ===============================================================================
-	# OBJECT SPECIFIC METHODS
-	# ===============================================================================
-
 
 	# Get the room information in meter
 	def getRoomInformationInMeter(self, rooms_array):
@@ -99,10 +86,11 @@ class DatabaseHandler():
 	# Method for extracting all due rooms from the due assignment
 	# CASE: First run of application, no rooms collected yet today.
 	def getAllDueRooms(self):
-		# TODO
 		# If the application ran already today and the due rooms list is umenpty, this should not run
-		if ((False) and (len(self.due_rooms_) != 0)):
-			return
+		if (self.database_.application_data_.last_execution_date_ != None):
+			delta = date.today() - self.database_.application_data_.last_execution_date_
+			if ((delta.days == 0) and (len(self.due_rooms_) != 0)):
+				return
 		today_index = self.getTodaysScheduleIndex()
 		self.due_rooms_ = []
 		for room in self.database_.rooms_:

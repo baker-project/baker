@@ -1,7 +1,7 @@
-Pos.,Etg.,Gebaude,Raum Nr.,Raum-bezeichnung,Reinigungs-bereich,Belag,Reinigungs-methode,Flache,Papierkorbe,m,Mo-Fr p.Einheit,Sa p.Einheit,So p.Einheit,FT p.Tag,Einheit,Mo,Di,Mi,Do,Fr,Sa,So,Mo,Di,Mi,Do,Fr,Sa,So
-1_0,1st Floor,Building C,0,room_0,Reinigungsbereich,0,2,3.141,4,,?,?,?,Woche,,11,12,13,,,,,,,,,,,x
-1_1,1st Floor,Building C,1,room_1,Reinigungsbereich,0,2,3.141,4,,?,?,?,Woche,,21,,,,,,,,,,,,,
-1_2,1st Floor,Building C,2,room_2,Reinigungsbereich,0,2,3.141,4,,?,?,?,Woche,,31,,,,,,,,,,,,,
+Pos.,Etg.,Gebaude,Raum Nr.,Raum-bezeichnung,Reinigungs-bereich,Belag,Reinigungs-methode,Flache,Papierkorbe,m,Mo-Fr p.Einheit,Sa p.Einheit,So p.Einheit,FT p.Tag,Einheit,Mo,Di,Mi,Do,Fr,Sa,So,Mo,Di,Mi,Do,Fr,Sa,So,
+1_0,1st Floor,Building C,0,room_0,Reinigungsbereich,0,2,3.141,4,,?,?,?,Woche,,,,,,,,,,,,,,,
+1_1,1st Floor,Building C,1,room_1,Reinigungsbereich,0,2,3.141,4,,?,?,?,Woche,,,,,,,,,,,,,,,
+1_2,1st Floor,Building C,2,room_2,Reinigungsbereich,0,2,3.141,4,,?,?,?,Woche,,,,,,,,,,,,,,,
 1_3,1st Floor,Building C,3,room_3,Reinigungsbereich,0,2,3.141,4,,?,?,?,Woche,,,,,,,,,,,,,,,
 1_4,1st Floor,Building C,4,room_4,Reinigungsbereich,0,2,3.141,4,,?,?,?,Woche,,,,,,,,,,,,,,,
 1_5,1st Floor,Building C,5,room_5,Reinigungsbereich,0,2,3.141,4,,?,?,?,Woche,,,,,,,,,,,,,,,
@@ -9,4 +9,4 @@ Pos.,Etg.,Gebaude,Raum Nr.,Raum-bezeichnung,Reinigungs-bereich,Belag,Reinigungs-
 1_7,1st Floor,Building C,7,room_7,Reinigungsbereich,0,2,3.141,4,,?,?,?,Woche,,,,,,,,,,,,,,,
 1_8,1st Floor,Building C,8,room_8,Reinigungsbereich,0,2,3.141,4,,?,?,?,Woche,,,,,,,,,,,,,,,
 1_9,1st Floor,Building C,9,room_9,Reinigungsbereich,0,2,3.141,4,,?,?,?,Woche,,,,,,,,,,,,,,,
-1_10,1st Floor,Building C,10,room_10,Reinigungsbereich,0,2,3.141,4,,?,?,?,Woche,,x,,,,,,,,,,,,,x
+1_10,1st Floor,Building C,10,room_10,Reinigungsbereich,0,2,3.141,4,,?,?,?,Woche,,,,,,,,,,,,,,,
