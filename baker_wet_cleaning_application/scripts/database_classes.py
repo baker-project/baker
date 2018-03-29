@@ -56,6 +56,14 @@ class GlobalMapData():
 
 
 
+# Class which contains all application-wide data to be recorded
+class ApplicationData():
+	# Last date the application was run
+	last_execution_date_ = None
+
+
+
+
 
 # Class that describes all information on an issue
 class RoomIssue():
@@ -74,7 +82,6 @@ class RoomIssue():
 	# Date the issue was discovered 
 	# (DATETIME)
 	issue_date_ = None
-
 
 
 
@@ -149,6 +156,11 @@ class RoomItem():
 	# Date of the last successful trashcan emptying
 	# (DATETIME)
 	last_successful_trashcan_date_ = None
+
+	# TODO: Load, Save
+	# The cleaning tasks which currently are to be performed. [-1=trashcan_only, 0=dry_only, 1=wet_only]
+	# (ARRAY OF INTEGER)
+	open_cleaning_tasks_ = [] 
 
 	# MISCELLANEOUS STUFF
 	# ===================

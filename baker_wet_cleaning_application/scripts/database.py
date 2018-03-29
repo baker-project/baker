@@ -28,75 +28,17 @@ class Database():
 	robot_properties_ = None
 	# Global settings
 	global_settings_ = None
+	# Application data
+	application_data_ = None
 	# File names
 	rooms_filename_ = ""
 	tmp_rooms_filename_ = ""
 	global_settings_filename_ = ""
 	robot_properties_filename_ = ""
+	application_data_filename_ = ""
 	global_map_data_filename_ = ""
 	global_map_image_filename_ = ""
 
-# =========================================================================================
-# Test functions
-# =========================================================================================
-
-	# Create a dictionary which contains one room with 2 issues
-	def createTestRoomDict(self):
-		rooms_dict = {}
-		rooms_dict[42] = {
-			"room_name": "D3.06",
-			"room_id": 42,
-			"last_successful_cleaning_date": datetime.now().strftime("%Y-%m-%d_%H:%M"),
-			"last_cleanup_successful": "False",
-			"room_map": None,
-			"room_coords": [0, 0, 0],
-			"room_issues": {
-				1: {
-					"issue_type": 12,
-					"issue_images": ["~/resources/D3.06_20030201_1.jpg", "~/resources/D3.06_20030201_2.jpg"],
-					"issue_coords": [0, 0, 0],
-					"issue_date": datetime.now().strftime("%Y-%m-%d_%H:%M"),
-					"issue_id": 1
-				},
-				2: {
-					"issue_type": 4,
-					"issue_images": ["~/resources/D3.06_20130302_1.jpg", "~/resources/D3.06_20130302_2.jpg"],
-					"issue_coords": [0, 0, 0],
-					"issue_date": datetime.now().strftime("%Y-%m-%d_%H:%M"),
-					"issue_id": 2
-				}
-			}
-		}
-		return rooms_dict
-
-	# Add a test room object to the rooms list
-	def createTestRoomObject(self):
-		# Create room test issue 1
-		issue1 = database_classes.RoomIssue()
-		issue1.issue_id_ = 1
-		issue1.issue_coords_ = None
-		issue1.issue_date_ = datetime.now(),
-		issue1.issue_images_ = ["~/testordner/OBild1", "~/testordner/OBild2"]
-		issue1.issue_type_ = 21
-		# Create room test issue 2
-		issue2 = database_classes.RoomIssue()
-		issue2.issue_id_ = 2
-		issue2.issue_coords_ = None
-		issue2.issue_date_ = datetime.now(),
-		issue2.issue_images_ = ["~/testordner/OBild3", "~/testordner/OBild4"]
-		issue2.issue_type_ = 11
-		# Create test room
-		test_room = database_classes.RoomItem()
-		test_room.room_issues_.append(issue1)
-		test_room.room_issues_.append(issue2)
-		test_room.room_id_ = 42
-		#test_room.last_cleanup_successful_ = False
-		#test_room.last_successful_cleaning_date_ = None
-		test_room.room_map_ = None
-		test_room.room_center_coords_ = None
-		test_room.room_name_ = "Kitchen"
-		# Add room to the room list
-		self.rooms_.append(test_room)
 
 # =========================================================================================
 # Private methods
@@ -106,24 +48,46 @@ class Database():
 	def datetimeToString(datetime_date):
 		return datetime_date.strftime("%Y-%m-%d_%H:%M")
 
+
+
 	@staticmethod
 	def stringToDatetime(string_date):
 		return datetime.strptime(string_date, "%Y-%m-%d_%H:%M")
+
+
 
 	@staticmethod
 	def point32ToArray(point32_point):
 		return [point32_point.x, point32_point.y, point32_point.z]
 
+
+
 	@staticmethod
 	def arrayToPoint32(array_point):
 		return Point32(x=array_point[0], y=array_point[1], z=array_point[2])
+
+
+
+	def updateApplicationData(self, dict):
+		self.application_data_ = database_classes.ApplicationData()
+		self.application_data_.last_execution_date_ = self.stringToDatetime(dict.get("last_execution_date"))
+
+
+
+	def getApplicationDataDictFromApplicationData(self):
+		application_data_dict = {}
+		application_data["last_execution_date"] = selfdatetimeToString(self.application_data_.last_execution_date_)
+		return application_data_dict
 	
 	
+
 	def updateGlobalSettings(self, dict):
 		self.global_settings_ = database_classes.GlobalSettings()
 		self.global_settings_.shall_auto_complete_ = dict.get("shall_auto_complete")
 		self.global_settings_.max_aux_time_ = dict.get("max_aux_time")
 		self.global_settings_.assignment_timedelta_ = dict.get("assignment_timedelta")
+
+
 
 	def getGlobalSettingsDictFromGlobalSettings(self):
 		global_settings_dict = {}
@@ -131,6 +95,8 @@ class Database():
 		global_settings_dict["max_aux_time"] = self.global_settings_.max_aux_time_
 		global_settings_dict["assignment_timedelta"] = self.global_settings_.assignment_timedelta_
 		return global_settings_dict
+
+
 
 	def updateGlobalMapData(self, dict):
 		self.global_map_data_ = database_classes.GlobalMapData()
@@ -155,6 +121,8 @@ class Database():
 		# Get the map header frame id
 		self.global_map_data_.map_header_frame_id_ = dict.get("map_header_frame_id")
 
+
+
 	def updateRobotProperties(self, dict):
 		self.robot_properties_ = database_classes.RobotProperties()
 		# Exploration server constants
@@ -173,6 +141,8 @@ class Database():
 		self.robot_properties_.wall_follow_path_tolerance_ = dict.get("wall_follow_path_tolerance")
 		self.robot_properties_.wall_follow_goal_position_tolerance_ = dict.get("wall_follow_goal_position_tolerance")
 		self.robot_properties_.wall_follow_goal_angle_tolerance_ = dict.get("wall_follow_goal_angle_tolerance")
+
+
 
 	# Make rooms_ contain all the rooms stated in the dict parameter
 	def updateRoomsList(self, dict):
@@ -194,8 +164,7 @@ class Database():
 				issue_coords_list = issues_dict.get(issue_key).get("issue_coords")
 				current_issue.issue_coords_ = Point32(x=issue_coords_list[0], y=issue_coords_list[1], z=issue_coords_list[2])
 				# Get the date the issue was detected
-				date_str = datetime.strptime(issues_dict.get(issue_key).get("issue_date"), "%Y-%m-%d_%H:%M")
-				current_issue.issue_date_ = date_str
+				current_issue.issue_date_ = self.stringToDatetime(issues_dict.get(issue_key).get("issue_date"))
 				# Append current room issue to the room_issues list
 				room_issues.append(current_issue)
 			current_room.room_issues_ = room_issues
@@ -268,6 +237,7 @@ class Database():
 			
 			# Append current room object to the rooms_ list
 			self.rooms_.append(current_room)
+
 
 
 	# Get a dictionary representation of rooms_
@@ -370,12 +340,18 @@ class Database():
 		self.global_settings_filename_ = self.extracted_file_path + str("resources/json/global_settings.json")
 		self.global_map_data_filename_ = self.extracted_file_path + str("resources/json/global_map_data.json")
 		self.global_map_image_filename_ = self.extracted_file_path + str("resources/maps/global_map.png")
+		self.application_data_filename_ = self.extracted_file_path + str("resources/maps/application_data.png")
+		self.tmp_application_data_filename_ = self.extracted_file_path + str("resources/maps/tmp_application_data.png")
+
+
 
 	# Discard temporal database --> A current progress will be forgotten
 	def discardTemporalDatabase(self):
 		if (os.path.isfile(self.tmp_rooms_filename_) == True):
 			os.remove(str(self.tmp_rooms_filename_))
 		self.loadDatabase()
+
+
 
 	# Load database data from files
 	def loadDatabase(self):
@@ -386,6 +362,13 @@ class Database():
 			file = open(self.rooms_filename_, "r").read()
 		rooms_dict = json.loads(file)
 		self.updateRoomsList(rooms_dict)
+		# Load the application data
+		if (os.path.isfile(self.tmp_application_data_filename_) == True):
+			file = open(self.tmp_application_data_filename_, "r").read()
+		else:
+			file = open(self.application_data_filename_, "r").read()
+		application_data_dict = json.loads(file)
+		self.updateApplicationData(application_data_dict)
 		# Load the robot properties
 		file = open(self.robot_properties_filename_, "r").read()
 		robot_properties_dict = json.loads(file)
@@ -401,9 +384,8 @@ class Database():
 
 
 
-	# Save room database data to files
+	# Save the room data
 	def saveRoomDatabase(self, temporal=True):
-		# Save the room data
 		rooms_dict = self.getRoomsDictFromRoomsList()
 		rooms_text = json.dumps(rooms_dict, indent=4, sort_keys=True)
 		if (temporal == True):
@@ -413,6 +395,20 @@ class Database():
 		file.write(rooms_text)
 		if ((temporal == False) and (os.path.isfile(self.tmp_rooms_filename_) == True)):
 			os.remove(str(self.tmp_rooms_filename_))
+		
+
+
+	# Save the application data
+	def saveApplicationData(self, temporal=True)
+		application_data_dict = self.getApplicationDataDictFromApplicationData()
+		application_data_text = json.dumps(application_data_dict, indent=4, sort_keys=True)
+		if (temporal == True):
+			file = open(self.tmp_application_data_filename_, "w")
+		else:
+			file = open(self.application_data_filename_, "w")
+		file.write(application_data_text)
+		if ((temporal == False) and (os.path.isfile(self.application_data_filename_) == True)):
+			os.remove(str(self.application_data_filename_))
 
 
 
