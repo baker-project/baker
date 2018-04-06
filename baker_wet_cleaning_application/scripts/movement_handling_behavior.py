@@ -119,7 +119,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				self.printMsg("Moving to room_center in meter=" + str(self.segmentation_data_.room_information_in_meter[current_room_index].room_center))
 				self.move_base_handler_.setParameters(
 					self.segmentation_data_.room_information_in_meter[current_room_index].room_center,
-					Quaternion(x=0., y=0., z=0., w=0.),	# todo: normalized quaternion
+					Quaternion(x=0., y=0., z=0., w=1.),
 					'base_link'
 					)
 				self.move_base_handler_.executeBehavior()
@@ -129,7 +129,6 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					return
 				
 				# baker_brush_cleaning_module_interface: turn on the cleaning device (service "start_brush_cleaner")
-				'''
 				self.printMsg("Start cleaning with " + self.start_cleaning_service_str_)
 				rospy.wait_for_service(self.start_cleaning_service_str_) 
 				try:
@@ -138,7 +137,6 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					print "Start cleaning returned with success status " + str(resp.success)
 				except rospy.ServiceException, e:
 					print "Service call to " + self.start_cleaning_service_str_ + " failed: %s" % e
-				'''
 				
 				# coverage_monitor_server: set the robot configuration (robot_radius, coverage_radius, coverage_offset) with dynamic reconfigure
 				#                          and turn on logging of the cleaned path (service "start_coverage_monitoring")
@@ -210,7 +208,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				except rospy.ServiceException, e:
 					print "Service call to " + self.stop_coverage_monitoring_service_str_ + " failed: %s" % e
 				
-				'''
+				
 				# baker_brush_cleaning_module_interface: turn off the cleaning device (service "stop_brush_cleaner")
 				self.printMsg("Stop cleaning with " + self.stop_cleaning_service_str_)
 				rospy.wait_for_service(self.stop_cleaning_service_str_) 
@@ -220,7 +218,6 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					print "Stop cleaning returned with success status " + str(resp.success)
 				except rospy.ServiceException, e:
 					print "Service call to " + self.stop_cleaning_service_str_ + " failed: %s" % e
-				'''
 
 
 	# Method for returning the segment of the map corresponding to the order number as cv_bridge
