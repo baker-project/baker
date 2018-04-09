@@ -189,9 +189,10 @@ class DatabaseCreator():
 
 	def createRoomBook(self):
 		file = open(str("csv/ROOMPLAN.csv"), "w")
-		file.write("Pos.,Etg.,Gebaude,Raum Nr.,Raum-bezeichnung,Reinigungs-bereich,Belag,Reinigungs-methode,Flache,Papierkorbe,m,Mo-Fr p.Einheit,Sa p.Einheit,So p.Einheit,FT p.Tag,Einheit,Mo,Di,Mi,Do,Fr,Sa,So,Mo,Di,Mi,Do,Fr,Sa,So,")
+		file.write("")
+		#file.write("Pos.,Etg.,Gebaude,Raum Nr.,Raum-bezeichnung,Reinigungs-bereich,Belag,Reinigungs-methode,Flache,Papierkorbe,m,Mo-Fr p.Einheit,Sa p.Einheit,So p.Einheit,FT p.Tag,Einheit,")
 		file = open(str("csv/ROOMPLAN.csv"), "a")
-		file.write("\n")
+		#file.write("\n")
 		for room in self.database_.rooms_:
 			file.write(str(room.room_position_id_) + ",")
 			file.write(str(room.room_floor_id_) + ",")
@@ -207,7 +208,32 @@ class DatabaseCreator():
 			file.write("?,")
 			file.write("?,")
 			file.write("?,")
+			file.write("?,")
 			file.write("Woche,")
+			file.write("\n")
+
+
+
+	def createTerritoryPlan(self):
+		file = open(str("csv/TERRITORYPLAN.csv"), "w")
+		file.write("")
+		#file.write(",,,,,,,,,,,,,,,,,,,,,,,")
+		file = open(str("csv/TERRITORYPLAN.csv"), "a")
+		#file.write("\n")
+		#file.write("Rev.,Pos.,Etg.,Raum Nr.,Bez.1,Bez.2,R.-Gr.,Bez.3,Belag,Flache,Reinigungsintervall,Mo,Di,Mi,Do,Fr,Sa,So,Mo,Di,Mi,Do,Fr,Sa,So")
+		#file.write("\n")
+		for room in self.database_.rooms_:
+			file.write(str(room.room_territory_id_) + ",")
+			file.write(str(room.room_position_id_) + ",")
+			file.write(str(room.room_floor_id_) + ",")
+			file.write(str(room.room_id_) + ",")
+			file.write("Bezeichnung 1,")
+			file.write("Bezeichnung 2,")
+			file.write("Raumgruppe,")
+			file.write("Bezeichnung 3,")
+			file.write(str(room.room_surface_type_) + ",")
+			file.write(str(room.room_surface_area_) + ",")
+			file.write("INTERVAL_STRING,")
 			file.write(",,,,,,,,,,,,,,")
 			file.write("\n")
 
@@ -232,6 +258,7 @@ rospy.init_node('database_creation')
 database_creator = DatabaseCreator()
 database_creator.runDatabaseCreation()
 database_creator.createRoomBook()
+database_creator.createTerritoryPlan()
 
 
 

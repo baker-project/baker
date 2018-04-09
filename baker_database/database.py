@@ -348,11 +348,11 @@ class Database():
 		self.rooms_filename_ = self.extracted_file_path + str("resources/json/rooms.json")
 		self.tmp_rooms_filename_ = self.extracted_file_path + str("resources/json/tmp_rooms.json")
 		self.robot_properties_filename_ = self.extracted_file_path + str("resources/json/robot_properties.json")
-		self.global_settings_filename_ = self.extracted_file_path + str("resources/json/global_settings.json")
+		self.global_settings_filename_ = self.extracted_file_path + str("resources/json/robot_settings.json")
 		self.global_map_data_filename_ = self.extracted_file_path + str("resources/json/global_map_data.json")
 		self.global_map_image_filename_ = self.extracted_file_path + str("resources/maps/global_map.png")
-		self.application_data_filename_ = self.extracted_file_path + str("resources/maps/application_data.png")
-		self.tmp_application_data_filename_ = self.extracted_file_path + str("resources/maps/tmp_application_data.png")
+		self.application_data_filename_ = self.extracted_file_path + str("resources/json/application_data.json")
+		self.tmp_application_data_filename_ = self.extracted_file_path + str("resources/json/tmp_application_data.json")
 
 
 

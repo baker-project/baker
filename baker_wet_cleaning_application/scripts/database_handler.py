@@ -161,12 +161,12 @@ class DatabaseHandler():
 						dry_date = room.room_cleaning_timestamps_[1]
 						wet_date = room.room_cleaning_timestamps_[2]
 						# Room was to be cleaned dry and that did not happen
-						if ((cleaning_method == 0) and (dry_date ! = None) and (dry_date < indexed_date)):
+						if ((cleaning_method == 0) and (dry_date != None) and (dry_date < indexed_date)):
 							room.open_cleaning_tasks_.append(0)
 							if not (room in self.overdue_rooms_):
 								self.overdue_rooms_.append(room)
 						# Room was to be cleaned wet and that did not happen
-						elif ((cleaning_method == 1) and (wet_date ! = None) and (wet_date < indexed_date)):
+						elif ((cleaning_method == 1) and (wet_date != None) and (wet_date < indexed_date)):
 							room.open_cleaning_tasks_.append(1)
 							if not (room in self.overdue_rooms_):
 								self.overdue_rooms_.append(room)
@@ -177,7 +177,7 @@ class DatabaseHandler():
 								if not (room in self.overdue_rooms_):
 									self.overdue_rooms_.append(room)
 							if ((wet_date != None) and (wet_date < indexed_date)):
-								room.open_cleaning_tasks_.append(0)
+								room.open_cleaning_tasks_.append(1)
 								if not (room in self.overdue_rooms_):
 									self.overdue_rooms_.append(room)
 					# Trashcan emptying was scheduled
@@ -196,14 +196,15 @@ class DatabaseHandler():
 	def sortRoomsList(self, rooms_list):
 		rooms_wet_cleaning = []
 		rooms_dry_cleaning = []
+		rooms_trashcan_only = []
 		for room in rooms_list:
 			if (-1 in room.open_cleaning_tasks_):
-				rooms_dry_cleaning.append(room)
+				rooms_trashcan_only.append(room)
 			if (0 in room.open_cleaning_tasks_):
 				rooms_dry_cleaning.append(room)
 			if (1 in room.open_cleaning_tasks_):
 				rooms_wet_cleaning.append(room)
-		return rooms_dry_cleaning, rooms_wet_cleaning
+		return rooms_trashcan_only, rooms_dry_cleaning, rooms_wet_cleaning
 
 
 	# Method for setting a room as completed

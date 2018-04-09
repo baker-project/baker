@@ -33,17 +33,118 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.field_of_view_ = [Point32(x=0.04035, y=0.136), Point32(x=0.04035, y=-0.364),
 							   Point32(x=0.54035, y=-0.364), Point32(x=0.54035, y=0.136)]	# todo: read from MIRA
 
+		
+		# Load database, collect data
+		# ===========================
 
 		# Initialize and load database
-		self.database_ = database.Database(extracted_file_path="")
-		self.database_.loadDatabase()
-		# Initialize database handler and collect all pending rooms
-		self.database_handler_ = database_handler.DatabaseHandler(self.database_)
-		self.database_handler_.getAllDueAssignmentsAndRooms()
+		try:
+			self.printMsg("Loading database from files...")
+			self.database_ = database.Database(extracted_file_path="")
+			self.database_.loadDatabase()
+		except:
+			self.printMsg("Loading of database failed! Stopping application.")
+			exit(1)
+
+		# Initialize database handler and collect all due and overdue rooms
+		try:
+			self.printMsg("Collecting due and overdue rooms...")
+			self.database_handler_ = database_handler.DatabaseHandler(self.database_)
+			self.database_handler_.restoreDueRooms()
+			self.database_handler_.getAllDueRooms()
+			self.database_handler_.getAllOverdueRooms()
+		except:
+			self.printMsg("Interpretation of loaded database failed! Check if data is corrupted. Stopping application.")
+			exit(1)
 
 		# Check if there is no room to be done
-		if (self.database_handler_.due_rooms_cleaning_ == []):
+		if ((self.database_handler_.due_rooms_ == []) and (self.database_handler_.overdue_rooms_ == [])):
 			return
+
+
+
+		
+
+		# Change tool for dry cleaning
+		# ============================
+
+		# Check which tool is currently connected
+		# If incorrect tool: Move to wagon, change tool
+
+
+
+
+		# Handle all dry cleaning and trashcan rooms
+		# ==========================================
+
+		# Calculate sequence
+		# Move to next room
+		# Find dirt spots, find trashcan
+		# Treat dirt spots, treat trashcan
+
+
+
+
+		# Change tool for wet cleaning
+		# ============================
+
+		# Check which tool is currently connected
+		# If incorrect tool: Move to wagon, change tool
+
+
+
+
+		# Handle all wet cleaning rooms
+		# =============================
+
+		# Calculate sequence
+		# Move to next room
+		# Do wet cleaning
+		# Do wall wet cleaning
+
+
+
+
+		# Change tool for dry cleaning
+		# ============================
+
+		# Check which tool is currently connected
+		# If incorrect tool: Move to wagon, change tool
+
+
+
+
+		# Handle all overdue dry cleaning and trashcan rooms
+		# ==================================================
+
+		# Calculate sequence
+		# Move to next room
+		# Do wet cleaning
+		# Do wall wet cleaning
+
+
+
+
+		# Change tool for wet cleaning
+		# ============================
+
+		# Check which tool is currently connected
+		# If incorrect tool: Move to wagon, change tool
+
+
+
+
+		# Handle all overdue wet cleaning rooms
+		# =====================================
+
+		# Calculate sequence
+		# Move to next room
+		# Do wet cleaning
+		# Do wall wet cleaning
+
+
+
+
 
 		# Initialize and run map handling
 		self.map_handler_ = map_handling_behavior.MapHandlingBehavior("MapHandlingBehavior", self.application_status_)
@@ -98,8 +199,9 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 	# Method for returning to the standard pose of the robot
 	def returnToRobotStandardState(self):
 		# save current data if necessary
+		self.database_.saveRoomDatabase()
+		self.database_.saveApplicationData()
 		# undo or check whether everything has been undone
-		pass
 
 
 
