@@ -271,6 +271,7 @@ class Database():
 						# Fill in the dictionary with the data
 						issues_dict[str(current_issue.issue_id_)] = {
 							"issue_id": current_issue.issue_id_,
+							"room_id": current_issue.room_id_,
 							"issue_type": current_issue.issue_type_,
 							"issue_images": current_issue.issue_images_,
 							"issue_coords": issue_coords_list,

@@ -63,6 +63,9 @@ class RoomIssue():
 	# Issue ID 
 	# (INTEGER)
 	issue_id_ = 0
+	# Room ID of the RoomItem the issue belongs to
+	# (INTEGER)
+	room_id_ = 0
 	# Type of issue [0=?, ..., n=?] 
 	# (INTEGER)
 	issue_type_ = None
