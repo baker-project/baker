@@ -116,6 +116,8 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				goal_orientation = Quaternion(x=0., y=0., z=0., w=0.)
 				header_frame_id = 'base_link'
 				"""
+				# todo: hack: reactivate this code
+				"""
 				self.printMsg("Moving to room_center in meter=" + str(self.segmentation_data_.room_information_in_meter[current_room_index].room_center))
 				self.move_base_handler_.setParameters(
 					self.segmentation_data_.room_information_in_meter[current_room_index].room_center,
@@ -123,6 +125,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					'base_link'
 					)
 				self.move_base_handler_.executeBehavior()
+				"""
 				
 				# Interruption opportunity
 				if self.handleInterrupt() == 2:
