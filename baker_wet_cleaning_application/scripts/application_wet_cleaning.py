@@ -63,104 +63,23 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 
 
 
-		
+		# DRY CLEANING OF DUE ROOMS
+		# =========================
 
-		# Change tool for dry cleaning
-		# ============================
-
-		# Check which tool is currently connected
-		# If incorrect tool: Move to wagon, change tool
-
-
-
-
-		# Handle all dry cleaning and trashcan rooms
-		# ==========================================
-
-		# Calculate sequence
-		# Move to next room
-		# Find dirt spots, find trashcan
-		# Treat dirt spots, treat trashcan
-
-
-
-
-		# Change tool for wet cleaning
-		# ============================
-
-		# Check which tool is currently connected
-		# If incorrect tool: Move to wagon, change tool
-
-
-
-
-		# Handle all wet cleaning rooms
-		# =============================
-
-		# Calculate sequence
-		# Move to next room
-		# Do wet cleaning
-		# Do wall wet cleaning
-
-
-
-
-		# Change tool for dry cleaning
-		# ============================
-
-		# Check which tool is currently connected
-		# If incorrect tool: Move to wagon, change tool
-
-
-
-
-		# Handle all overdue dry cleaning and trashcan rooms
-		# ==================================================
-
-		# Calculate sequence
-		# Move to next room
-		# Do wet cleaning
-		# Do wall wet cleaning
-
-
-
-
-		# Change tool for wet cleaning
-		# ============================
-
-		# Check which tool is currently connected
-		# If incorrect tool: Move to wagon, change tool
-
-
-
-
-		# Handle all overdue wet cleaning rooms
-		# =====================================
-
-		# Calculate sequence
-		# Move to next room
-		# Do wet cleaning
-		# Do wall wet cleaning
-
-
-
-
-
-		# Initialize and run map handling
+		# Find all due rooms for dry cleaning and trashcan-only and sequence rooms
 		self.map_handler_ = map_handling_behavior.MapHandlingBehavior("MapHandlingBehavior", self.application_status_)
 		self.map_handler_.setParameters(
 			self.robot_radius_,
 			self.database_handler_
 		)
 		self.map_handler_.executeBehavior()
+		#self.printMsg("self.map_handler_.room_sequencing_data_.checkpoints=" + str(self.map_handler_.room_sequencing_data_.checkpoints))
 		
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
 			return
-		
-		#self.printMsg("self.map_handler_.room_sequencing_data_.checkpoints=" + str(self.map_handler_.room_sequencing_data_.checkpoints))
 
-		# Move to segments, Compute exploration path, Travel through it, repeat
+		# Run Dry Cleaning Behavior
 		self.movement_handler_ = movement_handling_behavior.MovementHandlingBehavior("MovementHandlingBehavior", self.application_status_)
 		self.movement_handler_.setParameters(
 			self.database_handler_,
@@ -177,6 +96,62 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
 			return
+
+
+
+		# WET CLEANING OF DUE ROOMS
+		# =========================
+
+		self.map_handler_.setParameters(
+			self.robot_radius_,
+			self.database_handler_,
+			is_wet=True
+		)
+		self.map_handler_.executeBehavior()
+
+		# Run Wet Cleaning Behavior
+		
+		# Interruption opportunity
+		if self.handleInterrupt() == 2:
+			return
+		
+
+
+		# DRY CLEANING OF OVERDUE ROOMS
+		# =============================
+
+		self.map_handler_.setParameters(
+			self.robot_radius_,
+			self.database_handler_,
+			is_overdue=True
+		)
+		self.map_handler_.executeBehavior()
+
+		# Run Dry Cleaning Behavior
+		
+		# Interruption opportunity
+		if self.handleInterrupt() == 2:
+			return
+		
+
+
+		# WET CLEANING BEHAVIOR OF OVERDUE ROOMS
+		# ======================================
+
+		self.map_handler_.setParameters(
+			self.robot_radius_,
+			self.database_handler_,
+			is_wet=True,
+			is_overdue=True
+		)
+		self.map_handler_.executeBehavior()
+
+		# Run Wet Cleaning Behavior
+		
+		# Interruption opportunity
+		if self.handleInterrupt() == 2:
+			return
+		
 
 	# Abstract method that contains the procedure to be done immediately after the application is paused.
 	def prePauseProcedure(self):

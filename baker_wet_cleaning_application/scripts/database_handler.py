@@ -97,26 +97,40 @@ class DatabaseHandler():
 			schedule_char = room.room_scheduled_days[today_index]
 			# Some cleaning required
 			if (schedule_char != ""):
-				# Today is a cleaning day
+				# Find out if the timestamps indicate that the room has been handled already today
+				timestamp_is_new = [
+					date.today() - room.room_cleaning_datestamps_[0] < datetime.timedelta(days=1),
+					date.today() - room.room_cleaning_datestamps_[1] < datetime.timedelta(days=1),
+					date.today() - room.room_cleaning_datestamps_[2] < datetime.timedelta(days=1)
+				]
+				# If today is a cleaning day
 				if ((schedule_char == "x") or (schedule_char == "X")):
 					# Cleaning method 2 --> Dry, Wet, Trash
 					if (room.room_cleaning_method_ == 2):
-						room.open_cleaning_tasks_.append(-1)
-						room.open_cleaning_tasks_.append(0)
-						room.open_cleaning_tasks_.append(1)
+						if not(timestamp_is_new[0]):
+							room.open_cleaning_tasks_.append(-1)
+						if not(timestamp_is_new[1]):
+							room.open_cleaning_tasks_.append(0)
+						if not(timestamp_is_new[2]):
+							room.open_cleaning_tasks_.append(1)
 					# Cleaning method 1 --> Wet, Trash
 					elif (room.room_cleaning_method_ == 1):
-						room.open_cleaning_tasks_.append(-1)
-						room.open_cleaning_tasks_.append(1)
+						if not(timestamp_is_new[0]):
+							room.open_cleaning_tasks_.append(-1)
+						if not(timestamp_is_new[2]):
+							room.open_cleaning_tasks_.append(1)
 					# Cleaning method 0 --> Dry, Trash
 					elif (room.room_cleaning_method_ == 0)
-						room.open_cleaning_tasks_.append(-1)
-						room.open_cleaning_tasks_.append(0)
-				# Today is only a trashcan day
+						if not(timestamp_is_new[0]):
+							room.open_cleaning_tasks_.append(-1)
+						if not(timestamp_is_new[1]):
+							room.open_cleaning_tasks_.append(0)
+				# If today is only a trashcan day
 				else:
 					room.open_cleaning_tasks_.append(-1)
-				# Append room to the due list
-				self.due_rooms_.append(room)
+				# Append room to the due list if any task is to be done
+				if (room.open_cleaning_tasks_ != []):
+					self.due_rooms_.append(room)
 
 
 	# Method for restoring the due list
@@ -139,6 +153,10 @@ class DatabaseHandler():
 		# 4. The rooms trashcan timestamp is overdue
 		# This method shifts back in time and checks each event for success
 
+		# TODO: What if incomplete room is in current schedule again?
+		# Therefore, restructure as proposed on PowerPoint
+		# TODO: Append room only once
+
 		today_index = 0
 		current_schedule_index = today_index - 1
 		day_delta = 1
@@ -158,8 +176,14 @@ class DatabaseHandler():
 					cleaning_method = room.room_cleaning_method_
 					# Room floor cleaning with trashcan was scheduled
 					if (((schedule_char == "x") or (schedule_char == "X"))):
+						trashcan_date = room.room_cleaning_timestamps_[0]
 						dry_date = room.room_cleaning_timestamps_[1]
 						wet_date = room.room_cleaning_timestamps_[2]
+						# Room's trashcan was to be emptied and that did not happen
+						if ((trashcan_date ! = None) and (trashcan_date < indexed_date)):
+							room.open_cleaning_tasks_.append(-1)
+							if not (room in self.overdue_rooms_):
+								self.overdue_rooms_.append(room)
 						# Room was to be cleaned dry and that did not happen
 						if ((cleaning_method == 0) and (dry_date != None) and (dry_date < indexed_date)):
 							room.open_cleaning_tasks_.append(0)
@@ -183,7 +207,7 @@ class DatabaseHandler():
 					# Trashcan emptying was scheduled
 					elif ((schedule_char == "p") or (schedule_char == "P")):
 						trashcan_date = room.room_cleaning_timestamps_[0]
-						if ((trashcan_date ! = None) and (trashcan_date >= indexed_date)):
+						if ((trashcan_date ! = None) and (trashcan_date < indexed_date)):
 							room.open_cleaning_tasks_.append(-1)
 							if not (room in self.overdue_rooms_):
 								self.overdue_rooms_.append(room)

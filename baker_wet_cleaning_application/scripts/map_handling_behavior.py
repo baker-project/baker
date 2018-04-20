@@ -22,13 +22,15 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 	#========================================================================
 	
 	# Method for returning to the standard pose of the robot
-	def setParameters(self, robot_radius, database_handler, pre_segmented_map=None):
+	def setParameters(self, robot_radius, database_handler, is_wet=False, is_overdue=False):
 		self.map_receiving_service_str_ = '/map_management_client/get_map_image'
 		self.map_segmented_receiving_service_str_ = '/map_management_client/get_map_segmented_image'
 		self.map_segmentation_service_str_ = '/room_segmentation/room_segmentation_server'
 		self.room_sequencing_service_str_ = '/room_sequence_planning/room_sequence_planning_server'
 		self.robot_radius_ = robot_radius
 		self.database_handler_ = database_handler
+		self.is_wet_ = is_wet
+		self.is_overdue_ = is_overdue
 
 	# Method for returning to the standard pose of the robot
 	def returnToRobotStandardState(self):
@@ -77,6 +79,13 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 
 		# Get a segmented map and RoomInformationArray from the database handler
 		self.segmented_map_, self.room_information_in_pixel_ = self.database_handler_.getMapAndRoomInformationInPixel(self.database_handler_.due_rooms_cleaning_)
+
+		if (self.is_overdue_ == False):
+			self.database_handler_.getAllDueRooms()
+			rooms_trashcan_only, rooms_dry_cleaning, rooms_wet_cleaning = self.database_handler_.sortRoomsList(self.database_handler_.due_rooms_)
+		else:
+			self.database_handler_.getAllDueRooms()
+			rooms_trashcan_only, rooms_dry_cleaning, rooms_wet_cleaning = self.database_handler_.sortRoomsList(self.database_handler_.overdue_rooms_)
 
 		
 		# Room sequencing
