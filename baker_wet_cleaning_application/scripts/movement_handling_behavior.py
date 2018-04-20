@@ -44,6 +44,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 		self.database_handler_= database_handler
 		self.sequence_data_ = sequence_data
 		self.is_wet_ = is_wet
+		
 		# DEPRECATED Use database handler
 		#self.segmentation_data_ = segmentation_data
 		self.segmented_map_ = segmented_map
