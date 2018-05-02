@@ -52,6 +52,7 @@ class GlobalMapData():
 
 
 # Class which contains all application-wide data to be recorded
+# TODO: rename GlobalApplicationData
 class ApplicationData():
 	# Last date the application was run
 	last_execution_date_ = None
@@ -132,7 +133,7 @@ class RoomItem():
 	room_issues_ = []
 	# Filename of the room map file
 	# (STRING)
-	room_map_ = ""
+	room_map_filename_ = ""
 	# CV_Bridge representation of the map
 	# (CV_BRIDGE)
 	room_map_data_ = None

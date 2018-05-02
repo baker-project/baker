@@ -189,10 +189,10 @@ class Database():
 			# Get the territory the room is in
 			current_room.room_territory_id_ = dict.get(room_key).get("room_territory_id")
 			# Get the map of the room
-			current_room.room_map_ = dict.get(room_key).get("room_map")
+			current_room.room_map_filename_ = dict.get(room_key).get("room_map_filename")
 			# Get an open cv representation of the map or None if there is no map
-			if (current_room.room_map_ != None):
-				room_map_file_path = str(self.extracted_file_path) + str("resources/maps/") + str(current_room.room_map_)
+			if (current_room.room_map_filename_ != None):
+				room_map_file_path = str(self.extracted_file_path) + str("resources/maps/") + str(current_room.room_map_filename_)
 				map_opencv = cv2.imread(room_map_file_path, 0)
 				bridge = CvBridge()
 				current_room.room_map_data_ = bridge.cv2_to_imgmsg(map_opencv, encoding = "mono8")
@@ -322,7 +322,7 @@ class Database():
 					#"last_successful_cleaning_date": date_str_cleaning,
 					#"last_successful_trashcan_date": date_str_trashcan,
 					"room_issues": issues_dict,
-					"room_map": current_room.room_map_,
+					"room_map_filename": current_room.room_map_filename_,
 					"room_information_in_pixel": room_information_in_pixel_list,
 					"room_information_in_meter": room_information_in_meter_list,
 					"room_surface_type": current_room.room_surface_type_,
@@ -451,8 +451,8 @@ print db.getRoom(21).room_name_
 print db.getRoom(21).room_information_in_pixel_
 print db.getRoom(21).room_information_in_meter_
 print db.robot_properties_.exploration_coverage_radius_
-print db.getRoom(21).room_map_
-print db.getRoom(42).room_map_
+print db.getRoom(21).room_map_filename_
+print db.getRoom(42).room_map_filename_
 print db.global_settings_.shall_auto_complete_
 print db.getRoom(21).room_trashcan_count_
 

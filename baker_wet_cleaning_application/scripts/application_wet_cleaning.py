@@ -4,6 +4,7 @@ import rospy
 import actionlib
 import application_container
 import map_handling_behavior
+import dry_cleaning_behavior
 import movement_handling_behavior
 import database
 import database_handler
@@ -14,6 +15,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 
 	# Implement application procedures of inherited classes here.
 	def executeCustomBehavior(self):
+
 		self.robot_frame_id_ = 'base_link'
 		self.robot_radius_ = 0.2875  #0.325	# todo: read from MIRA
 		self.coverage_radius_ = 0.233655  #0.25	# todo: read from MIRA
@@ -34,8 +36,8 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 							   Point32(x=0.54035, y=-0.364), Point32(x=0.54035, y=0.136)]	# todo: read from MIRA
 
 		
-		# Load database, collect data
-		# ===========================
+		# Load database, initialize database handler
+		# ==========================================
 
 		# Initialize and load database
 		try:
@@ -43,34 +45,62 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			self.database_ = database.Database(extracted_file_path="")
 			self.database_.loadDatabase()
 		except:
-			self.printMsg("Loading of database failed! Stopping application.")
+			self.printMsg("Fatal: Loading of database failed! Stopping application.")
 			exit(1)
 
-		# Initialize database handler and collect all due and overdue rooms
+		# Initialize database handler
 		try:
-			self.printMsg("Collecting due and overdue rooms...")
 			self.database_handler_ = database_handler.DatabaseHandler(self.database_)
-			self.database_handler_.restoreDueRooms()
-			self.database_handler_.getAllDueRooms()
-			self.database_handler_.getAllOverdueRooms()
 		except:
-			self.printMsg("Interpretation of loaded database failed! Check if data is corrupted. Stopping application.")
+			self.printMsg("Fatal: Initialization of database handler failed!")
 			exit(1)
 
-		# Check if there is no room to be done
-		if ((self.database_handler_.due_rooms_ == []) and (self.database_handler_.overdue_rooms_ == [])):
+		# Interruption opportunity
+		if self.handleInterrupt() == 2:
 			return
 
 
+		# Find and sort all due rooms
+		# ===========================
+
+		# Find due rooms
+		self.printMsg("Collecting due rooms...")
+		if (self.database_handler_.isFirstStartToday() == True):
+			try:
+				self.database_handler_.getAllDueRooms()
+			except:
+				self.printMsg("Fatal: Collecting of the due rooms failed!")
+				exit(1)
+		else:
+			try:
+				self.database_handler_.restoreDueRooms()
+			except:
+				self.printMsg("Fatal: Restoring of the due rooms failed!")
+				exit(1)
+
+		# Sort the due rooms after cleaning method
+		self.printMsg("Sorting the found rooms after cleaning method...")
+		try:
+			rooms_dry_cleaning, rooms_wet_cleaning = self.database_handler_.sortRoomsList(self.database_handler_.due_rooms_)
+		except:
+			self.printMsg("Fatal: Sorting after the cleaning method failed!")
+			exit(1)
+
+		# Interruption opportunity
+		if self.handleInterrupt() == 2:
+			return
+
+		
 
 		# DRY CLEANING OF DUE ROOMS
 		# =========================
 
-		# Find all due rooms for dry cleaning and trashcan-only and sequence rooms
+		# Plan the dry cleaning process
 		self.map_handler_ = map_handling_behavior.MapHandlingBehavior("MapHandlingBehavior", self.application_status_)
 		self.map_handler_.setParameters(
 			self.robot_radius_,
-			self.database_handler_
+			self.database_,
+			rooms_dry_cleaning
 		)
 		self.map_handler_.executeBehavior()
 		#self.printMsg("self.map_handler_.room_sequencing_data_.checkpoints=" + str(self.map_handler_.room_sequencing_data_.checkpoints))
@@ -80,19 +110,12 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			return
 
 		# Run Dry Cleaning Behavior
-		self.movement_handler_ = movement_handling_behavior.MovementHandlingBehavior("MovementHandlingBehavior", self.application_status_)
-		self.movement_handler_.setParameters(
-			self.database_handler_,
-			self.map_handler_.segmentation_data_,
-			self.database_handler_.getRoomInformationInMeter(self.database_handler_.due_rooms_cleaning_),
-			self.map_handler_.room_sequencing_data_,
-			self.robot_frame_id_,
-			self.robot_radius_,
-			self.coverage_radius_,
-			self.field_of_view_
+		self.dry_cleaner_ = dry_cleaning_behavior.DryCleaningBehavior("DryCleaningBehavior", self.application_status_)
+		self.dry_cleaner_.setParameters(
+			self.database_handler_
 		)
-		self.movement_handler_.executeBehavior()
-
+		self.dry_cleaner_.executeBehavior()
+		
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
 			return
@@ -105,17 +128,51 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.map_handler_.setParameters(
 			self.robot_radius_,
 			self.database_handler_,
-			is_wet=True
+			rooms_wet_cleaning
 		)
 		self.map_handler_.executeBehavior()
 
 		# Run Wet Cleaning Behavior
+		# TODO: Rename to wet_cleaner
+		self.movement_handler_ = movement_handling_behavior.MovementHandlingBehavior("MovementHandlingBehavior", self.application_status_)
+		self.movement_handler_.setParameters(
+			self.database_handler_,
+			self.map_handler_.segmentation_data_,
+			self.database_handler_.getRoomInformationInMeter(self.database_handler_.due_rooms_cleaning_),
+			self.map_handler_.room_sequencing_data_,
+			self.robot_frame_id_,
+			self.robot_radius_,
+			self.coverage_radius_,
+			self.field_of_view_
+		)
+		self.movement_handler_.executeBehavior()
 		
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
 			return
 		
 
+
+		# Find and sort all overdue rooms
+		# ===========================
+
+		# Find overdue rooms
+		self.printMsg("Collecting overdue rooms...")
+		try:
+			self.database_handler_.getAllOverdueRooms()
+		except:
+			self.printMsg("Fatal: Collecting of the over rooms failed!")
+			exit(1)
+
+
+		# Sort the overdue rooms after cleaning method
+		self.printMsg("Sorting the found rooms after cleaning method...")
+		try:
+			rooms_dry_cleaning, rooms_wet_cleaning = self.database_handler_.sortRoomsList(self.database_handler_.overdue_rooms_)
+		except:
+			self.printMsg("Fatal: Sorting after the cleaning method failed!")
+			exit(1)
+		
 
 		# DRY CLEANING OF OVERDUE ROOMS
 		# =============================
@@ -128,6 +185,11 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.map_handler_.executeBehavior()
 
 		# Run Dry Cleaning Behavior
+		self.dry_cleaner_ = dry_cleaning_behavior.DryCleaningBehavior("DryCleaningBehavior", self.application_status_)
+		self.dry_cleaner_.setParameters(
+			self.database_handler_
+		)
+		self.dry_cleaner_.executeBehavior()
 		
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
@@ -147,11 +209,40 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.map_handler_.executeBehavior()
 
 		# Run Wet Cleaning Behavior
+		# TODO: Rename to wet_cleaner
+		self.movement_handler_ = movement_handling_behavior.MovementHandlingBehavior("MovementHandlingBehavior", self.application_status_)
+		self.movement_handler_.setParameters(
+			self.database_handler_,
+			self.map_handler_.segmentation_data_,
+			self.database_handler_.getRoomInformationInMeter(self.database_handler_.due_rooms_cleaning_),
+			self.map_handler_.room_sequencing_data_,
+			self.robot_frame_id_,
+			self.robot_radius_,
+			self.coverage_radius_,
+			self.field_of_view_
+		)
+		self.movement_handler_.executeBehavior()
 		
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
 			return
+
 		
+		# COMPLETE APPLICATION
+		# ====================
+
+		self.printMsg("Cleaning completed. Overwriting database...")
+		try:
+			self.database_handler_.cleanFinished()
+		except:
+			self.printMsg("Fatal: Database overwriting failed!")
+			exit(1)
+		
+
+
+
+
+
 
 	# Abstract method that contains the procedure to be done immediately after the application is paused.
 	def prePauseProcedure(self):
