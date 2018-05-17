@@ -1,9 +1,10 @@
 # Save path for the generated rgb Image
-rgbImageSavePath: /home/rmb-jx/dataset
+rgbImageSavePath: /home/robot/rmb-jx/groundPattern/
 
 # Save path for the manually added dirt objects
-dirtObjectSavePath: /home/rmb-jx/dataset
+dirtObjectSavePath: /home/robot/rmb-jx/groundPattern/dirtObject/
 
+groundPointCLoudSavePath: /home/robot/rmb-jx/groundPattern/groundPointCloud/
 # the number of attempts to segment the floor plane in the image
 # int
 floorSearchIterations: 3  
@@ -34,4 +35,6 @@ minPlanePoints: 100
 distanceToCamera: 1.0   # m
 
 # if with ground segmentation mode
-groundSegmentation: true  # default: false 
+groundSegmentation: false  # default: false
+
+groundOrdirt: true

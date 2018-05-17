@@ -2,11 +2,11 @@
 <launch>
 
   <!-- send parameters to parameter server -->
-  <rosparam command="load" ns="dataset_create/dataset_create" file="$(find ipa_dirt_detection)/ros/launch/dataset_create.yaml"/>
+  <rosparam command="load" ns="record_dataset/record_dataset" file="$(find ipa_dirt_detection)/ros/launch/record_dataset.yaml"/>
 
 
   <!--  -->
-  <node pkg="ipa_dirt_detection" ns="dataset_create/dataset_create" type="dataset_create" name="dataset_create" output="screen">	<!-- ns=namespace (arbitrary), type=name of executable, name=node name (arbitrary) -->
+  <node pkg="ipa_dirt_detection" ns="record_dataset/record_dataset" type="record_dataset" name="record_dataset" output="screen">	<!-- ns=namespace (arbitrary), type=name of executable, name=node name (arbitrary) -->
 	<!--launch-prefix="/usr/bin/gdb"-->
 	<!--remap from="image_color" to="/camera/rgb/image"/-->
 	<remap from="colored_point_cloud" to="/camera/depth_registered/points"/>

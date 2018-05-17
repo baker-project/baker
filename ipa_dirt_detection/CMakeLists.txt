@@ -161,14 +161,14 @@ target_link_libraries(appearance_check
 add_dependencies(appearance_check ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 #dataset create
-add_executable(dataset_create  ros/src/dataset_create.cpp)                  
-target_link_libraries(dataset_create
+add_executable(record_dataset  ros/src/record_dataset.cpp)                  
+target_link_libraries(record_dataset
 	${catkin_LIBRARIES}
 	${OpenCV_LIBRARIES}
 	${Boost_LIBRARIES}
 	${PCL_INCLUDE_DIRS}
 )
-add_dependencies(dataset_create ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
+add_dependencies(record_dataset ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 # filter bank create
 add_executable(filterbank_create  ros/src/filterbank_create.cpp
@@ -186,7 +186,7 @@ add_dependencies(filterbank_create ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_
 ## Install ##
 #############
 ## Mark executables and/or libraries for installation
-install(TARGETS dirt_detection dirt_detection_client appearance_check
+install(TARGETS dirt_detection dirt_detection_client appearance_check record_dataset
 	ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 	LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 	RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

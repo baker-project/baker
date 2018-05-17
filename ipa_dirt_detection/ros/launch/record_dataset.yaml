@@ -1,0 +1,40 @@
+# Save path for the generated rgb Image
+rgbImageSavePath: /home/robot/rmb-jx/groundPattern/
+
+# Save path for the manually added dirt objects
+dirtObjectSavePath: /home/robot/rmb-jx/groundPattern/dirtObject/
+
+groundPointCLoudSavePath: /home/robot/rmb-jx/groundPattern/groundPointCloud/
+# the number of attempts to segment the floor plane in the image
+# int
+floorSearchIterations: 3  
+
+# these two coordinates represent the center of your area of operation, 
+# they can be determined by observation of the robot coordinates in rviz (or to be exact the coordinates where the robot's view meets the floor), 
+# these coordinates are set automatically in database testing mode or when a map is available
+# double
+gridOrigin_x: 0.0
+gridOrigin_y: 0.0
+
+# spatial resolution of the dirt detection grid in [cells/m], do not use too many cells per meter unless your localization is extremely accurate, 
+# 10-20 cells per meter are appropriate if your localization is as accurate as +/-5 cm
+# if set <0 then the grid resolution of the navigation map is used if available
+# double
+gridResolution: 5.0
+
+# number of grid cells in x and y direction = width and height [in number grid cells], 
+# these dimensions are set automatically in database testing mode or when a map is available
+# int
+gridDimensions_x: 100
+gridDimensions_y: 100
+
+# minimal points of the segmented plane
+minPlanePoints: 100
+
+# distance of the ground and objects to the camera
+distanceToCamera: 1.0   # m
+
+# if with ground segmentation mode
+groundSegmentation: true  # default: false
+
+groundOrdirt: true

@@ -1,5 +1,5 @@
-#ifndef DATASET_CREATE_H_
-#define DATASET_CREATE_H_
+#ifndef RECORD_DATASET_H_
+#define RECORD_DATASET_H_
 
 #include <set>
 #include <iostream>

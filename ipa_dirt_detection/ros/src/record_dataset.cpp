@@ -14,7 +14,7 @@
 
 #include <functional>
 
-#include <ipa_dirt_detection/dataset_create.h>
+#include <ipa_dirt_detection/record_dataset.h>
 
 using namespace ipa_DatasetCreate;
 using namespace std;
@@ -38,33 +38,33 @@ DatasetCreate::~DatasetCreate()
 
 void DatasetCreate::init()
 {
-  node_handle_.param("dataset_create/floorSearchIterations", floorSearchIterations_, 3);
+  node_handle_.param("record_dataset/floorSearchIterations", floorSearchIterations_, 3);
   std::cout << "floorSearchIterations is " << floorSearchIterations_ << std::endl;
   
-  node_handle_.param<std::string>("dataset_create/rgbImageSavePath", rgbImageSavePath_, "test_data");
+  node_handle_.param<std::string>("record_dataset/rgbImageSavePath", rgbImageSavePath_, "test_data");
   std::cout << "RGB Image save path is " << rgbImageSavePath_ << std::endl;
-  node_handle_.param<std::string>("dataset_create/dirtObjectSavePath", dirtObjectSavePath_, "test_data");
+  node_handle_.param<std::string>("record_dataset/dirtObjectSavePath", dirtObjectSavePath_, "test_data");
   std::cout << "Dirt Objects save path is " << dirtObjectSavePath_ << std::endl;
-  node_handle_.param("dataset_create/groundSegmentation", groundSegmentation_, false);
+  node_handle_.param("record_dataset/groundSegmentation", groundSegmentation_, false);
   std::cout << "If with ground segmentation ? " << groundSegmentation_ << std::endl;
   
   double gox, goy;
-  node_handle_.param("dataset_create/gridOrigin_x", gox, 0.0);
+  node_handle_.param("record_dataset/gridOrigin_x", gox, 0.0);
   std::cout << "gridOrigin_x = " << gox << std::endl;
-  node_handle_.param("dataset_create/gridOrigin_y", goy, 0.0);
+  node_handle_.param("record_dataset/gridOrigin_y", goy, 0.0);
   std::cout << "gridOrigin_y = " << goy << std::endl;
   gridOrigin_ = cv::Point2d(gox, goy);
-  node_handle_.param("dataset_create/gridResolution", gridResolution_, 20.0);
+  node_handle_.param("record_dataset/gridResolution", gridResolution_, 20.0);
   std::cout << "gridResolution = " << gridResolution_ << std::endl;
   int gdx, gdy;
-  node_handle_.param("dataset_create/gridDimensions_x", gdx, 100);
+  node_handle_.param("record_dataset/gridDimensions_x", gdx, 100);
   std::cout << "gridDimensions_x = " << gdx << std::endl;
-  node_handle_.param("dataset_create/gridDimensions_y", gdy, 100);
+  node_handle_.param("record_dataset/gridDimensions_y", gdy, 100);
   std::cout << "gridDimensions_y = " << gdy << std::endl;
   gridDimensions_ = cv::Point2i(gdx, gdy);
-  node_handle_.param("dataset_create/minPlanePoints", minPlanePoints_, 100);
+  node_handle_.param("record_dataset/minPlanePoints", minPlanePoints_, 100);
   std::cout << "minPlanePoints = " << minPlanePoints_ << std::endl;
-  node_handle_.param("dataset_create/distanceToCamera", distanceToCamera_, 1.0);
+  node_handle_.param("record_dataset/distanceToCamera", distanceToCamera_, 1.0);
   std::cout << "The distance between camera and object = " << distanceToCamera_ << std::endl;
   
   frame_counter_ = 0;
@@ -302,7 +302,7 @@ bool DatasetCreate::planeSegmentation(pcl::PointCloud< pcl::PointXYZRGB >::Ptr i
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "dataset_create");
+  ros::init(argc, argv, "record_dataset");
   ros::NodeHandle n;
 
   DatasetCreate dc(n);
