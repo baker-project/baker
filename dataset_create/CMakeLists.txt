@@ -121,15 +121,11 @@ include_directories(
 )
 
 include_directories(include)
-set(SOURCES src/image_blend.cpp
-            src/segment_dirt.cpp
-            src/dataset_create.cpp
-            src/simple_segment.cpp)
 find_package(OpenCV REQUIRED)
 FIND_PACKAGE( Boost REQUIRED COMPONENTS filesystem system)
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
 
-add_executable(dataset_create main.cpp
+add_executable(dataset_create
                               src/image_blend.cpp
                               src/segment_dirt.cpp
                               src/dataset_create.cpp
