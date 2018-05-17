@@ -56,6 +56,8 @@ class GlobalMapData():
 class ApplicationData():
 	# Last date the application was run
 	last_execution_date_ = None
+	# Was the last saving of the database successful?
+	last_database_save_successful_ = True
 
 
 

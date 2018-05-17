@@ -30,12 +30,17 @@ class Database():
 	global_settings_ = None
 	# Application data
 	application_data_ = None
+	# Loaded log
+	loaded_log_ = None
 	# File names
 	rooms_filename_ = ""
 	tmp_rooms_filename_ = ""
+	application_data_filename_ = ""
+	tmp_application_data_filename_ = ""
+	log_filename_ = ""
+	tmp_log_filename_ = ""
 	global_settings_filename_ = ""
 	robot_properties_filename_ = ""
-	application_data_filename_ = ""
 	global_map_data_filename_ = ""
 	global_map_image_filename_ = ""
 
@@ -75,6 +80,7 @@ class Database():
 			self.application_data_.last_execution_date_ = self.stringToDatetime(date_str)
 		else:
 			self.application_data_.last_execution_date_ = None
+		self.application_data_.last_database_save_successful_ = dict.get("last_database_save_successful")
 
 
 
@@ -82,9 +88,10 @@ class Database():
 		application_data_dict = {}
 		date_datetime = self.application_data_.last_execution_date_
 		if (date_datetime != None):
-			application_data["last_execution_date"] = selfdatetimeToString(date_datetime)
+			application_data_dict["last_execution_date"] = self.datetimeToString(date_datetime)
 		else:
-			application_data["last_execution_date"] = None
+			application_data_dict["last_execution_date"] = None
+		application_data_dict["last_database_save_successful"] = self.application_data.last_database_save_successful_
 		return application_data_dict
 	
 	
@@ -338,6 +345,85 @@ class Database():
 		return room_dict
 
 
+	# Load temporal/original database from file.
+	def readFiles(self, temporal):
+		# Load the room data
+		if (temporal == True):
+			file = open(self.tmp_rooms_filename_, "r").read()
+		else:
+			file = open(self.rooms_filename_, "r").read()
+		rooms_dict = json.loads(file)
+		self.updateRoomsList(rooms_dict)
+		# Load the application data
+		if (temporal == True):
+			file = open(self.tmp_application_data_filename_, "r").read()
+		else:
+			file = open(self.application_data_filename_, "r").read()
+		application_data_dict = json.loads(file)
+		self.updateApplicationData(application_data_dict)
+		# Load the log in a writable format
+		if (temporal == True):
+			self.loaded_log_ = open(self.tmp_log_filename_, "w")
+		else:
+			self.loaded_log_ = open(self.log_filename_, "w") 
+		# Load the robot properties
+		file = open(self.robot_properties_filename_, "r").read()
+		robot_properties_dict = json.loads(file)
+		self.updateRobotProperties(robot_properties_dict)
+		# Load the global settings
+		file = open(self.global_settings_filename_, "r").read()
+		global_settings_dict = json.loads(file)
+		self.updateGlobalSettings(global_settings_dict)
+		# Load the global map data
+		file = open(self.global_map_data_filename_, "r").read()
+		global_map_data_dict = json.loads(file)
+		self.updateGlobalMapData(global_map_data_dict)
+
+
+	# Check the integrity of the specified file, return True on intact files
+	def checkIntegrity(self, temporal):
+		try:
+			if (temporal == True):
+				file = open(self.tmp_application_data_filename_, "r").read()
+			else:
+				file = open(self.application_data_filename_, "r").read()
+			dict = json.loads(file)
+			return dict.get("last_database_save_successful")
+		except:
+			return False
+
+
+	# Determine what the current logfile name is supposed to be
+	def getCurrentLogfileName(self):
+		# Filename: log_<year><week>
+		week = date.today().isocalendar()[1]
+		year = date.today().year
+		return "log_" + str(year) + str(week) + +".txt"
+
+
+	# Save the room data
+	def saveRoomDatabase(self, temporal=True):
+		rooms_dict = self.getRoomsDictFromRoomsList()
+		rooms_text = json.dumps(rooms_dict, indent=4, sort_keys=True)
+		if (temporal == True):
+			file = open(self.tmp_rooms_filename_, "w")
+		else:
+			file = open(self.rooms_filename_, "w")
+		file.write(rooms_text)
+		
+
+
+	# Save the application data
+	def saveApplicationData(self, temporal=True):
+		application_data_dict = self.getApplicationDataDictFromApplicationData()
+		application_data_text = json.dumps(application_data_dict, indent=4, sort_keys=True)
+		if (temporal == True):
+			file = open(self.tmp_application_data_filename_, "w")
+		else:
+			file = open(self.application_data_filename_, "w")
+		file.write(application_data_text)
+
+
 
 # =========================================================================================
 # Public methods
@@ -354,73 +440,56 @@ class Database():
 		self.global_map_image_filename_ = self.extracted_file_path + str("resources/maps/global_map.png")
 		self.application_data_filename_ = self.extracted_file_path + str("resources/json/application_data.json")
 		self.tmp_application_data_filename_ = self.extracted_file_path + str("resources/json/tmp_application_data.json")
-
-
-
-	# Discard temporal database --> A current progress will be forgotten
-	def discardTemporalDatabase(self):
-		if (os.path.isfile(self.tmp_rooms_filename_) == True):
-			os.remove(str(self.tmp_rooms_filename_))
-		self.loadDatabase()
-
-
-
-	# Load database data from files
-	def loadDatabase(self):
-		# Load the room data
-		if (os.path.isfile(self.tmp_rooms_filename_) == True):
-			file = open(self.tmp_rooms_filename_, "r").read()
-		else:
-			file = open(self.rooms_filename_, "r").read()
-		rooms_dict = json.loads(file)
-		self.updateRoomsList(rooms_dict)
-		# Load the application data
-		if (os.path.isfile(self.tmp_application_data_filename_) == True):
-			file = open(self.tmp_application_data_filename_, "r").read()
-		else:
-			file = open(self.application_data_filename_, "r").read()
-		application_data_dict = json.loads(file)
-		self.updateApplicationData(application_data_dict)
-		# Load the robot properties
-		file = open(self.robot_properties_filename_, "r").read()
-		robot_properties_dict = json.loads(file)
-		self.updateRobotProperties(robot_properties_dict)
-		# Load the global settings
-		file = open(self.global_settings_filename_, "r").read()
-		global_settings_dict = json.loads(file)
-		self.updateGlobalSettings(global_settings_dict)
-		# Load the global map data
-		file = open(self.global_map_data_filename_, "r").read()
-		global_map_data_dict = json.loads(file)
-		self.updateGlobalMapData(global_map_data_dict)
-
-
-
-	# Save the room data
-	def saveRoomDatabase(self, temporal=True):
-		rooms_dict = self.getRoomsDictFromRoomsList()
-		rooms_text = json.dumps(rooms_dict, indent=4, sort_keys=True)
-		if (temporal == True):
-			file = open(self.tmp_rooms_filename_, "w")
-		else:
-			file = open(self.rooms_filename_, "w")
-		file.write(rooms_text)
-		if ((temporal == False) and (os.path.isfile(self.tmp_rooms_filename_) == True)):
-			os.remove(str(self.tmp_rooms_filename_))
+		self.log_filename_ = self.extracted_file_path + str("resources/logs/") + self.getCurrentLogfileName()
+		self.tmp_log_filename_ = self.extracted_file_path + str("resources/logs/tmp_") + self.getCurrentLogfileName()
 		
 
 
-	# Save the application data
-	def saveApplicationData(self, temporal=True):
-		application_data_dict = self.getApplicationDataDictFromApplicationData()
-		application_data_text = json.dumps(application_data_dict, indent=4, sort_keys=True)
-		if (temporal == True):
-			file = open(self.tmp_application_data_filename_, "w")
-		else:
-			file = open(self.application_data_filename_, "w")
-		file.write(application_data_text)
-		if ((temporal == False) and (os.path.isfile(self.application_data_filename_) == True)):
-			os.remove(str(self.application_data_filename_))
+
+	# Discard temporal database --> All current progress will be forgotten
+	def discardTemporalDatabase(self):
+		# Remove temporal files from disk
+		if (os.path.isfile(self.tmp_rooms_filename_) == True):
+			os.remove(str(self.tmp_rooms_filename_))
+		if (os.path.isfile(self.tmp_application_data_filename_) == True):
+			os.remove(str(self.tmp_application_data_filename_))
+		if (os.path.isfile(self.tmp_log_filename_) == True):
+			os.remove(str(self.tmp_log_filename_))
+		# Reload database from original files
+		self.loadDatabase()
+
+	
+	
+	# Load database data from files
+	def loadDatabase(self):
+		# Check if there is a temporal representation
+		temporal_room_exists = os.path.isfile(self.tmp_rooms_filename_)
+		temporal_appdata_exists = os.path.isfile(self.tmp_application_data_filename_)
+		temporal_log_exists = os.path.isfile(self.tmp_log_filename_)
+		temporal_exists = temporal_appdata_exists and temporal_room_exists and temporal_log_exists
+		try:
+			if (self.checkIntegrity(temporal_exists) == True):
+				self.readFiles(temporal_exists)
+			else:
+				self.readFiles(not(temporal_exists))
+		except:
+			printf("[Database] Loading of database failed. No valid original or temporal JSON file set found. Check for damaged data.")
+			exit(1)
+
+
+
+	# Save the complete database safely, remove temporal data on final save
+	def saveCompleteDatabase(self, temporal_file=True):
+		self.application_data_.last_database_save_successful_ = False
+		self.saveApplicationData(temporal=temporal_file)
+		self.saveRoomDatabase(temporal=temporal_file)
+		self.application_data_.last_database_save_successful_ = True
+		self.saveApplicationData(temporal=temporal_file)
+		if (temporal_file == False):
+			if (os.path.isfile(self.tmp_rooms_filename_) == True):
+				os.remove(str(self.tmp_rooms_filename_))
+			if (os.path.isfile(self.application_data_filename_) == True):
+				os.remove(str(self.application_data_filename_))
 
 
 
