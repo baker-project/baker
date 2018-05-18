@@ -266,7 +266,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 	def returnToRobotStandardState(self):
 		# save current data if necessary
 		self.database_.saveRoomDatabase()
-		self.database_.saveApplicationData()
+		self.database_.saveGlobalApplicationData()
 		# undo or check whether everything has been undone
 
 

@@ -31,7 +31,7 @@ class Database():
 	# Application data
 	application_data_ = None
 	# Loaded log
-	loaded_log_ = None
+	loaded_log_ = []
 	# File names
 	rooms_filename_ = ""
 	tmp_rooms_filename_ = ""
@@ -73,8 +73,8 @@ class Database():
 
 
 
-	def updateApplicationData(self, dict):
-		self.application_data_ = database_classes.ApplicationData()
+	def updateGlobalApplicationData(self, dict):
+		self.application_data_ = database_classes.GlobalApplicationData()
 		date_str = dict.get("last_execution_date")
 		if (date_str != None):
 			self.application_data_.last_execution_date_ = self.stringToDatetime(date_str)
@@ -84,7 +84,7 @@ class Database():
 
 
 
-	def getApplicationDataDictFromApplicationData(self):
+	def getGlobalApplicationDataDictFromGlobalApplicationData(self):
 		application_data_dict = {}
 		date_datetime = self.application_data_.last_execution_date_
 		if (date_datetime != None):
@@ -93,6 +93,16 @@ class Database():
 			application_data_dict["last_execution_date"] = None
 		application_data_dict["last_database_save_successful"] = self.application_data.last_database_save_successful_
 		return application_data_dict
+
+	
+
+	def updateLogData(self):
+		pass
+
+	
+
+	def getLogDataDictFromLogData(self):
+		pass
 	
 	
 
@@ -360,12 +370,14 @@ class Database():
 		else:
 			file = open(self.application_data_filename_, "r").read()
 		application_data_dict = json.loads(file)
-		self.updateApplicationData(application_data_dict)
-		# Load the log in a writable format
+		self.updateGlobalApplicationData(application_data_dict)
+		# Load the log data
 		if (temporal == True):
-			self.loaded_log_ = open(self.tmp_log_filename_, "w")
+			file = open(self.tmp_log_filename_, "r").read()
 		else:
-			self.loaded_log_ = open(self.log_filename_, "w") 
+			file = open(self.log_filename_, "r").read()
+		log_dict = json.loads(file)
+		
 		# Load the robot properties
 		file = open(self.robot_properties_filename_, "r").read()
 		robot_properties_dict = json.loads(file)
@@ -394,34 +406,47 @@ class Database():
 
 
 	# Determine what the current logfile name is supposed to be
-	def getCurrentLogfileName(self):
+	def getCurrentLogfileName(self, tmp=True):
 		# Filename: log_<year><week>
 		week = date.today().isocalendar()[1]
 		year = date.today().year
-		return "log_" + str(year) + str(week) + +".txt"
+		if (temporal == True):
+			tmp_string = "tmp_"
+		else:
+			mp_string = ""
+		return str(tmp_string) + "log_" + str(year) + str(week) + +".txt"
 
 
 	# Save the room data
 	def saveRoomDatabase(self, temporal=True):
 		rooms_dict = self.getRoomsDictFromRoomsList()
 		rooms_text = json.dumps(rooms_dict, indent=4, sort_keys=True)
-		if (temporal == True):
-			file = open(self.tmp_rooms_filename_, "w")
-		else:
-			file = open(self.rooms_filename_, "w")
+		file = open(self.getCurrentLogfileName(tmp=temporal), "w")
 		file.write(rooms_text)
 		
 
 
 	# Save the application data
-	def saveApplicationData(self, temporal=True):
-		application_data_dict = self.getApplicationDataDictFromApplicationData()
+	def saveGlobalApplicationData(self, temporal=True):
+		application_data_dict = self.getGlobalApplicationDataDictFromGlobalApplicationData()
 		application_data_text = json.dumps(application_data_dict, indent=4, sort_keys=True)
 		if (temporal == True):
 			file = open(self.tmp_application_data_filename_, "w")
 		else:
 			file = open(self.application_data_filename_, "w")
 		file.write(application_data_text)
+
+	
+
+	# Save the log data
+	def saveLogData(self, temporal=True):
+		log_data_dict = self.getLogDataDictFromLogData()
+		log_data_text = json.dumps(log_data_dict, indent=4, sort_keys=True)
+		if (temporal == True):
+			file = open(self.tmp_log_filename_, "w")
+		else:
+			file = open(self.log_filename_, "w")
+		file.write(log_data_text)
 
 
 
@@ -463,6 +488,7 @@ class Database():
 	# Load database data from files
 	def loadDatabase(self):
 		# Check if there is a temporal representation
+		# TODO: What if there was never a specific temporal file???
 		temporal_room_exists = os.path.isfile(self.tmp_rooms_filename_)
 		temporal_appdata_exists = os.path.isfile(self.tmp_application_data_filename_)
 		temporal_log_exists = os.path.isfile(self.tmp_log_filename_)
@@ -481,15 +507,18 @@ class Database():
 	# Save the complete database safely, remove temporal data on final save
 	def saveCompleteDatabase(self, temporal_file=True):
 		self.application_data_.last_database_save_successful_ = False
-		self.saveApplicationData(temporal=temporal_file)
+		self.saveGlobalApplicationData(temporal=temporal_file)
 		self.saveRoomDatabase(temporal=temporal_file)
+		self.saveLogData(temporal=temporal_file)
 		self.application_data_.last_database_save_successful_ = True
-		self.saveApplicationData(temporal=temporal_file)
+		self.saveGlobalApplicationData(temporal=temporal_file)
 		if (temporal_file == False):
 			if (os.path.isfile(self.tmp_rooms_filename_) == True):
 				os.remove(str(self.tmp_rooms_filename_))
-			if (os.path.isfile(self.application_data_filename_) == True):
-				os.remove(str(self.application_data_filename_))
+			if (os.path.isfile(self.tmp_application_data_filename_) == True):
+				os.remove(str(self.tmp_application_data_filename_))
+			if (os.path.isfile(self.tmp_log_filename_) == True):
+				os.remove(str(self.tmp_log_filename_))
 
 
 

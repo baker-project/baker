@@ -52,12 +52,30 @@ class GlobalMapData():
 
 
 # Class which contains all application-wide data to be recorded
-# TODO: rename GlobalApplicationData
-class ApplicationData():
+class GlobalApplicationData():
 	# Last date the application was run
 	last_execution_date_ = None
 	# Was the last saving of the database successful?
 	last_database_save_successful_ = True
+
+
+
+# Class which resembles a log item, documenting a specific event
+class LogItem():
+	# Week and day flag [week, day]
+	log_week_and_day_ = [0, 0]
+	# Datetime stating the time of completion
+	log_datetime_ = None
+	# Room ID
+	log_room_id_ = 0
+	# ID of the cleaning task which was completed
+	log_cleaning_type_ = 0
+	# Amount of trashcans which were found
+	log_trashcan_count_ = 0
+	# Surface area which has been effectively cleaned
+	log_cleaned_area_ = 0
+	# Status of the task completion [Successful, Erroneous, ...]
+	log_cleaning_status_ = 0
 
 
 

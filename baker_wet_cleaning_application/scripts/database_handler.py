@@ -251,18 +251,19 @@ class DatabaseHandler():
 
 	# Method for setting a room as completed
 	def checkoutCompletedRoom(self, room, assignment_type):
+		# Add entry into the log
+		log_str = "[" + str(datetime.date()) + ", " + str(datetime.time()) + "] Room: " + str(room.room_id_) + "Assignment Type: " + str(assignment_type)
+		self.database_.loaded_log_.write(log_str + "\n")
+		# Remove assignment from the room's open assignment list
 		room.open_cleaning_tasks_.remove(assignment_type)
 		# Save all changes to the database
 		self.applyChangesToDatabase()
 
-	# Method to run if a change in the database shall be applied
-	# Applied changes can be discarded
+	# Method to run if a change in the database shall be applied. Applied changes can be discarded
 	def applyChangesToDatabase(self):
-		self.database_.saveRoomDatabase()
-		self.database_.saveApplicationData()
+		self.database_.saveCompleteDatabase(temporal_file=True)
 
 	# Method to run after all cleaning operations were performed
 	def cleanFinished(self):
-		self.database_.saveRoomDatabase(temporal=False)
-		self.database_.saveApplicationData(temporal=False)
+		self.database_.saveCompleteDatabase(temporal_file=False)
 
