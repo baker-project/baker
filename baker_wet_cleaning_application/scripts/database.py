@@ -20,6 +20,17 @@ from ipa_building_msgs.msg import *
 
 # Database class
 class Database():
+
+	#========================================================================
+	# Description:
+	# Container for all data being used in the cleaning application.
+	# Also contains functions to load and save data.
+	#========================================================================
+	# Services to be used:
+	# NONE
+	#========================================================================
+
+
 	# Rooms
 	rooms_ = []
 	# Global map data
@@ -91,7 +102,7 @@ class Database():
 			application_data_dict["last_execution_date"] = self.datetimeToString(date_datetime)
 		else:
 			application_data_dict["last_execution_date"] = None
-		application_data_dict["last_database_save_successful"] = self.application_data.last_database_save_successful_
+		application_data_dict["last_database_save_successful"] = self.application_data_.last_database_save_successful_
 		return application_data_dict
 
 	
@@ -126,8 +137,7 @@ class Database():
 	def updateGlobalMapData(self, dict):
 		self.global_map_data_ = database_classes.GlobalMapData()
 		# Get an open cv representation of the map or None if there is no map
-		map_file_path = str(self.extracted_file_path) + str(self.global_map_image_filename_)
-		map_opencv = cv2.imread(map_file_path, 0)
+		map_opencv = cv2.imread(self.global_map_image_filename_, 0)
 		bridge = CvBridge()
 		self.global_map_data_.map_image_ = bridge.cv2_to_imgmsg(map_opencv, encoding = "mono8")
 		# Get the map resolution
@@ -372,11 +382,11 @@ class Database():
 		application_data_dict = json.loads(file)
 		self.updateGlobalApplicationData(application_data_dict)
 		# Load the log data
-		if (temporal == True):
-			file = open(self.tmp_log_filename_, "r").read()
-		else:
-			file = open(self.log_filename_, "r").read()
-		log_dict = json.loads(file)
+		#if (temporal == True):
+		#	file = open(self.tmp_log_filename_, "r").read()
+		#else:
+		#	file = open(self.log_filename_, "r").read()
+		#log_dict = json.loads(file)
 		
 		# Load the robot properties
 		file = open(self.robot_properties_filename_, "r").read()
@@ -410,11 +420,11 @@ class Database():
 		# Filename: log_<year><week>
 		week = date.today().isocalendar()[1]
 		year = date.today().year
-		if (temporal == True):
+		if (tmp == True):
 			tmp_string = "tmp_"
 		else:
 			mp_string = ""
-		return str(tmp_string) + "log_" + str(year) + str(week) + +".txt"
+		return str(tmp_string) + "log_" + str(year) + str(week) + ".txt"
 
 
 	# Save the room data
@@ -422,7 +432,7 @@ class Database():
 		rooms_dict = self.getRoomsDictFromRoomsList()
 		rooms_text = json.dumps(rooms_dict, indent=4, sort_keys=True)
 		file = open(self.getCurrentLogfileName(tmp=temporal), "w")
-		file.write(rooms_text)
+		#file.write(rooms_text)
 		
 
 
@@ -434,19 +444,20 @@ class Database():
 			file = open(self.tmp_application_data_filename_, "w")
 		else:
 			file = open(self.application_data_filename_, "w")
-		file.write(application_data_text)
+		#file.write(application_data_text)
 
 	
 
 	# Save the log data
 	def saveLogData(self, temporal=True):
-		log_data_dict = self.getLogDataDictFromLogData()
-		log_data_text = json.dumps(log_data_dict, indent=4, sort_keys=True)
-		if (temporal == True):
-			file = open(self.tmp_log_filename_, "w")
-		else:
-			file = open(self.log_filename_, "w")
-		file.write(log_data_text)
+		#log_data_dict = self.getLogDataDictFromLogData()
+		#log_data_text = json.dumps(log_data_dict, indent=4, sort_keys=True)
+		#if (temporal == True):
+		#	file = open(self.tmp_log_filename_, "w")
+		#else:
+		#	file = open(self.log_filename_, "w")
+		#file.write(log_data_text)
+		pass
 
 
 
@@ -488,7 +499,6 @@ class Database():
 	# Load database data from files
 	def loadDatabase(self):
 		# Check if there is a temporal representation
-		# TODO: What if there was never a specific temporal file???
 		temporal_room_exists = os.path.isfile(self.tmp_rooms_filename_)
 		temporal_appdata_exists = os.path.isfile(self.tmp_application_data_filename_)
 		temporal_log_exists = os.path.isfile(self.tmp_log_filename_)
@@ -499,7 +509,7 @@ class Database():
 			else:
 				self.readFiles(not(temporal_exists))
 		except:
-			printf("[Database] Loading of database failed. No valid original or temporal JSON file set found. Check for damaged data.")
+			print "[Database] Loading of database failed. No valid original or temporal JSON file set found. Check for damaged data."
 			exit(1)
 
 
@@ -529,8 +539,6 @@ class Database():
 			if (self.rooms_[i].room_id_ == room_id):
 				result = self.rooms_[i]
 		return result
-
-
 
 """
 

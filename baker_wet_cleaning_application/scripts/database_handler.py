@@ -16,6 +16,16 @@ from cv_bridge import CvBridge, CvBridgeError
 
 
 class DatabaseHandler():
+
+	#========================================================================
+	# Description:
+	# Class for evaluating a Database object and adding/removing information.
+	#========================================================================
+	# Services to be used:
+	# NONE
+	#========================================================================
+
+
 	database_ = None
 	# Contains all due rooms
 	due_rooms_ = []
@@ -45,19 +55,19 @@ class DatabaseHandler():
 	# ===============================================================================
 
 
-
 	# Get the room information in pixel
 	def getMapAndRoomInformationInPixel(self, rooms_array):
 		room_information_in_pixel = []
 		bridge = CvBridge()
 		segmentation_id = 0
-		# Get the dimension of the image an create the temp map
+		# Get the dimension of the image and create the temp map
 		complete_map_opencv = bridge.imgmsg_to_cv2(self.database_.global_map_data_.map_image_, desired_encoding = "passthrough")
 		image_height, image_width = complete_map_opencv.shape
 		tmp_map_opencv = np.zeros((image_height, image_width), np.uint8)
 		for room in rooms_array:
 			# Get an OPENCV representation of the image
 			room_map_opencv = bridge.imgmsg_to_cv2(room.room_map_data_, desired_encoding = "passthrough")
+			cv2.imshow('room_map_opencv', room_map_opencv)
 			# Add the room to the final map
 			for x in range(image_width):
 				for y in range(image_height):
@@ -66,7 +76,6 @@ class DatabaseHandler():
 			# Get room_information_in_pixels
 			room_information_in_pixel.append(room.room_information_in_pixel_)
 			segmentation_id = segmentation_id + 1
-		cv2.imshow('image', tmp_map_opencv)
 		segmented_map = bridge.cv2_to_imgmsg(tmp_map_opencv, encoding = "mono8")
 		return room_information_in_pixel, segmented_map
 
@@ -83,6 +92,12 @@ class DatabaseHandler():
 		self.database_ = database
 
 	
+	# Reconstruct the room object out of the room sequencing result
+	def getRoomFromSequencingResult(self, sequencing_result, checkpoint, current_room):
+		room_id = sequencing_result.checkpoints[checkpoint].room_indices[current_room]
+		return self.database_.getRoom(room_id)
+
+	
 	# Method for extracting all due rooms from the due assignment
 	# CASE: First run of application, no rooms collected yet today.
 	def getAllDueRooms(self):
@@ -94,14 +109,17 @@ class DatabaseHandler():
 		today_index = self.getTodaysScheduleIndex()
 		self.due_rooms_ = []
 		for room in self.database_.rooms_:
-			schedule_char = room.room_scheduled_days[today_index]
+			schedule_char = room.room_scheduled_days_[today_index]
 			# Some cleaning required
 			if (schedule_char != ""):
 				# Find out if the timestamps indicate that the room has been handled already today
 				timestamp_is_new = [
-					date.today() - room.room_cleaning_datestamps_[0] < datetime.timedelta(days=1),
-					date.today() - room.room_cleaning_datestamps_[1] < datetime.timedelta(days=1),
-					date.today() - room.room_cleaning_datestamps_[2] < datetime.timedelta(days=1)
+					(room.room_cleaning_datestamps_[0] != None) 
+					and (date.today() - room.room_cleaning_datestamps_[0] < datetime.timedelta(days=1)),
+					(room.room_cleaning_datestamps_[1] != None) 
+					and (date.today() - room.room_cleaning_datestamps_[1] < datetime.timedelta(days=1)),
+					(room.room_cleaning_datestamps_[2] != None) 
+					and (date.today() - room.room_cleaning_datestamps_[2] < datetime.timedelta(days=1))
 				]
 				# If today is a cleaning day
 				if ((schedule_char == "x") or (schedule_char == "X")):
@@ -120,7 +138,7 @@ class DatabaseHandler():
 						if not(timestamp_is_new[2]):
 							room.open_cleaning_tasks_.append(1)
 					# Cleaning method 0 --> Dry, Trash
-					elif (room.room_cleaning_method_ == 0)
+					elif (room.room_cleaning_method_ == 0):
 						if not(timestamp_is_new[0]):
 							room.open_cleaning_tasks_.append(-1)
 						if not(timestamp_is_new[1]):
@@ -178,7 +196,7 @@ class DatabaseHandler():
 						dry_date = room.room_cleaning_timestamps_[1]
 						wet_date = room.room_cleaning_timestamps_[2]
 						# Room's trashcan was to be emptied and that did not happen
-						if ((trashcan_date ! = None) and (trashcan_date < indexed_date)):
+						if ((trashcan_date != None) and (trashcan_date < indexed_date)):
 							if not (-1 in room.open_cleaning_tasks_):
 								room.open_cleaning_tasks_.append(-1)
 							if not (room in self.overdue_rooms_):
@@ -210,7 +228,7 @@ class DatabaseHandler():
 					# Trashcan emptying was scheduled
 					elif ((schedule_char == "p") or (schedule_char == "P")):
 						trashcan_date = room.room_cleaning_timestamps_[0]
-						if ((trashcan_date ! = None) and (trashcan_date < indexed_date)):
+						if ((trashcan_date != None) and (trashcan_date < indexed_date)):
 							if not (-1 in room.open_cleaning_tasks_):
 								room.open_cleaning_tasks_.append(-1)
 							if not (room in self.overdue_rooms_):
@@ -225,9 +243,12 @@ class DatabaseHandler():
 	def isFirstStartToday(self):
 		last_start = self.database_.application_data_.last_execution_date_
 		today_date = datetime.date.today()
-		delta = today_date - last_start
-		if (delta.days < 1):
-			return False
+		if (last_start != None):
+			delta = today_date - last_start
+			if (delta.days < 1):
+				return False
+			else:
+				return True
 		else:
 			return True
 			

@@ -54,28 +54,68 @@ class GlobalMapData():
 # Class which contains all application-wide data to be recorded
 class GlobalApplicationData():
 	# Last date the application was run
+	# (DATE)
 	last_execution_date_ = None
 	# Was the last saving of the database successful?
+	# (BOOLEAN)
 	last_database_save_successful_ = True
 
 
 
 # Class which resembles a log item, documenting a specific event
-class LogItem():
+class LogBaseItem():
 	# Week and day flag [week, day]
+	# ([INTEGER, INTEGER])
 	log_week_and_day_ = [0, 0]
 	# Datetime stating the time of completion
+	# (DATETIME)
 	log_datetime_ = None
+
+
+
+# Class which resembles a log for a room specific event
+class RoomLogItem(LogBaseItem):
 	# Room ID
+	# (INTEGER)
 	log_room_id_ = 0
 	# ID of the cleaning task which was completed
+	# (INTEGER)
 	log_cleaning_type_ = 0
 	# Amount of trashcans which were found
+	# (INTEGER)
 	log_trashcan_count_ = 0
 	# Surface area which has been effectively cleaned
+	# (FLOAT)
 	log_cleaned_area_ = 0
 	# Status of the task completion [Successful, Erroneous, ...]
+	# (INTEGER)
 	log_cleaning_status_ = 0
+	# Dirt spots which have been detected
+	# (?)
+	log_detected_dirt_spots_ = []
+	# Issues in the room
+	# (ARRAY OF ROOMISSUE)
+	log_room_issues_ = []
+	# Battery usage
+	# (INTEGER)
+	log_battery_usage_ = 0
+	# Water usage
+	# (FLOAT)
+	log_water_usage_ = 0
+	# Trolley load
+	# (INTEGER)
+	log_trolley_load_ = 0
+
+
+
+# Class which contains all log items
+class Log():
+	# List of all room log items which belong to a room
+	# (DICTIONARY OF ARRAY OF ROOMLOGITEM)
+	room_logs_ = {}
+	# Log item for machine events
+	# (ROBOTLOGITEM)
+	robot_log_ = None
 
 
 
@@ -89,7 +129,7 @@ class RoomIssue():
 	room_id_ = 0
 	# Type of issue [0=?, ..., n=?] 
 	# (INTEGER)
-	issue_type_ = None
+	issue_type_ = 0
 	# File names of the pictures "<NameOfRoom>_<Date>_<IssueNumber>_<Number>.<jpg or whatever>" 
 	# (ARRAY OF STRING)
 	issue_images_ = []
@@ -166,14 +206,6 @@ class RoomItem():
 	# The cleaning tasks which currently are to be performed. [-1=trashcan_only, 0=dry_only, 1=wet_only]
 	# (ARRAY OF INTEGER)
 	open_cleaning_tasks_ = [] 
-
-	# TODO: REMOVE
-	# Date of the last successful cleaning
-	# (DATETIME)
-	last_successful_cleaning_date_ = None
-	# Date of the last successful trashcan emptying
-	# (DATETIME)
-	last_successful_trashcan_date_ = None
 
 	# MISCELLANEOUS STUFF
 	# ===================

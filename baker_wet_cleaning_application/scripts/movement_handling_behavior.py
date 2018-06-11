@@ -13,9 +13,15 @@ import behavior_container
 import move_base_behavior
 import room_exploration_behavior
 import move_base_path_behavior
+import trolley_movement_behavior
+import tool_changing_behavior
 
 class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 
+	#========================================================================
+	# Description:
+	# Handles the wet cleanig process (i.e. Floor cleaning, Trashcan)
+	# for all rooms provided in a given list
 	#========================================================================
 	# Serivces to be used:
 	# room_exploration_service_str_ = 
@@ -30,7 +36,11 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 
 		
 	# Method for setting parameters for the behavior
-	def setParameters(self, database_handler, segmented_map, room_information_in_meter, sequence_data, robot_frame_id, robot_radius, coverage_radius, field_of_view, is_wet=False):
+	def setParameters(self, database_handler, segmented_map, room_information_in_meter, sequence_data, robot_frame_id):
+		# Parameters set from the outside
+		self.database_handler_= database_handler
+		self.segmented_map_ = segmented_map
+		self.sequence_data_ = sequence_data
 		# Parameters set autonomously
 		self.room_exploration_service_str_ = '/room_exploration/room_exploration_server'
 		self.move_base_path_service_str_ = '/move_base_path'
@@ -40,19 +50,15 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 		self.stop_cleaning_service_str_ = '/brush_cleaning_module_interface/stop_brush_cleaner'
 		self.coverage_monitor_dynamic_reconfigure_service_str_ = '/room_exploration/coverage_monitor_server'
 		self.stop_coverage_monitoring_service_str_ = "/room_exploration/coverage_monitor_server/stop_coverage_monitoring"
-		# Parameters set from the outside
-		self.database_handler_= database_handler
-		self.sequence_data_ = sequence_data
-		self.is_wet_ = is_wet
+		self.trolley_movement_service_str_ = ""
+		self.tool_changing_service_str_ = ""
+		self.robot_radius_ = self.database_handler_.database_.robot_properties_.exploration_robot_radius_
+		self.coverage_radius_ = self.database_handler_.database_.robot_properties_.exploration_coverage_radius_
+		self.field_of_view_ = self.database_handler_.database_.robot_properties_.exploration_field_of_view_
 		
 		# DEPRECATED Use database handler
-		#self.segmentation_data_ = segmentation_data
-		self.segmented_map_ = segmented_map
 		self.room_information_in_meter_ = room_information_in_meter
 		self.robot_frame_id_ = robot_frame_id
-		self.robot_radius_ = robot_radius
-		self.coverage_radius_ = coverage_radius
-		self.field_of_view_ = field_of_view
 		# Get a opencv representation of the segmented image
 		self.bridge_ = CvBridge()
 		self.opencv_segmented_map_ = self.bridge_.imgmsg_to_cv2(self.segmented_map_, desired_encoding = "passthrough")
@@ -69,11 +75,16 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 		self.room_explorer_ = room_exploration_behavior.RoomExplorationBehavior("RoomExplorationBehavior", self.interrupt_var_, self.room_exploration_service_str_)
 		self.path_follower_ = move_base_path_behavior.MoveBasePathBehavior("MoveBasePathBehavior_PathFollowing", self.interrupt_var_, self.move_base_path_service_str_)
 		self.wall_follower_ = move_base_path_behavior.MoveBasePathBehavior("MoveBasePathBehavior_WallFollowing", self.interrupt_var_, self.move_base_wall_follow_service_str_)
+		self.trolley_mover_ = trolley_movement_behavior.TrolleyMovementBehavior("TrolleyMovementBehavior", self.interrupt_var_, self.trolley_movement_service_str_)
+		self.tool_changer_ = tool_changing_behavior.ToolChangingBehavior("ToolChangingBehavior", self.interrupt_var_, self.tool_changing_service_str_)
 
 
 
 		# TOOL CHANGE ACCORDING TO CLEANING TASK
 		# ======================================
+
+		self.tool_changer_.setParameters(self.database_handler_)
+		self.tool_changer_.executeBehavior()
 
 		for current_checkpoint_index in range(len(self.sequence_data_.checkpoints)):
 
@@ -82,8 +93,15 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 			# TROLLEY MOVEMENT TO CHECKPOINT
 			# ==============================
 
+			self.trolley_mover_.setParameters(self.database_handler_)
+			self.trolley_mover.executeBehavior()
+
 
 			for current_room_index in self.sequence_data_.checkpoints[current_checkpoint_index].room_indices:
+
+
+				# HANDLING OF SELECTED ROOM
+				# =========================
 
 
 				self.printMsg("Moving to next room with current_room_index = " + str(current_room_index))
@@ -221,8 +239,9 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					return
 
 				# Mark the current room as finished
-				self.database_handler_.checkoutCompletedRoom(self.database_handler_.due_rooms_cleaning_[self.sequence_data_.checkpoints[current_checkpoint_index].room_indices[current_room_index]], False, False)
-
+				#self.database_handler_.checkoutCompletedRoom(self.database_handler_.due_rooms_cleaning_[self.sequence_data_.checkpoints[current_checkpoint_index].room_indices[current_room_index]], False, False)
+				self.database_handler_.checkoutCompletedRoom(self.database_handler_.getRoomFromSequencingResult(self.sequencing_result_, current_checkpoint_index, current_room_index), 1)
+				
 				# coverage_monitor_server.cpp: turn off logging of the cleaned path (service "stop_coverage_monitoring")
 				self.printMsg("Stop coverage monitoring with " + self.stop_coverage_monitoring_service_str_)
 				rospy.wait_for_service(self.stop_coverage_monitoring_service_str_) 
