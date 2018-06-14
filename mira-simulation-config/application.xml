@@ -1,5 +1,7 @@
 <root>
 	<var MCFFile="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/lab_ipa/map.mcf"/>
+	<var cleaningMap="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/lab_ipa/map-static.xml"/>
+
 	<var useDocking="false"/>
 
 	<!--var robot="SCITOS-G5"/-->
