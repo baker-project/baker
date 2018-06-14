@@ -32,7 +32,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 
 		
 	# Method for setting parameters for the behavior
-	def setParameters(self, map_data, segmentation_data, sequence_data, robot_frame_id, robot_radius, coverage_radius, field_of_view):
+	def setParameters(self, map_data, segmentation_data, sequence_data, robot_frame_id, robot_radius, coverage_radius, field_of_view, use_cleaning_device):
 		# Service strings
 		self.room_exploration_service_str_ = '/room_exploration/room_exploration_server'
 		self.move_base_path_service_str_ = '/move_base_path'
@@ -50,6 +50,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 		self.robot_radius_ = robot_radius
 		self.coverage_radius_ = coverage_radius
 		self.field_of_view_ = field_of_view
+		self.use_cleaning_device_ = use_cleaning_device	# todo: hack: cleaning device can be turned off for trade fair show
 		# Get a opencv representation of the segmented image
 		self.bridge_ = CvBridge()
 		self.opencv_segmented_map_ = self.bridge_.imgmsg_to_cv2(self.segmentation_data_.segmented_map, desired_encoding = "passthrough")
@@ -135,14 +136,15 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					return
 				
 				# baker_brush_cleaning_module_interface: turn on the cleaning device (service "start_brush_cleaner")
-				self.printMsg("Start cleaning with " + self.start_cleaning_service_str_)
-				rospy.wait_for_service(self.start_cleaning_service_str_) 
-				try:
-					req = rospy.ServiceProxy(self.start_cleaning_service_str_, std_srvs.srv.Trigger)
-					resp = req()
-					print "Start cleaning returned with success status " + str(resp.success)
-				except rospy.ServiceException, e:
-					print "Service call to " + self.start_cleaning_service_str_ + " failed: %s" % e
+				if self.use_cleaning_device_:	# todo: hack: cleaning device can be turned off for trade fair show
+					self.printMsg("Start cleaning with " + self.start_cleaning_service_str_)
+					rospy.wait_for_service(self.start_cleaning_service_str_) 
+					try:
+						req = rospy.ServiceProxy(self.start_cleaning_service_str_, std_srvs.srv.Trigger)
+						resp = req()
+						print "Start cleaning returned with success status " + str(resp.success)
+					except rospy.ServiceException, e:
+						print "Service call to " + self.start_cleaning_service_str_ + " failed: %s" % e
 				
 				# coverage_monitor_server: set the robot configuration (robot_radius, coverage_radius, coverage_offset) with dynamic reconfigure
 				#                          and turn on logging of the cleaned path (service "start_coverage_monitoring")
@@ -233,14 +235,15 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				
 				
 				# baker_brush_cleaning_module_interface: turn off the cleaning device (service "stop_brush_cleaner")
-				self.printMsg("Stop cleaning with " + self.stop_cleaning_service_str_)
-				rospy.wait_for_service(self.stop_cleaning_service_str_) 
-				try:
-					req = rospy.ServiceProxy(self.stop_cleaning_service_str_, std_srvs.srv.Trigger)
-					resp = req()
-					print "Stop cleaning returned with success status " + str(resp.success)
-				except rospy.ServiceException, e:
-					print "Service call to " + self.stop_cleaning_service_str_ + " failed: %s" % e
+				if self.use_cleaning_device_:	# todo: hack: cleaning device can be turned off for trade fair show
+					self.printMsg("Stop cleaning with " + self.stop_cleaning_service_str_)
+					rospy.wait_for_service(self.stop_cleaning_service_str_) 
+					try:
+						req = rospy.ServiceProxy(self.stop_cleaning_service_str_, std_srvs.srv.Trigger)
+						resp = req()
+						print "Stop cleaning returned with success status " + str(resp.success)
+					except rospy.ServiceException, e:
+						print "Service call to " + self.stop_cleaning_service_str_ + " failed: %s" % e
 
 
 	# Method for returning the segment of the map corresponding to the order number as cv_bridge

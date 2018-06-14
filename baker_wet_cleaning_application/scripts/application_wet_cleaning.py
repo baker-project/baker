@@ -31,6 +31,11 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.field_of_view_ = [Point32(x=0.04035, y=0.136), Point32(x=0.04035, y=-0.364),
 							   Point32(x=0.54035, y=-0.364), Point32(x=0.54035, y=0.136)]	# todo: read from MIRA
 
+		# todo: hack: cleaning device can be turned off for trade fair show
+		if rospy.has_param('use_cleaning_device'):
+			self.use_cleaning_device_ = rospy.get_param("use_cleaning_device")
+			self.printMsg("Imported parameter use_cleaning_device = " + str(self.use_cleaning_device_))
+		
 		
 		# Receive map, segment, get sequence, extract maps
 		self.map_handler_ = map_handling_behavior.MapHandlingBehavior("MapHandlingBehavior", self.application_status_)
@@ -54,7 +59,8 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			self.robot_frame_id_,
 			self.robot_radius_,
 			self.coverage_radius_,
-			self.field_of_view_
+			self.field_of_view_,
+			self.use_cleaning_device_	# todo: hack: cleaning device can be turned off for trade fair show
 		)
 		self.movement_handler_.executeBehavior()
 		# Interruption opportunity
@@ -93,7 +99,7 @@ if __name__ == '__main__':
 		rospy.init_node('application_wet_cleaning')
 		
 		# Initialize application
-		app = WetCleaningApplication("application_wet_cleaning", "interrupt_application_wet_cleaning")
+		app = WetCleaningApplication("application_wet_cleaning", "set_application_status_application_wet_cleaning")
 		# Execute application
 		app.executeApplication()
 	except rospy.ROSInterruptException:

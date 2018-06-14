@@ -7,6 +7,7 @@ import actionlib
 import rospy
 import sys
 from abc import ABCMeta, abstractmethod
+import std_srvs
 
 from baker_wet_cleaning_application.msg import InterruptActionAction
 from baker_wet_cleaning_application.msg import InterruptActionGoal
@@ -16,10 +17,11 @@ class ApplicationContainer:
 	__metaclass__ = ABCMeta
 	# Arbitrary application name. Only used for debug.
 	application_name_ = "<Unnamed>"
-	# Status of the application. 0=OK, 1=Paused, 2=Cancelled
+	# Status of the application. 0=OK, 1=Paused, 2=Cancelled, 3=Terminate application server
+	# Starts with 1=Paused and waits for an action call to start the application
 	# using a vector because a single int number cannot be passed by reference, 
 	# but this apparently works to automatically get the changed number also into the client behaviors
-	application_status_ = [0]
+	application_status_ = [1]
 
 
 	# Method for printing messages.
@@ -31,15 +33,17 @@ class ApplicationContainer:
 		self.application_name_ = application_name
 		# Initialize the interruption action server
 		self.interrupt_action_name_ = interrupt_action_name
-		self.interrupt_server_ = actionlib.SimpleActionServer(interrupt_action_name, InterruptActionAction, execute_cb=self.interruptCallback, auto_start=False)
-		self.interrupt_server_.start()
+		#self.interrupt_server_ = actionlib.SimpleActionServer(interrupt_action_name, InterruptActionAction, execute_cb=self.interruptCallback, auto_start=False)
+		#self.interrupt_server_.start()
+		self.interrupt_server_ = rospy.Service(interrupt_action_name, std_srvs.srv.SetInt32, self.interruptCallback)
 
 	# Callback function for interrupt
-	def interruptCallback(self, goal):
-		self.application_status_[0] = goal.new_interrupt_state
-		result_ = InterruptActionResult()
-		result_.interrupt_state = self.application_status_[0]
-		self.interrupt_server_.set_succeeded(result_)
+	def interruptCallback(self, req):
+		self.application_status_[0] = req.data
+		print "Changed self.application_status_[0] =", self.application_status_[0]
+		res = std_srvs.srv.SetInt32Response()
+		res.success = True
+		return res
 
 	# Abstract method that contains the procedure to be done immediately after the application is paused.
 	@abstractmethod
@@ -77,8 +81,11 @@ class ApplicationContainer:
 			self.prePauseProcedure()
 			while (self.application_status_[0] == 1):
 				pass
-			self.postPauseProcedure()
+			if self.application_status_[0] == 0:
+				self.postPauseProcedure()
 		elif (self.application_status_[0] == 2):
+			self.cancelProcedure()
+		elif (self.application_status_[0] == 3):
 			self.cancelProcedure()
 		return self.application_status_[0]
 
@@ -93,8 +100,15 @@ class ApplicationContainer:
 
 	# Call this method to execute the application.
 	def executeApplication(self):
-		self.printMsg("Started.")
-		if self.handleInterrupt() != 0:
-			pass
-		self.executeCustomBehavior()
-		self.printMsg("Completed with code " + str(self.application_status_[0]))
+		self.printMsg("Application server started.")
+		while not rospy.is_shutdown():
+			#if self.handleInterrupt() != 0:
+			#	pass
+			if self.application_status_[0] == 0:
+				self.printMsg("Application started.")
+				self.executeCustomBehavior()
+				if self.application_status_[0] == 0:
+					self.application_status_[0] = 1		# set back to 1=Paused after successful, uninterrupted execution to avoid automatic restart
+				self.printMsg("Application completed with code " + str(self.application_status_[0]))
+			elif self.application_status_[0] == 3:
+				break
