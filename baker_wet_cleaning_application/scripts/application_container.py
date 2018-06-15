@@ -6,8 +6,10 @@ roslib.load_manifest('baker_wet_cleaning_application')
 import actionlib
 import rospy
 import sys
+import threading
 from abc import ABCMeta, abstractmethod
 import std_srvs
+import std_msgs
 
 from baker_wet_cleaning_application.msg import InterruptActionAction
 from baker_wet_cleaning_application.msg import InterruptActionGoal
@@ -23,6 +25,12 @@ class ApplicationContainer:
 	# but this apparently works to automatically get the changed number also into the client behaviors
 	application_status_ = [1]
 
+	def publishApplicationStatus(self):
+		self.application_status_pub_ = rospy.Publisher(str(self.application_name_) + '_status', std_msgs.msg.Int32, queue_size=1)
+		rate = rospy.Rate(5) # 5hz
+		while (not rospy.is_shutdown()):
+			self.application_status_pub_.publish(self.application_status_[0])
+			rate.sleep()
 
 	# Method for printing messages.
 	def printMsg(self, text):
@@ -36,6 +44,9 @@ class ApplicationContainer:
 		#self.interrupt_server_ = actionlib.SimpleActionServer(interrupt_action_name, InterruptActionAction, execute_cb=self.interruptCallback, auto_start=False)
 		#self.interrupt_server_.start()
 		self.interrupt_server_ = rospy.Service(interrupt_action_name, std_srvs.srv.SetInt32, self.interruptCallback)
+		
+		thread = threading.Thread(target = self.publishApplicationStatus)
+		thread.start()
 
 	# Callback function for interrupt
 	def interruptCallback(self, req):
