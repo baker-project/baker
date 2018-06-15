@@ -8,8 +8,8 @@ import rospy
 import sys
 import threading
 from abc import ABCMeta, abstractmethod
-import std_srvs
 import std_msgs
+from cob_srvs.srv import SetInt, SetIntResponse
 
 from baker_wet_cleaning_application.msg import InterruptActionAction
 from baker_wet_cleaning_application.msg import InterruptActionGoal
@@ -43,7 +43,7 @@ class ApplicationContainer:
 		self.interrupt_action_name_ = interrupt_action_name
 		#self.interrupt_server_ = actionlib.SimpleActionServer(interrupt_action_name, InterruptActionAction, execute_cb=self.interruptCallback, auto_start=False)
 		#self.interrupt_server_.start()
-		self.interrupt_server_ = rospy.Service(interrupt_action_name, std_srvs.srv.SetInt32, self.interruptCallback)
+		self.interrupt_server_ = rospy.Service(interrupt_action_name, SetInt, self.interruptCallback)
 		
 		thread = threading.Thread(target = self.publishApplicationStatus)
 		thread.start()
@@ -52,7 +52,7 @@ class ApplicationContainer:
 	def interruptCallback(self, req):
 		self.application_status_[0] = req.data
 		print "Changed self.application_status_[0] =", self.application_status_[0]
-		res = std_srvs.srv.SetInt32Response()
+		res = SetIntResponse()
 		res.success = True
 		return res
 

@@ -5,6 +5,7 @@ set(catkin_RUN_PACKAGES
 	actionlib
 	actionlib_msgs
 	baker_msgs
+	cob_srvs
 	cv_bridge
 	dynamic_reconfigure
 	eigen_conversions

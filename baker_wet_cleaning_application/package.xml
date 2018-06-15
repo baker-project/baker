@@ -15,6 +15,7 @@
 	<depend>actionlib</depend>
 	<depend>actionlib_msgs</depend>
 	<depend>baker_msgs</depend>
+	<depend>cob_srvs</depend>
 	<depend>cv_bridge</depend>
 	<depend>dynamic_reconfigure</depend>
 	<depend>eigen_conversions</depend>
