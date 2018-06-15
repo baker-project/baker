@@ -75,8 +75,8 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 		self.room_explorer_ = room_exploration_behavior.RoomExplorationBehavior("RoomExplorationBehavior", self.interrupt_var_, self.room_exploration_service_str_)
 		self.path_follower_ = move_base_path_behavior.MoveBasePathBehavior("MoveBasePathBehavior_PathFollowing", self.interrupt_var_, self.move_base_path_service_str_)
 		self.wall_follower_ = move_base_path_behavior.MoveBasePathBehavior("MoveBasePathBehavior_WallFollowing", self.interrupt_var_, self.move_base_wall_follow_service_str_)
-		self.trolley_mover_ = trolley_movement_behavior.TrolleyMovementBehavior("TrolleyMovementBehavior", self.interrupt_var_, self.trolley_movement_service_str_)
-		self.tool_changer_ = tool_changing_behavior.ToolChangingBehavior("ToolChangingBehavior", self.interrupt_var_, self.tool_changing_service_str_)
+		self.trolley_mover_ = trolley_movement_behavior.TrolleyMovementBehavior("TrolleyMovementBehavior", self.interrupt_var_)
+		self.tool_changer_ = tool_changing_behavior.ToolChangingBehavior("ToolChangingBehavior", self.interrupt_var_)
 
 
 
@@ -94,7 +94,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 			# ==============================
 
 			self.trolley_mover_.setParameters(self.database_handler_)
-			self.trolley_mover.executeBehavior()
+			self.trolley_mover_.executeBehavior()
 
 
 			for current_room_index in self.sequence_data_.checkpoints[current_checkpoint_index].room_indices:

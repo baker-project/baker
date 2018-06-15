@@ -130,8 +130,8 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 
 
 
-		# WET CLEANING OF DUE ROOMS
-		# =========================
+		# Wet cleaning of the due rooms
+		# =============================
 
 		# Get a sequence for all the rooms to be cleaned wet
 		self.map_handler_.setParameters(
@@ -149,7 +149,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.wet_cleaner_ = movement_handling_behavior.MovementHandlingBehavior("MovementHandlingBehavior", self.application_status_)
 		self.wet_cleaner_.setParameters(
 			self.database_handler_,
-			self.map_handler_.segmentation_data_,
+			self.database_.global_map_data_.map_image_segmented_,
 			self.database_handler_.getRoomInformationInMeter(rooms_wet_cleaning),
 			self.map_handler_.room_sequencing_data_,
 			self.robot_frame_id_

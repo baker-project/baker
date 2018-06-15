@@ -31,6 +31,8 @@ class DatabaseHandler():
 	due_rooms_ = []
 	# Contains all overdue rooms
 	overdue_rooms_ = []
+	# Current RoomObject to RoomSequenceResult mapping
+	current_room_mapping_ = {}
 
 	# ===============================================================================
 	# STATIC METHODS
@@ -67,7 +69,6 @@ class DatabaseHandler():
 		for room in rooms_array:
 			# Get an OPENCV representation of the image
 			room_map_opencv = bridge.imgmsg_to_cv2(room.room_map_data_, desired_encoding = "passthrough")
-			cv2.imshow('room_map_opencv', room_map_opencv)
 			# Add the room to the final map
 			for x in range(image_width):
 				for y in range(image_height):
@@ -91,6 +92,13 @@ class DatabaseHandler():
 	def __init__(self, database):
 		self.database_ = database
 
+	"""# Create a mapping RoomSequenceResult |-> RoomObject
+	def setRoomMapping(self, rooms_list, room_sequence_result):
+		rooms_index = 0
+		for (checkpoint in room_sequence_result.checkpoints):
+			for (seq_room_index in room_sequence_result.checkpoints[checkpoint].room_indices):
+				self.current_room_mapping_[seq_room_index] = rooms_list[room_index].room_id_
+				room_index = room_index + 1"""
 	
 	# Reconstruct the room object out of the room sequencing result
 	def getRoomFromSequencingResult(self, sequencing_result, checkpoint, current_room):

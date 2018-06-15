@@ -57,17 +57,19 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 		self.tool_changer_.setParameters(self.database_handler_)
 		self.tool_changer_.executeBehavior()
 
-		for checkpoint in self.sequencing_result_:
+		for checkpoint in self.sequencing_result_.checkpoints:
 
 			# TROLLEY MOVEMENT TO CHECKPOINT
 			# ==============================
 			self.trolley_mover_.setParameters(self.database_handler_)
 			self.trolley_mover_.executeBehavior()
 
-			for room_index in checkpoint.room_indices_:
+			for room_index in checkpoint.room_indices:
 
 				# HANDLING OF SELECTED ROOM
 				# =========================
-				thread.start_new_thread(self.exploreRoom)
-				thread.start_new_thread(self.dirtRoutine)
-				thread.start_new_thread(self.trashcanRoutine)
+				#thread.start_new_thread(self.exploreRoom)
+				#thread.start_new_thread(self.dirtRoutine)
+				#thread.start_new_thread(self.trashcanRoutine)
+				pass
+				

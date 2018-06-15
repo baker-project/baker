@@ -45,6 +45,9 @@ class GlobalMapData():
 	# Map image file
 	# (CVBRIDGE)
 	map_image_ = None
+	# Segmented map image file
+	# (CVBRIDGE)
+	map_image_segmented_ = None
 	# Map header frame id
 	# (STRING)
 	map_header_frame_id_ = ""

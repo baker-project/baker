@@ -54,6 +54,7 @@ class Database():
 	robot_properties_filename_ = ""
 	global_map_data_filename_ = ""
 	global_map_image_filename_ = ""
+	global_map_segmented_image_filename_ = ""
 
 
 # =========================================================================================
@@ -135,11 +136,14 @@ class Database():
 
 
 	def updateGlobalMapData(self, dict):
-		self.global_map_data_ = database_classes.GlobalMapData()
-		# Get an open cv representation of the map or None if there is no map
-		map_opencv = cv2.imread(self.global_map_image_filename_, 0)
 		bridge = CvBridge()
+		self.global_map_data_ = database_classes.GlobalMapData()
+		# Get an open cv representation of the map
+		map_opencv = cv2.imread(self.global_map_image_filename_, 0)
 		self.global_map_data_.map_image_ = bridge.cv2_to_imgmsg(map_opencv, encoding = "mono8")
+		# Get an open cv representation of the segmented map
+		map_segmented_opencv = cv2.imread(self.global_map_segmented_image_filename_, 0)
+		self.global_map_data_.map_image_segmented_ = bridge.cv2_to_imgmsg(map_segmented_opencv, encoding = "mono8") 
 		# Get the map resolution
 		self.global_map_data_.map_resolution_ = dict.get("map_resolution")
 		# Get the map origin
@@ -249,19 +253,6 @@ class Database():
 			# Get the yet open cleaning tasks
 			current_room.open_cleaning_tasks_ = dict.get(room_key).get("open_cleaning_tasks")
 			
-			## Get the last successful cleaning date if there is any, otherwise set None
-			#date_str = dict.get(room_key).get("last_successful_cleaning_date")
-			#if (date_str != None):
-			#	current_room.last_successful_cleaning_date_ = datetime.strptime(date_str, "%Y-%m-%d_%H:%M")
-			#else:
-			#	current_room.last_successful_cleaning_date_ = None
-			## Get the last successful trashcan date if there is any, otherwise set None
-			#date_str = dict.get(room_key).get("last_successful_trashcan_date")
-			#if (date_str != None):
-			#	current_room.last_successful_trashcan_date_ = datetime.strptime(date_str, "%Y-%m-%d_%H:%M")
-			#else:
-			#	current_room.last_successful_trashcan_date_ = None
-			
 			# Get the list with the datestamps
 			string_datestamp_list = dict.get(room_key).get("room_cleaning_datestamps")
 			datestamps = []
@@ -307,16 +298,6 @@ class Database():
 					else:
 						print "[FATAL]: An element in issues array is not an issue object!"
 				
-				## Fill in the last successful cleaning date if there is any, otherwise fill in None
-				#if (current_room.last_successful_cleaning_date_ != None):
-				#	date_str_cleaning = current_room.last_successful_cleaning_date_.strftime("%Y-%m-%d_%H:%M")
-				#else:
-				#	date_str_cleaning = None
-				## Fill in the last successful trashcan date if there is any, otherwise fill in None
-				#if (current_room.last_successful_trashcan_date_ != None):
-				#	date_str_trashcan = current_room.last_successful_trashcan_date_.strftime("%Y-%m-%d_%H:%M")
-				#else:
-				#	date_str_trashcan = None
 				
 				# Fill in the datestamps
 				datestamp_list = []
@@ -474,6 +455,7 @@ class Database():
 		self.global_settings_filename_ = self.extracted_file_path + str("resources/json/robot_settings.json")
 		self.global_map_data_filename_ = self.extracted_file_path + str("resources/json/global_map_data.json")
 		self.global_map_image_filename_ = self.extracted_file_path + str("resources/maps/global_map.png")
+		self.global_map_segmented_image_filename_ = self.extracted_file_path + str("resources/maps/global_map_segmented.png")
 		self.application_data_filename_ = self.extracted_file_path + str("resources/json/application_data.json")
 		self.tmp_application_data_filename_ = self.extracted_file_path + str("resources/json/tmp_application_data.json")
 		self.log_filename_ = self.extracted_file_path + str("resources/logs/") + self.getCurrentLogfileName()
