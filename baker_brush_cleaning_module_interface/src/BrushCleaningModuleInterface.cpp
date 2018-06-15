@@ -143,7 +143,7 @@ void BrushCleaningModuleInterface::process(const Timer& timer)
 
 void BrushCleaningModuleInterface::onStatusChanged(mira::ChannelRead<BakeRCleaningModule::ModuleStatus> status)
 {
-	std::cout << "received module status: connected=" << status->connected << std::endl;
+	// std::cout << "received module status: connected=" << status->connected << std::endl;
 	// TODO: encode to ROS message and publish
 }
 

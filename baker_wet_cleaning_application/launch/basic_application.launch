@@ -3,10 +3,11 @@
 
 	<arg name="scitos_node_args" default="-k127.0.0.1:1234"/>
 	<arg name="brush_cleaning_module_interface_args" default="-k127.0.0.1:1234"/>
+	<arg name="obstacle_map_channel" default="/navigation/laser/Map"/>	<!-- /3d/MergedMap or /navigation/laser/Map -->
 
 	<!-- ROS-MIRA communication -->
 	<include file="$(find scitos_mira)/launch/scitos_mira.launch">
-		<arg name="scitos_node_args" value="$(arg scitos_node_args)"/>
+		<arg name="scitos_node_args" value="$(arg scitos_node_args) --using /ObstacleMap=$(arg obstacle_map_channel)"/>
 	</include>
 	
 	<!-- include ROS_MIRA communication module to brush cleaner -->
@@ -32,5 +33,8 @@
 
 	<!-- include room sequence planning -->
 	<include file="$(find ipa_building_navigation)/ros/launch/room_sequence_planning_action_server.launch"/>
+	
+	<!-- application script -->
+	<node pkg="baker_wet_cleaning_application" type="application_wet_cleaning.py" name="application_wet_cleaning" output="screen" respawn="true" respawn_delay="2"/>
 
 </launch>

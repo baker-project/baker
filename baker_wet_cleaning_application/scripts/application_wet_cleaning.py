@@ -23,10 +23,6 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 
 	# Implement application procedures of inherited classes here.
 	def executeCustomBehavior(self):
-
-		self.robot_frame_id_ = 'base_link'
-		self.robot_radius_ = 0.2875  #0.325	# todo: read from MIRA
-		self.coverage_radius_ = 0.233655  #0.25	# todo: read from MIRA
 		
 		# todo: read out these parameters
 		if rospy.has_param('robot_frame'):
@@ -110,7 +106,6 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			rooms_dry_cleaning
 		)
 		self.map_handler_.executeBehavior()
-		#self.printMsg("self.map_handler_.room_sequencing_data_.checkpoints=" + str(self.map_handler_.room_sequencing_data_.checkpoints))
 		
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
@@ -149,10 +144,13 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.wet_cleaner_ = movement_handling_behavior.MovementHandlingBehavior("MovementHandlingBehavior", self.application_status_)
 		self.wet_cleaner_.setParameters(
 			self.database_handler_,
-			self.database_.global_map_data_.map_image_segmented_,
+			self.database_handler_.database_.global_map_data_.map_image_segmented_,
 			self.database_handler_.getRoomInformationInMeter(rooms_wet_cleaning),
 			self.map_handler_.room_sequencing_data_,
-			self.robot_frame_id_
+			self.robot_frame_id_,
+			self.robot_radius_,
+			self.coverage_radius_,
+			self.field_of_view_
 		)
 		self.wet_cleaner_.executeBehavior()
 		
@@ -222,7 +220,10 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			self.map_handler_.segmentation_data_,
 			self.database_handler_.getRoomInformationInMeter(rooms_wet_cleaning),
 			self.map_handler_.room_sequencing_data_,
-			self.robot_frame_id_
+			self.robot_frame_id_,
+			self.robot_radius_,
+			self.coverage_radius_,
+			self.field_of_view_
 		)
 		self.wet_cleaner_.executeBehavior()
 		
@@ -278,8 +279,9 @@ if __name__ == '__main__':
 	try:
 		# Initialize node
 		rospy.init_node('application_wet_cleaning')
+		
 		# Initialize application
-		app = WetCleaningApplication("application_wet_cleaning", "interrupt_application_wet_cleaning")
+		app = WetCleaningApplication("application_wet_cleaning", "set_application_status_application_wet_cleaning")
 		# Execute application
 		app.executeApplication()
 	except rospy.ROSInterruptException:

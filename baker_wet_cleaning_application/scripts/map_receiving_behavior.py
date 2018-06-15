@@ -29,8 +29,8 @@ class MapReceivingBehavior(behavior_container.BehaviorContainer):
 	def executeCustomBehavior(self):
 		# receive the navigation map in sensor_msgs/Image format
 		self.printMsg("Waiting for service " + self.service_str_ + " to become available ...")
-		rospy.wait_for_service(self.service_str_)
 		try:
+			rospy.wait_for_service(self.service_str_)
 			get_map = rospy.ServiceProxy(self.service_str_, baker_msgs.srv.GetMap)
 			self.map_data_ = get_map()
 		except rospy.ServiceException, e:
