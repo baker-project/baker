@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
 import rospy
+import rospkg
 import actionlib
 import application_container
 import map_handling_behavior
 import dry_cleaning_behavior
-import movement_handling_behavior
+import wet_cleaning_behavior
 import database
 import database_handler
 
@@ -21,9 +22,99 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 	# NONE
 	#========================================================================
 
+
+	# Dry cleaning routine, to be called from inside executeCustomBehavior()
+	def processDryCleaning(self, rooms_dry_cleaning, is_overdue):
+
+		if (rooms_dry_cleaning != []):
+
+			# Get a sequence for all the rooms to be cleaned dry
+			self.map_handler_.setParameters(
+				self.database_handler_,
+				rooms_dry_cleaning
+			)
+			self.map_handler_.executeBehavior()
+			self.printMsg("Room Mapping (Dry): " + str(self.map_handler_.mapping_))
+			for checkpoint in self.map_handler_.room_sequencing_data_.checkpoints:
+				self.printMsg("Order: " + str(checkpoint.room_indices))
+			
+			# Interruption opportunity
+			if self.handleInterrupt() == 2:
+				return
+
+			# Run Dry Cleaning Behavior
+			self.dry_cleaner_.setParameters(
+				self.database_handler_,
+				self.map_handler_.room_sequencing_data_
+			)
+			self.dry_cleaner_.executeBehavior()
+		
+		else:
+			if (is_overdue == False):
+				self.printMsg("There is no due room to be cleaned dry.")
+			else:
+				self.printMsg("There is no overdue room to be cleaned dry.")
+
+
+
+	# Wet cleaning routine, to be called from inside executeCustomBehavior()
+	def processWetCleaning(self, rooms_wet_cleaning, is_overdue):
+
+		if (rooms_wet_cleaning != []):
+
+			# Get a sequence for all the rooms to be cleaned wet
+			self.map_handler_.setParameters(
+				self.database_handler_,
+				rooms_wet_cleaning
+			)
+			self.map_handler_.executeBehavior()
+			self.printMsg("Room Mapping (Wet): " + str(self.map_handler_.mapping_))
+			for checkpoint in self.map_handler_.room_sequencing_data_.checkpoints:
+				self.printMsg("Order: " + str(checkpoint.room_indices))
+
+			# Interruption opportunity
+			if self.handleInterrupt() == 2:
+				return
+
+			# Run Wet Cleaning Behavior
+			self.wet_cleaner_.setParameters(
+				self.database_handler_,
+				self.database_handler_.database_.global_map_data_.map_image_segmented_,
+				self.database_handler_.getRoomInformationInMeter(rooms_wet_cleaning),
+				self.map_handler_.room_sequencing_data_,
+				self.map_handler_.mapping_,
+				self.robot_frame_id_,
+				self.robot_radius_,
+				self.coverage_radius_,
+				self.field_of_view_
+			)
+			self.wet_cleaner_.executeBehavior()
+
+		else:
+			if (is_overdue == False):
+				self.printMsg("There is no due room to be cleaned wet.")
+			else:
+				self.printMsg("There is no overdue room to be cleaned wet.")
+
+
+
+
 	# Implement application procedures of inherited classes here.
 	def executeCustomBehavior(self):
-		
+
+
+		# Initialize behaviors
+		# ====================
+
+		self.map_handler_ = map_handling_behavior.MapHandlingBehavior("MapHandlingBehavior", self.application_status_)
+		self.dry_cleaner_ = dry_cleaning_behavior.DryCleaningBehavior("DryCleaningBehavior", self.application_status_)
+		self.wet_cleaner_ = wet_cleaning_behavior.WetCleaningBehavior("WetCleaningBehavior", self.application_status_)
+
+
+
+		# Load data from the robot device
+		# ===============================
+
 		# todo: read out these parameters
 		if rospy.has_param('robot_frame'):
 			self.robot_frame_id_ = rospy.get_param("robot_frame")
@@ -40,17 +131,21 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 							   Point32(x=0.54035, y=-0.364), Point32(x=0.54035, y=0.136)]	# todo: read from MIRA
 
 		
+
 		# Load database, initialize database handler
 		# ==========================================
 
 		# Initialize and load database
-		try:
-			self.printMsg("Loading database from files...")
-			self.database_ = database.Database(extracted_file_path="src/baker/baker_wet_cleaning_application/")
-			self.database_.loadDatabase()
-		except:
-			self.printMsg("Fatal: Loading of database failed! Stopping application.")
-			exit(1)
+		#try:
+		self.printMsg("Loading database from files...")
+		rospack = rospkg.RosPack()
+		print str(rospack.get_path('baker_wet_cleaning_application'))
+		self.database_ = database.Database(extracted_file_path=str(rospack.get_path('baker_wet_cleaning_application') + "/"))
+		#self.database_ = database.Database(extracted_file_path="src/baker/baker_wet_cleaning_application/")
+		self.database_.loadDatabase()
+		#except:
+		#	self.printMsg("Fatal: Loading of database failed! Stopping application.")
+		#	exit(1)
 
 		# Initialize database handler
 		try:
@@ -64,6 +159,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			return
 
 
+
 		# Find and sort all due rooms
 		# ===========================
 
@@ -72,6 +168,8 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		if (self.database_handler_.isFirstStartToday() == True):
 			#try:
 			self.database_handler_.getAllDueRooms()
+			for room in self.database_handler_.due_rooms_:
+				print room.room_name_
 			#except:
 			#	self.printMsg("Fatal: Collecting of the due rooms failed!")
 			#	exit(1)
@@ -86,6 +184,11 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.printMsg("Sorting the found rooms after cleaning method...")
 		#try:
 		rooms_dry_cleaning, rooms_wet_cleaning = self.database_handler_.sortRoomsList(self.database_handler_.due_rooms_)
+		for room in rooms_dry_cleaning:
+			self.printMsg(str(room.room_name_) + " ---> DRY")
+		for room in rooms_wet_cleaning:
+			self.printMsg(str(room.room_name_) + " ---> WET")
+
 		#except:
 		#	self.printMsg("Fatal: Sorting after the cleaning method failed!")
 		#	exit(1)
@@ -94,31 +197,13 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		if self.handleInterrupt() == 2:
 			return
 
-		
 
+		
 		# Dry cleaning of the due rooms
 		# =============================
-
-		# Get a sequence for all the rooms to be cleaned dry
-		self.map_handler_ = map_handling_behavior.MapHandlingBehavior("MapHandlingBehavior", self.application_status_)
-		self.map_handler_.setParameters(
-			self.database_handler_,
-			rooms_dry_cleaning
-		)
-		self.map_handler_.executeBehavior()
+		self.processDryCleaning(rooms_dry_cleaning, False)
 		
-		# Interruption opportunity
-		if self.handleInterrupt() == 2:
-			return
 
-		# Run Dry Cleaning Behavior
-		self.dry_cleaner_ = dry_cleaning_behavior.DryCleaningBehavior("DryCleaningBehavior", self.application_status_)
-		self.dry_cleaner_.setParameters(
-			self.database_handler_,
-			self.map_handler_.room_sequencing_data_
-		)
-		self.dry_cleaner_.executeBehavior()
-		
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
 			return
@@ -127,32 +212,8 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 
 		# Wet cleaning of the due rooms
 		# =============================
-
-		# Get a sequence for all the rooms to be cleaned wet
-		self.map_handler_.setParameters(
-			self.database_handler_,
-			rooms_wet_cleaning
-		)
-		self.map_handler_.executeBehavior()
-
-		# Interruption opportunity
-		if self.handleInterrupt() == 2:
-			return
-
-		# Run Wet Cleaning Behavior
-		# TODO: Rename to wet_cleaner
-		self.wet_cleaner_ = movement_handling_behavior.MovementHandlingBehavior("MovementHandlingBehavior", self.application_status_)
-		self.wet_cleaner_.setParameters(
-			self.database_handler_,
-			self.database_handler_.database_.global_map_data_.map_image_segmented_,
-			self.database_handler_.getRoomInformationInMeter(rooms_wet_cleaning),
-			self.map_handler_.room_sequencing_data_,
-			self.robot_frame_id_,
-			self.robot_radius_,
-			self.coverage_radius_,
-			self.field_of_view_
-		)
-		self.wet_cleaner_.executeBehavior()
+		self.processWetCleaning(rooms_wet_cleaning, False)
+		
 		
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
@@ -181,66 +242,38 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		#	exit(1)
 		
 
-		# DRY CLEANING OF OVERDUE ROOMS
-		# =============================
 
-		self.map_handler_.setParameters(
-			self.database_,
-			rooms_dry_cleaning
-		)
-		self.map_handler_.executeBehavior()
+		# Dry cleaning of the overdue rooms
+		# =================================
 
-		# Run Dry Cleaning Behavior
-		self.dry_cleaner_ = dry_cleaning_behavior.DryCleaningBehavior("DryCleaningBehavior", self.application_status_)
-		self.dry_cleaner_.setParameters(
-			self.database_
-		)
-		self.dry_cleaner_.executeBehavior()
-		
+		self.processDryCleaning(rooms_dry_cleaning, True)
+
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
 			return
 		
 
 
-		# WET CLEANING BEHAVIOR OF OVERDUE ROOMS
-		# ======================================
+		# Wet cleaning of the overdue rooms
+		# =================================
 
-		self.map_handler_.setParameters(
-			self.database_handler_,
-			rooms_wet_cleaning
-		)
-		self.map_handler_.executeBehavior()
-
-		# Run Wet Cleaning Behavior
-		# TODO: Rename to wet_cleaner
-		self.wet_cleaner_ = movement_handling_behavior.MovementHandlingBehavior("MovementHandlingBehavior", self.application_status_)
-		self.wet_cleaner_.setParameters(
-			self.database_handler_,
-			self.map_handler_.segmentation_data_,
-			self.database_handler_.getRoomInformationInMeter(rooms_wet_cleaning),
-			self.map_handler_.room_sequencing_data_,
-			self.robot_frame_id_,
-			self.robot_radius_,
-			self.coverage_radius_,
-			self.field_of_view_
-		)
-		self.wet_cleaner_.executeBehavior()
+		self.processWetCleaning(rooms_wet_cleaning, True)
 		
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
 			return
+
 
 		
 		# COMPLETE APPLICATION
 		# ====================
 
 		self.printMsg("Cleaning completed. Overwriting database...")
-		try:
-			self.database_handler_.cleanFinished()
-		except:
-			self.printMsg("Fatal: Database overwriting failed!")
-			exit(1)
+		#try:
+		self.database_handler_.cleanFinished()
+		#except:
+		#	self.printMsg("Fatal: Database overwriting failed!")
+		#	exit(1)
 		
 
 
@@ -279,7 +312,6 @@ if __name__ == '__main__':
 	try:
 		# Initialize node
 		rospy.init_node('application_wet_cleaning')
-		
 		# Initialize application
 		app = WetCleaningApplication("application_wet_cleaning", "set_application_status_application_wet_cleaning")
 		# Execute application

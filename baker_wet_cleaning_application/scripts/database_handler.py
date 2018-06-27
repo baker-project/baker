@@ -31,8 +31,6 @@ class DatabaseHandler():
 	due_rooms_ = []
 	# Contains all overdue rooms
 	overdue_rooms_ = []
-	# Current RoomObject to RoomSequenceResult mapping
-	current_room_mapping_ = {}
 
 	# ===============================================================================
 	# STATIC METHODS
@@ -91,14 +89,18 @@ class DatabaseHandler():
 
 	def __init__(self, database):
 		self.database_ = database
+	
 
-	"""# Create a mapping RoomSequenceResult |-> RoomObject
-	def setRoomMapping(self, rooms_list, room_sequence_result):
+	# Create a mapping RoomSequenceResult |-> RoomObject
+	def getRoomMapping(self, rooms_list, room_sequence_result):
+		mapping = {}
 		rooms_index = 0
-		for (checkpoint in room_sequence_result.checkpoints):
-			for (seq_room_index in room_sequence_result.checkpoints[checkpoint].room_indices):
-				self.current_room_mapping_[seq_room_index] = rooms_list[room_index].room_id_
-				room_index = room_index + 1"""
+		for checkpoint in room_sequence_result.checkpoints:
+			for current_room_index in checkpoint.room_indices:
+				mapping[rooms_index] = rooms_list[current_room_index].room_id_
+				rooms_index = rooms_index + 1
+		return mapping
+
 	
 	# Reconstruct the room object out of the room sequencing result
 	def getRoomFromSequencingResult(self, sequencing_result, checkpoint, current_room):
@@ -175,9 +177,9 @@ class DatabaseHandler():
 	# USAGE: Run after all the due rooms are done
 	def getAllOverdueRooms(self):
 		# A room is overdue if
-		# 1. The room is cleaned wet & the timestamp for wet cleaning is overdue
-		# 2. The room is cleaned dry & the timestamp for dry cleaning is overdue
-		# 3. The room is cleaned in both ways & one of the timestamps stated above is overdue
+		# 1. The room was once cleaned wet & the timestamp for wet cleaning is overdue
+		# 2. The room was once cleaned dry & the timestamp for dry cleaning is overdue
+		# 3. The room was once cleaned in both ways & one of the timestamps stated above is overdue
 		# 4. The rooms trashcan timestamp is overdue
 		# This method shifts back in time and checks each event for success
 
@@ -200,9 +202,9 @@ class DatabaseHandler():
 					cleaning_method = room.room_cleaning_method_
 					# Room floor cleaning with trashcan was scheduled
 					if (((schedule_char == "x") or (schedule_char == "X"))):
-						trashcan_date = room.room_cleaning_timestamps_[0]
-						dry_date = room.room_cleaning_timestamps_[1]
-						wet_date = room.room_cleaning_timestamps_[2]
+						trashcan_date = room.room_cleaning_datestamps_[0]
+						dry_date = room.room_cleaning_datestamps_[1]
+						wet_date = room.room_cleaning_datestamps_[2]
 						# Room's trashcan was to be emptied and that did not happen
 						if ((trashcan_date != None) and (trashcan_date < indexed_date)):
 							if not (-1 in room.open_cleaning_tasks_):
@@ -235,7 +237,7 @@ class DatabaseHandler():
 									self.overdue_rooms_.append(room)
 					# Trashcan emptying was scheduled
 					elif ((schedule_char == "p") or (schedule_char == "P")):
-						trashcan_date = room.room_cleaning_timestamps_[0]
+						trashcan_date = room.room_cleaning_datestamps_[0]
 						if ((trashcan_date != None) and (trashcan_date < indexed_date)):
 							if not (-1 in room.open_cleaning_tasks_):
 								room.open_cleaning_tasks_.append(-1)
@@ -281,8 +283,8 @@ class DatabaseHandler():
 	# Method for setting a room as completed
 	def checkoutCompletedRoom(self, room, assignment_type):
 		# Add entry into the log
-		log_str = "[" + str(datetime.date()) + ", " + str(datetime.time()) + "] Room: " + str(room.room_id_) + "Assignment Type: " + str(assignment_type)
-		self.database_.loaded_log_.write(log_str + "\n")
+		log_str = "[" + str(datetime.date.today()) + ", " + str(datetime.datetime.now().time()) + "] Room: " + str(room.room_id_) + "Assignment Type: " + str(assignment_type)
+		# self.database_.loaded_log_.write(log_str + "\n")
 		# Remove assignment from the room's open assignment list
 		room.open_cleaning_tasks_.remove(assignment_type)
 		# Save all changes to the database

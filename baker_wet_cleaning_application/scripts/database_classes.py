@@ -66,48 +66,40 @@ class GlobalApplicationData():
 
 
 # Class which resembles a log item, documenting a specific event
-class LogBaseItem():
+class LogItem():
 	# Week and day flag [week, day]
 	# ([INTEGER, INTEGER])
 	log_week_and_day_ = [0, 0]
-	# Datetime stating the time of completion
+	# Datetime stating the time of the concerning event
 	# (DATETIME)
-	log_datetime_ = None
-
-
-
-# Class which resembles a log for a room specific event
-class RoomLogItem(LogBaseItem):
-	# Room ID
+	date_and_time_ = None
+	# Concerning room id 
 	# (INTEGER)
-	log_room_id_ = 0
-	# ID of the cleaning task which was completed
+	room_id_ = 0
+	# Concerning cleaning task [-1=trashcan_only, 0=dry_only, 1=wet_only]
 	# (INTEGER)
-	log_cleaning_type_ = 0
-	# Amount of trashcans which were found
+	cleaning_task_ = 0
+	# Status [Started, Completed, Stopped, Halted, Paused, Continued, ...]
 	# (INTEGER)
-	log_trashcan_count_ = 0
-	# Surface area which has been effectively cleaned
+	status_ = 0
+	# Found trashcans
+	# (INTEGER)
+	found_trashcans_ = 0
+	# Found dirt spots
+	# (INTEGER)
+	found_dirtspots_ = 0
+	# Cleaned floor surface area
+	# (INTEGER)
+	cleaned_surface_area_ = 0
+	# Amount of used water
 	# (FLOAT)
-	log_cleaned_area_ = 0
-	# Status of the task completion [Successful, Erroneous, ...]
-	# (INTEGER)
-	log_cleaning_status_ = 0
-	# Dirt spots which have been detected
-	# (?)
-	log_detected_dirt_spots_ = []
-	# Issues in the room
-	# (ARRAY OF ROOMISSUE)
-	log_room_issues_ = []
+	used_water_amount_ = 0
+	# Trolley capacity
+	# (FLOAT)
+	trolley_capacity_ = 0
 	# Battery usage
-	# (INTEGER)
-	log_battery_usage_ = 0
-	# Water usage
 	# (FLOAT)
-	log_water_usage_ = 0
-	# Trolley load
-	# (INTEGER)
-	log_trolley_load_ = 0
+	battery_usage_ = 0
 
 
 

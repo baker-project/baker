@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import thread
+import threading
 import time
 import rospy
 import behavior_container
@@ -68,8 +68,10 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 
 				# HANDLING OF SELECTED ROOM
 				# =========================
-				#thread.start_new_thread(self.exploreRoom)
-				#thread.start_new_thread(self.dirtRoutine)
-				#thread.start_new_thread(self.trashcanRoutine)
-				pass
+				thread = threading.Thread(target = self.exploreRoom)
+				thread.start()
+				thread = threading.Thread(target = self.dirtRoutine)
+				thread.start()
+				thread = threading.Thread(target = self.trashcanRoutine)
+				thread.start()
 				

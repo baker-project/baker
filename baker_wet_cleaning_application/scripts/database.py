@@ -412,8 +412,13 @@ class Database():
 	def saveRoomDatabase(self, temporal=True):
 		rooms_dict = self.getRoomsDictFromRoomsList()
 		rooms_text = json.dumps(rooms_dict, indent=4, sort_keys=True)
-		file = open(self.getCurrentLogfileName(tmp=temporal), "w")
+		#if (temporal == True):
+		#	file = open(self.rooms_filename_, "w")
+		#else:
+		#	file = open(self.tmp_rooms_filename_, "w")
+		#file = open(self.getCurrentLogfileName(tmp=temporal), "w")
 		#file.write(rooms_text)
+		#file.close()
 		
 
 
@@ -421,11 +426,12 @@ class Database():
 	def saveGlobalApplicationData(self, temporal=True):
 		application_data_dict = self.getGlobalApplicationDataDictFromGlobalApplicationData()
 		application_data_text = json.dumps(application_data_dict, indent=4, sort_keys=True)
-		if (temporal == True):
-			file = open(self.tmp_application_data_filename_, "w")
-		else:
-			file = open(self.application_data_filename_, "w")
+		#if (temporal == True):
+		#	file = open(self.tmp_application_data_filename_, "w")
+		#else:
+		#	file = open(self.application_data_filename_, "w")
 		#file.write(application_data_text)
+		#file.close()
 
 	
 
@@ -438,6 +444,7 @@ class Database():
 		#else:
 		#	file = open(self.log_filename_, "w")
 		#file.write(log_data_text)
+		#file.close()
 		pass
 
 
@@ -466,6 +473,8 @@ class Database():
 
 	# Discard temporal database --> All current progress will be forgotten
 	def discardTemporalDatabase(self):
+		# Save current log as "discarded_<datetime.now>_<old logfile name>.txt"
+		# [...]
 		# Remove temporal files from disk
 		if (os.path.isfile(self.tmp_rooms_filename_) == True):
 			os.remove(str(self.tmp_rooms_filename_))
@@ -485,14 +494,14 @@ class Database():
 		temporal_appdata_exists = os.path.isfile(self.tmp_application_data_filename_)
 		temporal_log_exists = os.path.isfile(self.tmp_log_filename_)
 		temporal_exists = temporal_appdata_exists and temporal_room_exists and temporal_log_exists
-		try:
-			if (self.checkIntegrity(temporal_exists) == True):
-				self.readFiles(temporal_exists)
-			else:
-				self.readFiles(not(temporal_exists))
-		except:
-			print "[Database] Loading of database failed. No valid original or temporal JSON file set found. Check for damaged data."
-			exit(1)
+		#try:
+		if (self.checkIntegrity(temporal_exists) == True):
+			self.readFiles(temporal_exists)
+		else:
+			self.readFiles(not(temporal_exists))
+		#except:
+		#	print "[Database] Loading of database failed. No valid original or temporal JSON file set found. Check for damaged data."
+		#	exit(1)
 
 
 
