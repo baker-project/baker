@@ -41,15 +41,13 @@ class Database():
 	global_settings_ = None
 	# Application data
 	application_data_ = None
-	# Loaded log
-	loaded_log_ = []
 	# File names
 	rooms_filename_ = ""
 	tmp_rooms_filename_ = ""
 	application_data_filename_ = ""
 	tmp_application_data_filename_ = ""
-	log_filename_ = ""
-	tmp_log_filename_ = ""
+	log_filepath_ = ""
+	tmp_log_filepath_ = ""
 	global_settings_filename_ = ""
 	robot_properties_filename_ = ""
 	global_map_data_filename_ = ""
@@ -87,34 +85,52 @@ class Database():
 
 	def updateGlobalApplicationData(self, dict):
 		self.application_data_ = database_classes.GlobalApplicationData()
-		date_str = dict.get("last_execution_date")
-		if (date_str != None):
-			self.application_data_.last_execution_date_ = self.stringToDatetime(date_str)
+		# Get the datetime of the last recorded start of the application
+		last_execution_date_str = dict.get("last_execution_date")
+		if (last_execution_date_str != None):
+			self.application_data_.last_execution_date_ = self.stringToDatetime(last_execution_date_str)
 		else:
 			self.application_data_.last_execution_date_ = None
+		# Get the last planning dates (see database_classes.py for further explanation)
+		last_planning_date_str = dict.get("last_planning_date")
+		if ((last_planning_date_str[0] != None) and (last_planning_date_str[1] != None)):
+			self.application_data_.last_planning_date_ = [self.stringToDatetime(last_planning_date_str[0]), self.stringToDatetime(last_planning_date_str[1])]
+		else:
+			self.application_data_.last_planning_date_ = [None, None]
+		# Get if the last database saving routine completed without error
 		self.application_data_.last_database_save_successful_ = dict.get("last_database_save_successful")
+		# Get the amount of executions of the application on the current day. Increment by one.
+		self.application_data_.run_count_ = dict.get("run_count")
+		if (self.application_data_.last_execution_date_ != None):
+			delta = date.today() - self.application_data_.last_execution_date_
+			if (delta.days == 0):
+				self.application_data_.run_count_ = self.application_data_.run_count_ + 1
+			else:
+				self.application_data_.run_count_ = 1
+		else:
+			self.application_data_.run_count_ = 1
 
 
 
 	def getGlobalApplicationDataDictFromGlobalApplicationData(self):
 		application_data_dict = {}
-		date_datetime = self.application_data_.last_execution_date_
-		if (date_datetime != None):
-			application_data_dict["last_execution_date"] = self.datetimeToString(date_datetime)
+		
+		execution_date_datetime = self.application_data_.last_execution_date_
+		if (execution_date_datetime != None):
+			application_data_dict["last_execution_date"] = self.datetimeToString(execution_date_datetime)
 		else:
 			application_data_dict["last_execution_date"] = None
+		
+		planning_date_datetime = [None, None]
+		if (self.application_data_.last_planning_date_[0] != None):
+			planning_date_datetime[0] = self.datetimeToString(self.application_data_.last_planning_date_[0])
+		if (self.application_data_.last_planning_date_[1] != None):
+			planning_date_datetime[1] = self.datetimeToString(self.application_data_.last_planning_date_[1])
+		application_data_dict["last_planning_date"] = planning_date_datetime
+		
 		application_data_dict["last_database_save_successful"] = self.application_data_.last_database_save_successful_
+		application_data_dict["run_count"] = self.application_data_.run_count_
 		return application_data_dict
-
-	
-
-	def updateLogData(self):
-		pass
-
-	
-
-	def getLogDataDictFromLogData(self):
-		pass
 	
 	
 
@@ -327,8 +343,6 @@ class Database():
 					"room_floor_id": current_room.room_floor_id_,
 					"room_building_id": current_room.room_building_id_,
 					"room_territory_id": current_room.room_territory_id_,
-					#"last_successful_cleaning_date": date_str_cleaning,
-					#"last_successful_trashcan_date": date_str_trashcan,
 					"room_issues": issues_dict,
 					"room_map_filename": current_room.room_map_filename_,
 					"room_information_in_pixel": room_information_in_pixel_list,
@@ -362,13 +376,6 @@ class Database():
 			file = open(self.application_data_filename_, "r").read()
 		application_data_dict = json.loads(file)
 		self.updateGlobalApplicationData(application_data_dict)
-		# Load the log data
-		#if (temporal == True):
-		#	file = open(self.tmp_log_filename_, "r").read()
-		#else:
-		#	file = open(self.log_filename_, "r").read()
-		#log_dict = json.loads(file)
-		
 		# Load the robot properties
 		file = open(self.robot_properties_filename_, "r").read()
 		robot_properties_dict = json.loads(file)
@@ -397,15 +404,54 @@ class Database():
 
 
 	# Determine what the current logfile name is supposed to be
-	def getCurrentLogfileName(self, tmp=True):
-		# Filename: log_<year><week>
+	def getCurrentLogfileName(self):
+		# Filename: log_<year>_<week>_<day>_run<run count>.json
 		week = date.today().isocalendar()[1]
 		year = date.today().year
-		if (tmp == True):
-			tmp_string = "tmp_"
-		else:
-			mp_string = ""
-		return str(tmp_string) + "log_" + str(year) + str(week) + ".txt"
+		day = date.today().weekday()
+		return str(tmp_string) + "log_" + str(year) + "_" + str(week) + "_" + str(day) + "_run" + str(self.application_data_.run_count_) + ".json"
+
+
+	# Convert log dict into an object array
+	def getLogListFromLogDict(self, dict):
+		log_item_list = []
+		for log_key in dict:
+			log_item = database_classes.LogItem()
+			log_item.cleaned_surface_area_ = dict.get(log_key).get("cleaned_surface_area")
+			log_item.cleaning_task_ = dict.get(log_key).get("cleaning_task")
+			log_item.date_and_time_ = self.stringToDatetime(dict.get(log_key).get("date_and_time"))
+			log_item.found_dirtspots_ = dict.get(log_key).get("found_dirtspots")
+			log_item.found_trashcans_ = dict.get(log_key).get("found_trashcans")
+			log_item.log_week_and_day_ = dict.get(log_key).get("week_and_day")
+			log_item.room_id_ = dict.get(log_key).get("room_id")
+			log_item.status_ = dict.get(log_key).get("status")
+			log_item.trolley_capacity_ = dict.get(log_key).get("trolley_capacity")
+			log_item.used_water_amount_ = dict.get(log_key).get("used_water_amount")
+			log_item.battery_usage_ = dict.get(log_key).get("battery_usage")
+			log_item_list.append(log_item)
+		return log_item_list
+
+
+	# Convert log object array into dict
+	def getLogDictFromLogList(self, log_item_list):
+		log_dict = {}
+		for log_item in log_item_list:
+			date_and_time = self.datetimeToString(log_item.date_and_time_)
+			log_dict[str(date_and_time)] = {
+				"cleaned_surface_area": log_item.cleaned_surface_area_,
+				"cleaning_task": log_item.cleaning_task_,
+				"date_and_time": log_item.date_and_time_,
+				"found_dirtspots": log_item.found_dirtspots_,
+				"found_trashcans": log_item.found_trashcans_,
+				"week_and_day": log_item.log_week_and_day_,
+				"room_id": log_item.room_id_,
+				"status": log_item.status_,
+				"trolley_capacity": log_item.trolley_capacity_,
+				"used_water_amount": log_item.used_water_amount_,
+				"battery_usage": log_item.battery_usage_
+			}
+		return log_dict
+
 
 
 	# Save the room data
@@ -433,20 +479,6 @@ class Database():
 		#file.write(application_data_text)
 		#file.close()
 
-	
-
-	# Save the log data
-	def saveLogData(self, temporal=True):
-		#log_data_dict = self.getLogDataDictFromLogData()
-		#log_data_text = json.dumps(log_data_dict, indent=4, sort_keys=True)
-		#if (temporal == True):
-		#	file = open(self.tmp_log_filename_, "w")
-		#else:
-		#	file = open(self.log_filename_, "w")
-		#file.write(log_data_text)
-		#file.close()
-		pass
-
 
 
 # =========================================================================================
@@ -465,23 +497,24 @@ class Database():
 		self.global_map_segmented_image_filename_ = self.extracted_file_path + str("resources/maps/global_map_segmented.png")
 		self.application_data_filename_ = self.extracted_file_path + str("resources/json/application_data.json")
 		self.tmp_application_data_filename_ = self.extracted_file_path + str("resources/json/tmp_application_data.json")
-		self.log_filename_ = self.extracted_file_path + str("resources/logs/") + self.getCurrentLogfileName()
-		self.tmp_log_filename_ = self.extracted_file_path + str("resources/logs/tmp_") + self.getCurrentLogfileName()
+		self.log_filepath_ = self.extracted_file_path + str("resources/logs/")
 		
 
 
 
 	# Discard temporal database --> All current progress will be forgotten
 	def discardTemporalDatabase(self):
-		# Save current log as "discarded_<datetime.now>_<old logfile name>.txt"
-		# [...]
+		# Save current log as "_discarded_<old logfile name>.txt"
+		current_logfile_filename = self.getCurrentLogfileName()
+		current_file_name = str(self.log_filepath_) + str(current_logfile_filename)
+		if (os.path.isfile(current_file_name) == True):
+			current_discarded_logfile_name = str(self.log_filepath_) + "_discarded_" + str(current_logfile_filename)
+			copyfile(current_file_name, current_discarded_logfile_name)
 		# Remove temporal files from disk
 		if (os.path.isfile(self.tmp_rooms_filename_) == True):
 			os.remove(str(self.tmp_rooms_filename_))
 		if (os.path.isfile(self.tmp_application_data_filename_) == True):
 			os.remove(str(self.tmp_application_data_filename_))
-		if (os.path.isfile(self.tmp_log_filename_) == True):
-			os.remove(str(self.tmp_log_filename_))
 		# Reload database from original files
 		self.loadDatabase()
 
@@ -492,8 +525,7 @@ class Database():
 		# Check if there is a temporal representation
 		temporal_room_exists = os.path.isfile(self.tmp_rooms_filename_)
 		temporal_appdata_exists = os.path.isfile(self.tmp_application_data_filename_)
-		temporal_log_exists = os.path.isfile(self.tmp_log_filename_)
-		temporal_exists = temporal_appdata_exists and temporal_room_exists and temporal_log_exists
+		temporal_exists = temporal_appdata_exists and temporal_room_exists
 		#try:
 		if (self.checkIntegrity(temporal_exists) == True):
 			self.readFiles(temporal_exists)
@@ -505,12 +537,40 @@ class Database():
 
 
 
+	def addLogEntry(self, log_element):
+		# Load current log file. If there is not a suiting log file, create one
+		current_logfile_filename = self.getCurrentLogfileName()
+		current_file_name = str(self.log_filepath_) + str(current_logfile_filename)
+		if (os.path.isfile(current_file_name) == True):
+			file = open(current_file_name, "r").read()
+		else:
+			file = open(current_file_name, "w")
+			file.close
+		# Translate text to dict and dict to list of LogItem
+		log_item_dict = json.loads(file)
+		log_item_list = self.getLogListFromLogDict(log_item_dict)
+		# Append new LogItem instance to the LogItem list
+		log_item_list.append(log_element)
+		# Translate LogItem list to dict and dict to text
+		log_item_dict = self.getLogDictFromLogList
+		log_text = json.dumps(log_item_dict, indent=4, sort_keys=True)
+		# Copy current log file and name the copy _backup_<Filename>.json
+		current_backup_file_name = str(self.log_filepath_) + "_backup_" + str(current_logfile_filename)
+		copyfile(current_file_name, current_backup_file_name)
+		# Save dict into current file
+		file = open(current_file_name, "w")
+		file.write(log_text)
+		file.close
+		# Remove backup file
+		os.remove(current_backup_file_name)
+
+
+
 	# Save the complete database safely, remove temporal data on final save
 	def saveCompleteDatabase(self, temporal_file=True):
 		self.application_data_.last_database_save_successful_ = False
 		self.saveGlobalApplicationData(temporal=temporal_file)
 		self.saveRoomDatabase(temporal=temporal_file)
-		self.saveLogData(temporal=temporal_file)
 		self.application_data_.last_database_save_successful_ = True
 		self.saveGlobalApplicationData(temporal=temporal_file)
 		if (temporal_file == False):
@@ -518,8 +578,6 @@ class Database():
 				os.remove(str(self.tmp_rooms_filename_))
 			if (os.path.isfile(self.tmp_application_data_filename_) == True):
 				os.remove(str(self.tmp_application_data_filename_))
-			if (os.path.isfile(self.tmp_log_filename_) == True):
-				os.remove(str(self.tmp_log_filename_))
 
 
 

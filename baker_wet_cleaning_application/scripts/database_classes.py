@@ -56,9 +56,15 @@ class GlobalMapData():
 
 # Class which contains all application-wide data to be recorded
 class GlobalApplicationData():
-	# Last date the application was run
-	# (DATE)
+	# Last date the application was started
+	# (DATETIME)
 	last_execution_date_ = None
+	# Dates when the date planning subtasks of application_wet_cleaning completed the last time [Due cleaning, Overdue cleaning]
+	# ([DATETIME, DATETIME])
+	last_planning_date_ = [None, None]
+	# Application run count of that day
+	# (INTEGER)
+	run_count_ = 0
 	# Was the last saving of the database successful?
 	# (BOOLEAN)
 	last_database_save_successful_ = True
@@ -100,17 +106,9 @@ class LogItem():
 	# Battery usage
 	# (FLOAT)
 	battery_usage_ = 0
-
-
-
-# Class which contains all log items
-class Log():
-	# List of all room log items which belong to a room
-	# (DICTIONARY OF ARRAY OF ROOMLOGITEM)
-	room_logs_ = {}
-	# Log item for machine events
-	# (ROBOTLOGITEM)
-	robot_log_ = None
+	# IDs of occurred room issues
+	# (ARRAY OF INTEGER)
+	room_issues_ = []
 
 
 

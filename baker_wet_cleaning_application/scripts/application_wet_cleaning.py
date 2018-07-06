@@ -11,6 +11,7 @@ import database
 import database_handler
 
 from geometry_msgs.msg import Point32
+import datetime
 
 class WetCleaningApplication(application_container.ApplicationContainer):
 
@@ -45,7 +46,8 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			# Run Dry Cleaning Behavior
 			self.dry_cleaner_.setParameters(
 				self.database_handler_,
-				self.map_handler_.room_sequencing_data_
+				self.map_handler_.room_sequencing_data_,
+				self.map_handler_.mapping_
 			)
 			self.dry_cleaner_.executeBehavior()
 		
@@ -148,11 +150,15 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		#	exit(1)
 
 		# Initialize database handler
-		try:
-			self.database_handler_ = database_handler.DatabaseHandler(self.database_)
-		except:
-			self.printMsg("Fatal: Initialization of database handler failed!")
-			exit(1)
+		#try:
+		self.database_handler_ = database_handler.DatabaseHandler(self.database_)
+		#except:
+		#	self.printMsg("Fatal: Initialization of database handler failed!")
+		#	exit(1)
+
+		# Document this application run
+		self.database_.application_data_.last_execution_date_ = datetime.datetime.now()
+		self.database_handler_.applyChangesToDatabase()
 
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
@@ -192,6 +198,10 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		#except:
 		#	self.printMsg("Fatal: Sorting after the cleaning method failed!")
 		#	exit(1)
+
+		# Document completed due rooms planning in the database
+		self.database_.application_data_.last_planning_date_[0] = datetime.datetime.now()
+		self.database_handler_.applyChangesToDatabase()
 
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
@@ -240,6 +250,10 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		#except:
 		#	self.printMsg("Fatal: Sorting after the cleaning method failed!")
 		#	exit(1)
+
+		# Document completed due rooms planning in the database
+		self.database_.application_data_.last_planning_date_[1] = datetime.datetime.now()
+		self.database_handler_.applyChangesToDatabase()
 		
 
 

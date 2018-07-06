@@ -112,8 +112,8 @@ class DatabaseHandler():
 	# CASE: First run of application, no rooms collected yet today.
 	def getAllDueRooms(self):
 		# If the application ran already today and the due rooms list is umenpty, this should not run
-		if (self.database_.application_data_.last_execution_date_ != None):
-			delta = date.today() - self.database_.application_data_.last_execution_date_
+		if (self.database_.application_data_.last_planning_date_[0] != None):
+			delta = date.today() - self.database_.application_data_.last_planning_date_[0]
 			if ((delta.days == 0) and (len(self.due_rooms_) != 0)):
 				return
 		today_index = self.getTodaysScheduleIndex()
@@ -173,7 +173,7 @@ class DatabaseHandler():
 
 
 	# Method for extracting all overdue rooms from the due assignment
-	# CASE: Application did not even start on a day it was supposed to.
+	# CASE: Rooms were missed in the past
 	# USAGE: Run after all the due rooms are done
 	def getAllOverdueRooms(self):
 		# A room is overdue if
@@ -249,10 +249,12 @@ class DatabaseHandler():
 		
 		self.applyChangesToDatabase()
 
+
+
 	# Method for figuring out whether the application had been started today already
 	def isFirstStartToday(self):
 		last_start = self.database_.application_data_.last_execution_date_
-		today_date = datetime.date.today()
+		today_date = datetime.datetime.now()
 		if (last_start != None):
 			delta = today_date - last_start
 			if (delta.days < 1):
@@ -261,6 +263,7 @@ class DatabaseHandler():
 				return True
 		else:
 			return True
+
 			
 
 	# Method for sorting a list of rooms after the cleaning method
@@ -283,10 +286,24 @@ class DatabaseHandler():
 	# Method for setting a room as completed
 	def checkoutCompletedRoom(self, room, assignment_type):
 		# Add entry into the log
-		log_str = "[" + str(datetime.date.today()) + ", " + str(datetime.datetime.now().time()) + "] Room: " + str(room.room_id_) + "Assignment Type: " + str(assignment_type)
-		# self.database_.loaded_log_.write(log_str + "\n")
+		log_item = database_classes.LogItem()
+		log_item.room_id_ = room.room_id_
+		log_item.cleaning_task_ = assignment_type
+		log_item.battery_usage_ = 0
+		log_item.cleaned_surface_area_ = 0
+		log_item.date_and_time_ = datetime.datetime.now()
+		log_item.found_dirtspots_ = 0
+		log_item.found_trashcans_ = 0
+		log_item.log_week_and_day_ = [self.getTodaysWeekType(), self.getTodaysWeekDay()]
+		log_item.room_issues_ = []
+		log_item.status_ = 0
+		log_item.trolley_capacity_ = 0
+		log_item.used_water_amount_ = 0
+		self.database_.addLogEntry(log_item)
 		# Remove assignment from the room's open assignment list
 		room.open_cleaning_tasks_.remove(assignment_type)
+		# Save current datetime as timestamp for the specified assignment
+		room.room_cleaning_datestamps_[assignment_type + 1] = datetime.datetime.now()
 		# Save all changes to the database
 		self.applyChangesToDatabase()
 

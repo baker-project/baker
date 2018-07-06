@@ -25,9 +25,10 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 		self.interrupt_var_ = interrupt_var
 		
 	# Method for setting parameters for the behavior
-	def setParameters(self, database_handler, sequencing_result):
+	def setParameters(self, database_handler, sequencing_result, mapping):
 		self.database_handler_ = database_handler
 		self.sequencing_result_ = sequencing_result
+		self.mapping_ = mapping
 
 	# Method for returning to the standard pose of the robot
 	def returnToRobotStandardState(self):
@@ -64,6 +65,8 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 			self.trolley_mover_.setParameters(self.database_handler_)
 			self.trolley_mover_.executeBehavior()
 
+			room_counter = 0
+
 			for room_index in checkpoint.room_indices:
 
 				# HANDLING OF SELECTED ROOM
@@ -74,4 +77,12 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 				thread.start()
 				thread = threading.Thread(target = self.trashcanRoutine)
 				thread.start()
+				
+				# Checkout the completed the room
+				self.printMsg("ID of cleaned room: " + str(self.mapping_.get(room_counter)))
+				self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)), 1)
+				self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)), -1)
+				self.printMsg(str(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)).open_cleaning_tasks_))
+
+				room_counter = room_counter + 1
 				
