@@ -70,6 +70,7 @@ class DatabaseCreator():
 				self.map_segmented_data_ = None
 		"""
 
+
 		# Segment map
 		# ===========
 
@@ -90,7 +91,7 @@ class DatabaseCreator():
 
 	def createRoomEntries(self):
 		for i in range(len(self.segmentation_result_.room_information_in_pixel)):
-			print "Room " + str(i)
+			print "Creating room " + str(i)
 			cv_image = self.getMapSegmentAsImage(self.cvBridge2OpenCv(self.segmentation_result_.segmented_map), i)
 			img_file_name = "map_" + str(i) + ".png"
 			cv2.imwrite("resources/maps/" + str(img_file_name), cv_image)
@@ -105,12 +106,11 @@ class DatabaseCreator():
 			room.room_cleaning_method_ = 2
 			room.room_surface_area_ = 3.141
 			room.room_trashcan_count_ = 4
-			#room.last_successful_cleaning_date_ = None
-			#room.last_successful_trashcan_date_ = None
 			room.room_cleaning_datestamps_ = [None, None, None]
 			room.room_issues = []
 			room.room_map_ = img_file_name
 			room.room_map_data = self.openCv2CvBridge(cv_image)
+			room.room_map_filename_ = img_file_name
 			room.room_information_in_pixel_ = self.segmentation_result_.room_information_in_pixel[i]
 			room.room_information_in_meter_ = self.segmentation_result_.room_information_in_meter[i]
 			room.room_scheduled_days_ = ["","","","","","","","","","","","","",""]
@@ -174,8 +174,25 @@ class DatabaseCreator():
 		global_map_data_text = json.dumps(global_map_data_dict, indent=4, sort_keys=True)
 		file = open("resources/json/global_map_data.json", "w")
 		file.write(global_map_data_text)
-		map_image_opencv = self.cvBridge2OpenCv(self.segmentation_result_.segmented_map)
-		cv2.imwrite("resources/maps/global_map.png", map_image_opencv)
+		segmented_map_image_opencv = self.cvBridge2OpenCv(self.segmentation_result_.segmented_map)
+		cv2.imwrite("resources/maps/global_map_segmented.png", segmented_map_image_opencv)
+		map_image_opencv = self.cvBridge2OpenCv(self.map_data_.map)
+		cv2.imwrite"resources/maps/global_map.png", map_image_opencv()
+
+		# Save global application data
+		# ============================
+
+		application_data_dict = {
+			"last_database_save_successful": True,
+			"last_execution_date": None,
+			"last_planning_date": [
+				None,
+				None
+			],
+			"run_count": 0
+		}
+		file = open("resources/json/application_data.json", "w")
+		file.write(application_data_dict)
 
 
 
@@ -194,22 +211,22 @@ class DatabaseCreator():
 		file = open(str("csv/ROOMPLAN.csv"), "a")
 		#file.write("\n")
 		for room in self.database_.rooms_:
-			file.write(str(room.room_position_id_) + ",")
-			file.write(str(room.room_floor_id_) + ",")
-			file.write(str(room.room_building_id_) + ",")
-			file.write(str(room.room_id_) + ",")
-			file.write(str(room.room_name_) + ",")
-			file.write("Reinigungsbereich,")
-			file.write(str(room.room_surface_type_) + ",")
-			file.write(str(room.room_cleaning_method_) + ",")
-			file.write(str(room.room_surface_area_) + ",")
-			file.write(str(room.room_trashcan_count_) + ",")
-			file.write(",")
-			file.write("?,")
-			file.write("?,")
-			file.write("?,")
-			file.write("?,")
-			file.write("Woche,")
+			file.write(str(room.room_position_id_) + ";")
+			file.write(str(room.room_floor_id_) + ";")
+			file.write(str(room.room_building_id_) + ";")
+			file.write(str(room.room_id_) + ";")
+			file.write(str(room.room_name_) + ";")
+			file.write("Reinigungsbereich;")
+			file.write(str(room.room_surface_type_) + ";")
+			file.write(str(room.room_cleaning_method_) + ";")
+			file.write(str(room.room_surface_area_) + ";")
+			file.write(str(room.room_trashcan_count_) + ";")
+			file.write(";")
+			file.write("?;")
+			file.write("?;")
+			file.write("?;")
+			file.write("?;")
+			file.write("Woche;")
 			file.write("\n")
 
 
@@ -223,18 +240,18 @@ class DatabaseCreator():
 		#file.write("Rev.,Pos.,Etg.,Raum Nr.,Bez.1,Bez.2,R.-Gr.,Bez.3,Belag,Flache,Reinigungsintervall,Mo,Di,Mi,Do,Fr,Sa,So,Mo,Di,Mi,Do,Fr,Sa,So")
 		#file.write("\n")
 		for room in self.database_.rooms_:
-			file.write(str(room.room_territory_id_) + ",")
-			file.write(str(room.room_position_id_) + ",")
-			file.write(str(room.room_floor_id_) + ",")
-			file.write(str(room.room_id_) + ",")
-			file.write("Bezeichnung 1,")
-			file.write("Bezeichnung 2,")
-			file.write("Raumgruppe,")
-			file.write("Bezeichnung 3,")
-			file.write(str(room.room_surface_type_) + ",")
-			file.write(str(room.room_surface_area_) + ",")
-			file.write("INTERVAL_STRING,")
-			file.write(",,,,,,,,,,,,,,")
+			file.write(str(room.room_territory_id_) + ";")
+			file.write(str(room.room_position_id_) + ";")
+			file.write(str(room.room_floor_id_) + ";")
+			file.write(str(room.room_id_) + ";")
+			file.write("Bezeichnung 1;")
+			file.write("Bezeichnung 2;")
+			file.write("Raumgruppe;")
+			file.write("Bezeichnung 3;")
+			file.write(str(room.room_surface_type_) + ";")
+			file.write(str(room.room_surface_area_) + ";")
+			file.write("INTERVAL_STRING;")
+			file.write(";;;;;;;;;;;;;;")
 			file.write("\n")
 
 
