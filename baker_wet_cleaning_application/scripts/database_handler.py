@@ -113,8 +113,9 @@ class DatabaseHandler():
 	def getAllDueRooms(self):
 		# If the application ran already today and the due rooms list is umenpty, this should not run
 		if (self.database_.application_data_.last_planning_date_[0] != None):
-			delta = date.today() - self.database_.application_data_.last_planning_date_[0]
+			delta = datetime.datetime.now() - self.database_.application_data_.last_planning_date_[0]
 			if ((delta.days == 0) and (len(self.due_rooms_) != 0)):
+				print "[DatabaseHandler]: Earlier run detected!"
 				return
 		today_index = self.getTodaysScheduleIndex()
 		self.due_rooms_ = []
@@ -125,11 +126,11 @@ class DatabaseHandler():
 				# Find out if the timestamps indicate that the room has been handled already today
 				timestamp_is_new = [
 					(room.room_cleaning_datestamps_[0] != None) 
-					and (date.today() - room.room_cleaning_datestamps_[0] < datetime.timedelta(days=1)),
+					and (datetime.datetime.now() - room.room_cleaning_datestamps_[0] < datetime.timedelta(days=1)),
 					(room.room_cleaning_datestamps_[1] != None) 
-					and (date.today() - room.room_cleaning_datestamps_[1] < datetime.timedelta(days=1)),
+					and (datetime.datetime.now() - room.room_cleaning_datestamps_[1] < datetime.timedelta(days=1)),
 					(room.room_cleaning_datestamps_[2] != None) 
-					and (date.today() - room.room_cleaning_datestamps_[2] < datetime.timedelta(days=1))
+					and (datetime.datetime.now() - room.room_cleaning_datestamps_[2] < datetime.timedelta(days=1))
 				]
 				# If today is a cleaning day
 				if ((schedule_char == "x") or (schedule_char == "X")):
@@ -166,7 +167,9 @@ class DatabaseHandler():
 
 	# Method for restoring the due list
 	# CASE: Application stopped while not all rooms were completed, but room collecting completed. Restart --> Restore due list
+	# USAGE: Run before getAllDueRooms()
 	def restoreDueRooms(self):
+		print "[DatabaseHandler]: Restoring due rooms from earlier runs..."
 		for room in self.database_.rooms_:
 			if (len(room.open_cleaning_tasks_) != 0):
 				self.due_rooms_.append(room)
@@ -193,7 +196,7 @@ class DatabaseHandler():
 				continue
 			# Get the corresponding date
 			datetime_day_delta = datetime.timedelta(days=day_delta)
-			indexed_date = date.today() - datetime_day_delta
+			indexed_date = datetime.datetime.now() - datetime_day_delta
 			# Iterate through all potential rooms
 			for room in self.database_.rooms_:
 				# Room must not be in the due rooms list already
@@ -252,8 +255,8 @@ class DatabaseHandler():
 
 
 	# Method for figuring out whether the application had been started today already
-	def isFirstStartToday(self):
-		last_start = self.database_.application_data_.last_execution_date_
+	def duePlanningHappenedToday(self):
+		last_start = self.database_.application_data_.last_planning_date_[0]
 		today_date = datetime.datetime.now()
 		if (last_start != None):
 			delta = today_date - last_start
@@ -285,6 +288,8 @@ class DatabaseHandler():
 
 	# Method for setting a room as completed
 	def checkoutCompletedRoom(self, room, assignment_type):
+		# Print checkout on console
+		print "[DatabaseHandler]: Checking out room " + str(room.room_id_) + ", cleaning subtask " + str(assignment_type) + ", out of " + str(room.open_cleaning_tasks_)
 		# Add entry into the log
 		log_item = database_classes.LogItem()
 		log_item.room_id_ = room.room_id_

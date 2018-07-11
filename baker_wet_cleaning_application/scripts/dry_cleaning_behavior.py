@@ -37,15 +37,15 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 		pass
 
 	# Searching for trashcans
-	def trashcanRoutine(self):
-		pass
+	def trashcanRoutine(self, room_counter):
+		self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)), -1)
 
 	# Searching for dirt
-	def dirtRoutine(self):
-		pass
+	def dirtRoutine(self, room_counter):
+		self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)), 0)
 
 	# Driving through room
-	def exploreRoom(self):
+	def exploreRoom(self, room_counter):
 		pass
 
 	# Implemented Behavior
@@ -58,6 +58,8 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 		self.tool_changer_.setParameters(self.database_handler_)
 		self.tool_changer_.executeBehavior()
 
+		room_counter = 0
+
 		for checkpoint in self.sequencing_result_.checkpoints:
 
 			# TROLLEY MOVEMENT TO CHECKPOINT
@@ -65,24 +67,22 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 			self.trolley_mover_.setParameters(self.database_handler_)
 			self.trolley_mover_.executeBehavior()
 
-			room_counter = 0
-
 			for room_index in checkpoint.room_indices:
 
 				# HANDLING OF SELECTED ROOM
 				# =========================
-				thread = threading.Thread(target = self.exploreRoom)
+				cleaning_tasks = self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)).open_cleaning_tasks_
+				thread = threading.Thread(target = self.exploreRoom(room_counter))
 				thread.start()
-				thread = threading.Thread(target = self.dirtRoutine)
-				thread.start()
-				thread = threading.Thread(target = self.trashcanRoutine)
-				thread.start()
+				if ((0 in cleaning_tasks) == True):
+					thread = threading.Thread(target = self.dirtRoutine(room_counter))
+					thread.start()
+				if ((-1 in cleaning_tasks) == True):
+					thread = threading.Thread(target = self.trashcanRoutine(room_counter))
+					thread.start()
 				
-				# Checkout the completed the room
-				self.printMsg("ID of cleaned room: " + str(self.mapping_.get(room_counter)))
-				self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)), 1)
-				self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)), -1)
+				# Checkout the completed room
+				self.printMsg("ID of dry cleaned room: " + str(self.mapping_.get(room_counter)))
 				self.printMsg(str(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)).open_cleaning_tasks_))
-
 				room_counter = room_counter + 1
 				

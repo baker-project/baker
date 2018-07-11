@@ -171,9 +171,11 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 
 		# Find due rooms
 		self.printMsg("Collecting due rooms...")
-		if (self.database_handler_.isFirstStartToday() == True):
+		if (self.database_handler_.duePlanningHappenedToday() == True):
 			#try:
+			self.database_handler_.restoreDueRooms()
 			self.database_handler_.getAllDueRooms()
+			print len(self.database_.rooms_)
 			for room in self.database_handler_.due_rooms_:
 				print room.room_name_
 			#except:

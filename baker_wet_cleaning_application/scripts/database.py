@@ -102,7 +102,7 @@ class Database():
 		# Get the amount of executions of the application on the current day. Increment by one.
 		self.application_data_.run_count_ = dict.get("run_count")
 		if (self.application_data_.last_execution_date_ != None):
-			delta = date.today() - self.application_data_.last_execution_date_
+			delta = datetime.now() - self.application_data_.last_execution_date_
 			if (delta.days == 0):
 				self.application_data_.run_count_ = self.application_data_.run_count_ + 1
 			else:
@@ -409,7 +409,7 @@ class Database():
 		week = date.today().isocalendar()[1]
 		year = date.today().year
 		day = date.today().weekday()
-		return str(tmp_string) + "log_" + str(year) + "_" + str(week) + "_" + str(day) + "_run" + str(self.application_data_.run_count_) + ".json"
+		return "log_" + str(year) + "_" + str(week) + "_" + str(day) + "_run" + str(self.application_data_.run_count_) + ".json"
 
 
 	# Convert log dict into an object array
@@ -440,7 +440,7 @@ class Database():
 			log_dict[str(date_and_time)] = {
 				"cleaned_surface_area": log_item.cleaned_surface_area_,
 				"cleaning_task": log_item.cleaning_task_,
-				"date_and_time": log_item.date_and_time_,
+				"date_and_time": date_and_time,
 				"found_dirtspots": log_item.found_dirtspots_,
 				"found_trashcans": log_item.found_trashcans_,
 				"week_and_day": log_item.log_week_and_day_,
@@ -458,13 +458,12 @@ class Database():
 	def saveRoomDatabase(self, temporal=True):
 		rooms_dict = self.getRoomsDictFromRoomsList()
 		rooms_text = json.dumps(rooms_dict, indent=4, sort_keys=True)
-		#if (temporal == True):
-		#	file = open(self.rooms_filename_, "w")
-		#else:
-		#	file = open(self.tmp_rooms_filename_, "w")
-		#file = open(self.getCurrentLogfileName(tmp=temporal), "w")
-		#file.write(rooms_text)
-		#file.close()
+		if (temporal == True):
+			file = open(self.rooms_filename_, "w")
+		else:
+			file = open(self.tmp_rooms_filename_, "w")
+		file.write(rooms_text)
+		file.close()
 		
 
 
@@ -472,12 +471,12 @@ class Database():
 	def saveGlobalApplicationData(self, temporal=True):
 		application_data_dict = self.getGlobalApplicationDataDictFromGlobalApplicationData()
 		application_data_text = json.dumps(application_data_dict, indent=4, sort_keys=True)
-		#if (temporal == True):
-		#	file = open(self.tmp_application_data_filename_, "w")
-		#else:
-		#	file = open(self.application_data_filename_, "w")
-		#file.write(application_data_text)
-		#file.close()
+		if (temporal == True):
+			file = open(self.tmp_application_data_filename_, "w")
+		else:
+			file = open(self.application_data_filename_, "w")
+		file.write(application_data_text)
+		file.close()
 
 
 
@@ -543,16 +542,19 @@ class Database():
 		current_file_name = str(self.log_filepath_) + str(current_logfile_filename)
 		if (os.path.isfile(current_file_name) == True):
 			file = open(current_file_name, "r").read()
+			# Translate text to dict and dict to list of LogItem
+			log_item_dict = json.loads(file)
+			log_item_list = self.getLogListFromLogDict(log_item_dict)
 		else:
+			# Create empty logfile and empty LogItem list
 			file = open(current_file_name, "w")
+			file.write("{}")
 			file.close
-		# Translate text to dict and dict to list of LogItem
-		log_item_dict = json.loads(file)
-		log_item_list = self.getLogListFromLogDict(log_item_dict)
+			log_item_list = []
 		# Append new LogItem instance to the LogItem list
 		log_item_list.append(log_element)
 		# Translate LogItem list to dict and dict to text
-		log_item_dict = self.getLogDictFromLogList
+		log_item_dict = self.getLogDictFromLogList(log_item_list)
 		log_text = json.dumps(log_item_dict, indent=4, sort_keys=True)
 		# Copy current log file and name the copy _backup_<Filename>.json
 		current_backup_file_name = str(self.log_filepath_) + "_backup_" + str(current_logfile_filename)
