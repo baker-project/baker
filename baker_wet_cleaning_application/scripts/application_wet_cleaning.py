@@ -19,9 +19,6 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 	# Description:
 	# Highest element in the hierarchy of the cleaning application
 	#========================================================================
-	# Services to be used:
-	# NONE
-	#========================================================================
 
 
 	# Dry cleaning routine, to be called from inside executeCustomBehavior()

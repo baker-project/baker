@@ -16,10 +16,6 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 	# Returns a sorted list of RoomInformation from a given 
 	# database_classes.RoomItem list
 	#========================================================================
-	# Serivces to be used:
-	# room_sequencing_service_str_ = 
-	#       '/room_sequence_planning/room_sequence_planning_server'
-	#========================================================================
 	
 	# Method for setting parameters for the behavior
 	def setParameters(self, database_handler, rooms_list):

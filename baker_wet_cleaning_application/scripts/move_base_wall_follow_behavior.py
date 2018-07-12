@@ -10,6 +10,12 @@ import behavior_container
 
 class MoveBaseWallFollowBehavior(behavior_container.BehaviorContainer):
 
+	#========================================================================
+	# Description:
+	# Class which contains the behavior for making the robot follow along
+	# the walls
+	#========================================================================
+
 	def __init__(self, behavior_name, interrupt_var, service_str):
 		self.behavior_name_ = behavior_name
 		self.interrupt_var_ = interrupt_var

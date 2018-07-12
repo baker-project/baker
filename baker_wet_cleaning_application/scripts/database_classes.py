@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+#========================================================================
+# Description:
+# Contains all classes whose instances are stored in the database
+#========================================================================
+
 
 # Class which contains all the properties of the robot
 class RobotProperties():

@@ -6,6 +6,11 @@ import database_handler
 
 
 class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
+
+	#========================================================================
+	# Description:
+	# Class which contains the behavior of trashcan emptying
+	#========================================================================
 		
 	# Method for setting parameters for the behavior
 	def setParameters(self, database_handler):

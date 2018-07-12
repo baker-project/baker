@@ -26,10 +26,6 @@ class Database():
 	# Container for all data being used in the cleaning application.
 	# Also contains functions to load and save data.
 	#========================================================================
-	# Services to be used:
-	# NONE
-	#========================================================================
-
 
 	# Rooms
 	rooms_ = []

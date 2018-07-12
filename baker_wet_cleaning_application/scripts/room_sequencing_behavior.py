@@ -25,6 +25,11 @@ def get_transform_listener():
 
 class RoomSequencingBehavior(behavior_container.BehaviorContainer):
 
+	#========================================================================
+	# Description:
+	# Class which contains the behavior for sequencing a list of rooms
+	#========================================================================
+
 	def __init__(self, behavior_name, interrupt_var, service_str):
 		self.behavior_name_ = behavior_name
 		self.interrupt_var_ = interrupt_var
@@ -33,8 +38,6 @@ class RoomSequencingBehavior(behavior_container.BehaviorContainer):
 	# Method for setting parameters for the behavior
 	#def setParameters(self, map_data, segmentation_data, robot_radius):
 	def setParameters(self, database, room_information_in_pixel, robot_radius):
-		#self.map_data_ = map_data
-		#self.segmentation_data_ = segmentation_data
 		self.database_ = database
 		self.room_information_in_pixel_ = room_information_in_pixel
 		self.robot_radius_ = robot_radius
@@ -62,18 +65,13 @@ class RoomSequencingBehavior(behavior_container.BehaviorContainer):
 
 	# Implemented Behavior
 	def executeCustomBehavior(self):
-		#self.printMsg("self.segmentation_data_.room_information_in_pixel=" + str(self.segmentation_data_.room_information_in_pixel))
-
+		
 
 		room_sequence_goal = FindRoomSequenceWithCheckpointsGoal()
-		#room_sequence_goal.input_map = self.map_data_.map
-		#room_sequence_goal.map_resolution = self.map_data_.map_resolution
-		#room_sequence_goal.map_origin = self.map_data_.map_origin
 		room_sequence_goal.input_map = self.database_.global_map_data_.map_image_
 		room_sequence_goal.map_resolution = self.database_.global_map_data_.map_resolution_
 		room_sequence_goal.map_origin = self.database_.global_map_data_.map_origin_
 		room_sequence_goal.robot_radius = self.robot_radius_
-		#room_sequence_goal.room_information_in_pixel = self.segmentation_data_.room_information_in_pixel
 		room_sequence_goal.room_information_in_pixel = self.room_information_in_pixel_
 		(robot_pose_translation, robot_pose_rotation, robot_pose_rotation_euler) = self.currentRobotPose()
 		if (robot_pose_translation!=None):

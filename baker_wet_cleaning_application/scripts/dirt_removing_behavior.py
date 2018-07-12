@@ -7,6 +7,11 @@ import database_handler
 
 class DirtRemovingBehavior(behavior_container.BehaviorContainer):
 
+	#========================================================================
+	# Description:
+	# Class which contains the behavior for removing dirt spots
+	#========================================================================
+
 	def __init__(self, behavior_name, interrupt_var, service_str):
 		self.behavior_name_ = behavior_name
 		self.interrupt_var_ = interrupt_var

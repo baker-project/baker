@@ -21,9 +21,6 @@ class DatabaseHandler():
 	# Description:
 	# Class for evaluating a Database object and adding/removing information.
 	#========================================================================
-	# Services to be used:
-	# NONE
-	#========================================================================
 
 
 	database_ = None
@@ -87,9 +84,12 @@ class DatabaseHandler():
 			room_information_in_meter.append(room.room_information_in_meter_)
 		return room_information_in_meter
 
+
+
 	def __init__(self, database):
 		self.database_ = database
 	
+
 
 	# Create a mapping RoomSequenceResult |-> RoomObject
 	def getRoomMapping(self, rooms_list, room_sequence_result):
@@ -101,15 +101,17 @@ class DatabaseHandler():
 				rooms_index = rooms_index + 1
 		return mapping
 
-	
+
 	# Reconstruct the room object out of the room sequencing result
 	def getRoomFromSequencingResult(self, sequencing_result, checkpoint, current_room):
 		room_id = sequencing_result.checkpoints[checkpoint].room_indices[current_room]
 		return self.database_.getRoom(room_id)
 
+
 	
 	# Method for extracting all due rooms from the due assignment
 	# CASE: First run of application, no rooms collected yet today.
+	# USAGE: Run when the application ist started the first time today. Then run at the beginning.
 	def getAllDueRooms(self):
 		# If the application ran already today and the due rooms list is umenpty, this should not run
 		if (self.database_.application_data_.last_planning_date_[0] != None):
@@ -165,7 +167,7 @@ class DatabaseHandler():
 
 
 
-	# Method for restoring the due list
+	# Method for restoring the due list after application was stopped
 	# CASE: Application stopped while not all rooms were completed, but room collecting completed. Restart --> Restore due list
 	# USAGE: Run before getAllDueRooms()
 	def restoreDueRooms(self):
@@ -176,16 +178,9 @@ class DatabaseHandler():
 
 
 	# Method for extracting all overdue rooms from the due assignment
-	# CASE: Rooms were missed in the past
+	# CASE: Some cleaning subtasks were not completed in the past (i.e. a scheduled one was missed)
 	# USAGE: Run after all the due rooms are done
 	def getAllOverdueRooms(self):
-		# A room is overdue if
-		# 1. The room was once cleaned wet & the timestamp for wet cleaning is overdue
-		# 2. The room was once cleaned dry & the timestamp for dry cleaning is overdue
-		# 3. The room was once cleaned in both ways & one of the timestamps stated above is overdue
-		# 4. The rooms trashcan timestamp is overdue
-		# This method shifts back in time and checks each event for success
-
 		today_index = 0
 		current_schedule_index = today_index - 1
 		day_delta = 1

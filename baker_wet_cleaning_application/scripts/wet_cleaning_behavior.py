@@ -27,16 +27,6 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 	# Handles the wet cleanig process (i.e. Floor cleaning, Trashcan)
 	# for all rooms provided in a given list
 	#========================================================================
-	# Serivces to be used:
-	# room_exploration_service_str_ = 
-	#       '/room_exploration_server'
-	# move_base_path_service_str_ =
-	#		'/move_base_path'
-	# move_base_wall_follow_service_str_ =
-	#		'/move_base_wall_follow'
-	# move_base_service_str_ =
-	#		'move_base'
-	#========================================================================
 
 		
 	# Method for setting parameters for the behavior

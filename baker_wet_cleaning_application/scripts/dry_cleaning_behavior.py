@@ -16,9 +16,6 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 	# Handles the dry cleanig process (i.e. Exploring, Dirt removal, Trashcan)
 	# for all rooms provided in a given list
 	#========================================================================
-	# Services to be used:
-	# NONE
-	#========================================================================
 
 	def __init__(self, behavior_name, interrupt_var):
 		self.behavior_name_ = behavior_name
