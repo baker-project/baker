@@ -30,22 +30,31 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 		self.sequencing_result_ = sequencing_result
 		self.mapping_ = mapping
 
-	# Method for returning to the standard pose of the robot
+	# Method for returning to the standard state of the robot
 	def returnToRobotStandardState(self):
-		# save current data if necessary
-		# undo or check whether everything has been undone
+		# nothing to be saved
+		# nothing to be undone
 		pass
 
 	# Searching for trashcans
 	def trashcanRoutine(self, room_counter):
+		# ==========================================
+		# insert trashcan handling here
+		# ==========================================
 		self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)), -1)
 
 	# Searching for dirt
 	def dirtRoutine(self, room_counter):
+		# ==========================================
+		# insert dirt removing here
+		# ==========================================
 		self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)), 0)
 
 	# Driving through room
 	def exploreRoom(self, room_counter):
+		# ==========================================
+		# insert room exploration here
+		# ==========================================
 		pass
 
 	# Implemented Behavior
@@ -72,14 +81,15 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 				# HANDLING OF SELECTED ROOM
 				# =========================
 				cleaning_tasks = self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)).open_cleaning_tasks_
-				thread = threading.Thread(target = self.exploreRoom(room_counter))
-				thread.start()
+				exploring_thread = threading.Thread(target = self.exploreRoom(room_counter))
+				exploring_thread.start()
 				if ((0 in cleaning_tasks) == True):
-					thread = threading.Thread(target = self.dirtRoutine(room_counter))
-					thread.start()
+					dirt_thread = threading.Thread(target = self.dirtRoutine(room_counter))
+					dirt_thread.start()
 				if ((-1 in cleaning_tasks) == True):
-					thread = threading.Thread(target = self.trashcanRoutine(room_counter))
-					thread.start()
+					trashcan_thread = threading.Thread(target = self.trashcanRoutine(room_counter))
+					trashcan_thread.start()
+				exploring_thread.join()
 				
 				# Checkout the completed room
 				self.printMsg("ID of dry cleaned room: " + str(self.mapping_.get(room_counter)))
