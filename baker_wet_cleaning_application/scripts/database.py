@@ -402,6 +402,8 @@ class Database():
 	# Determine what the current logfile name is supposed to be
 	def getCurrentLogfileName(self):
 		# Filename: log_<year>_<week>_<day>_run<run count>.json
+		# TODO: Change to use last_execution_date_
+		# TODO: Protocol will be wrongly saved if application terminates unexpectedly (Run count increments)
 		week = date.today().isocalendar()[1]
 		year = date.today().year
 		day = date.today().weekday()

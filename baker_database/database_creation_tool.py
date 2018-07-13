@@ -203,7 +203,7 @@ class DatabaseCreator():
 		self.saveDatabase()
 
 
-
+	# TODO: Remove (Not intended)
 	def createRoomBook(self):
 		file = open(str("csv/ROOMPLAN.csv"), "w")
 		file.write("")
@@ -230,7 +230,7 @@ class DatabaseCreator():
 			file.write("\n")
 
 
-
+	# TODO: Remove (Not intended)
 	def createTerritoryPlan(self):
 		file = open(str("csv/TERRITORYPLAN.csv"), "w")
 		file.write("")

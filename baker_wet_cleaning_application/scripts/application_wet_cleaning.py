@@ -154,6 +154,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		#	exit(1)
 
 		# Document this application run
+		# TODO: Allow override from the outside (GUI)
 		self.database_.application_data_.last_execution_date_ = datetime.datetime.now()
 		self.database_handler_.applyChangesToDatabase()
 

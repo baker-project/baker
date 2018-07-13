@@ -73,6 +73,7 @@ class GlobalApplicationData():
 	# Was the last saving of the database successful?
 	# (BOOLEAN)
 	last_database_save_successful_ = True
+	# TODO: Add is_progress var
 
 
 

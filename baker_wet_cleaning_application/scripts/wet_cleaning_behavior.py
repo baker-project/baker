@@ -11,7 +11,6 @@ import numpy as np
 from cv_bridge import CvBridge, CvBridgeError
 import threading
 
-
 import behavior_container
 import move_base_behavior
 import room_exploration_behavior
