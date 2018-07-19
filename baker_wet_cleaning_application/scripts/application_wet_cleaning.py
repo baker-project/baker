@@ -78,7 +78,6 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			# Run Wet Cleaning Behavior
 			self.wet_cleaner_.setParameters(
 				self.database_handler_,
-				self.database_handler_.database_.global_map_data_.map_image_segmented_,
 				self.database_handler_.getRoomInformationInMeter(rooms_wet_cleaning),
 				self.map_handler_.room_sequencing_data_,
 				self.map_handler_.mapping_,
@@ -99,7 +98,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 
 
 	# Implement application procedures of inherited classes here.
-	def executeCustomBehavior(self):
+	def executeCustomBehavior(self, last_execution_date_override=None):
 
 
 		# Initialize behaviors
@@ -140,7 +139,6 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		rospack = rospkg.RosPack()
 		print str(rospack.get_path('baker_wet_cleaning_application'))
 		self.database_ = database.Database(extracted_file_path=str(rospack.get_path('baker_wet_cleaning_application') + "/"))
-		#self.database_ = database.Database(extracted_file_path="src/baker/baker_wet_cleaning_application/")
 		self.database_.loadDatabase()
 		#except:
 		#	self.printMsg("Fatal: Loading of database failed! Stopping application.")
@@ -153,10 +151,26 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		#	self.printMsg("Fatal: Initialization of database handler failed!")
 		#	exit(1)
 
-		# Document this application run
-		# TODO: Allow override from the outside (GUI)
-		self.database_.application_data_.last_execution_date_ = datetime.datetime.now()
+
+		# Document start of the application
+		# Also determine whether an old task is to be continued, independent of the current date
+		# If datetime "last_execution_date_override" is not None, it will be set in the database.
+		if (last_execution_date_override == None):
+			self.database_.application_data_.last_execution_date_ = datetime.datetime.now()
+		else:
+			self.database_.application_data_.last_execution_date_ = last_execution_date_override
+		
+		shall_continue_old_cleaning = False
+		days_delta = datetime.datetime.now() - self.database_.application_data_.last_execution_date_
+		if (self.database_.application_data_.progress_[0] == 1):
+			if (days_delta.days == 0):
+				shall_continue_old_cleaning = True
+			else:
+				self.printMsg("ERROR: Dates do not match! Shall the old progress be discarded?")
+		else:
+			self.database_.application_data_.progress_ = [1, datetime.datetime.now()]
 		self.database_handler_.applyChangesToDatabase()
+		
 
 		# Interruption opportunity
 		if self.handleInterrupt() == 2:
@@ -169,7 +183,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 
 		# Find due rooms
 		self.printMsg("Collecting due rooms...")
-		if (self.database_handler_.duePlanningHappenedToday() == True):
+		if ((self.database_handler_.noPlanningHappenedToday() == True) and (shall_continue_old_cleaning == False)):
 			#try:
 			self.database_handler_.restoreDueRooms()
 			self.database_handler_.getAllDueRooms()
@@ -284,6 +298,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 
 		self.printMsg("Cleaning completed. Overwriting database...")
 		#try:
+		self.database_.application_data_.progress_ = [0, datetime.datetime.now()]
 		self.database_handler_.cleanFinished()
 		#except:
 		#	self.printMsg("Fatal: Database overwriting failed!")

@@ -250,7 +250,7 @@ class DatabaseHandler():
 
 
 	# Method for figuring out whether the application had been started today already
-	def duePlanningHappenedToday(self):
+	def noPlanningHappenedToday(self):
 		last_start = self.database_.application_data_.last_planning_date_[0]
 		today_date = datetime.datetime.now()
 		if (last_start != None):
@@ -306,6 +306,23 @@ class DatabaseHandler():
 		room.room_cleaning_datestamps_[assignment_type + 1] = datetime.datetime.now()
 		# Save all changes to the database
 		self.applyChangesToDatabase()
+
+	
+	# Public method to add an entry to the log. Method from the database does not need to be called, avoiding nasty imports
+	def addLogEntry(self, room_id, status, cleaning_task, found_dirtspots, found_trashcans, cleaned_surface_area, room_issues, used_water_amount, battery_usage):
+		new_entry = database_classes.LogItem()
+		new_entry.room_id_ = room_id
+		new_entry.log_week_and_day_ = [self.getTodaysWeekType(), self.getTodaysWeekDay()]
+		new_entry.date_and_time_ = datetime.datetime.now()
+		new_entry.status_ = status
+		new_entry.cleaning_task_ = cleaning_task
+		new_entry.found_dirtspots_ = found_dirtspots
+		new_entry.found_trashcans_ = found_trashcans
+		new_entry.cleaned_surface_area_ = cleaned_surface_area
+		new_entry.room_issues_ = room_issues
+		new_entry.used_water_amount_ = used_water_amount
+		new_entry.battery_usage_ = battery_usage
+		self.database_.addLogEntry(new_entry)
 
 	# Method to run if a change in the database shall be applied. Applied changes can be discarded
 	def applyChangesToDatabase(self):

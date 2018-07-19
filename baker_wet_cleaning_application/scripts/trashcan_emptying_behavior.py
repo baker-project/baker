@@ -13,8 +13,9 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 	#========================================================================
 		
 	# Method for setting parameters for the behavior
-	def setParameters(self, database_handler):
+	def setParameters(self, database_handler, thread_status_var):
 		self.database_handler_ = database_handler
+		self.thread_status_var_ = thread_status_var
 
 	# Method for returning to the standard pose of the robot
 	def returnToRobotStandardState(self):

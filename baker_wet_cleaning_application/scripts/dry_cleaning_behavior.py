@@ -40,6 +40,19 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 		# ==========================================
 		self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)), -1)
 
+		# Adding log entry for wet cleaning
+		self.database_handler_.addLogEntry(
+			self.mapping_.get(room_counter), # room id
+			1, # status (1=Completed)
+			-1, # cleaning task (-1=trashcan only)
+			0, # (found dirtspots)
+			0, # trashcan count
+			0, # surface area
+			[], # room issues
+			0, # water amount
+			0 # battery usage
+		)
+
 	# Searching for dirt
 	def dirtRoutine(self, room_counter):
 		# ==========================================
@@ -52,15 +65,26 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 		# ==========================================
 		# insert room exploration here
 		# ==========================================
-		pass
+		
+		# Adding log entry for wet cleaning
+		self.database_handler_.addLogEntry(
+			self.mapping_.get(room_counter), # room id
+			1, # status (1=Completed)
+			0, # cleaning task (0=dry only)
+			0, # (found dirtspots)
+			0, # trashcan count
+			0, # surface area
+			[], # room issues
+			0, # water amount
+			0 # battery usage
+		)
 
 	# Implemented Behavior
 	def executeCustomBehavior(self):
 		self.tool_changer_ = tool_changing_behavior.ToolChangingBehavior("ToolChangingBehavior", self.interrupt_var_)
 		self.trolley_mover_ = trolley_movement_behavior.TrolleyMovementBehavior("TrolleyMovingBehavior", self.interrupt_var_)
 
-		# TOOL CHANGE ACCORDING TO CLEANING TASK
-		# ======================================
+		# Tool change according to cleaning task
 		self.tool_changer_.setParameters(self.database_handler_)
 		self.tool_changer_.executeBehavior()
 
@@ -68,15 +92,13 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 
 		for checkpoint in self.sequencing_result_.checkpoints:
 
-			# TROLLEY MOVEMENT TO CHECKPOINT
-			# ==============================
+			# Trolley movement to checkpoint
 			self.trolley_mover_.setParameters(self.database_handler_)
 			self.trolley_mover_.executeBehavior()
 
 			for room_index in checkpoint.room_indices:
 
-				# HANDLING OF SELECTED ROOM
-				# =========================
+				# Handling of selected room
 				cleaning_tasks = self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)).open_cleaning_tasks_
 				exploring_thread = threading.Thread(target = self.exploreRoom(room_counter))
 				exploring_thread.start()

@@ -97,14 +97,13 @@ class Database():
 		self.application_data_.last_database_save_successful_ = dict.get("last_database_save_successful")
 		# Get the amount of executions of the application on the current day. Increment by one.
 		self.application_data_.run_count_ = dict.get("run_count")
-		if (self.application_data_.last_execution_date_ != None):
-			delta = datetime.now() - self.application_data_.last_execution_date_
-			if (delta.days == 0):
-				self.application_data_.run_count_ = self.application_data_.run_count_ + 1
-			else:
-				self.application_data_.run_count_ = 1
+		# Get the progress variable
+		progress_str = dict.get("progress")
+		self.application_data_.progress_[0] = progress_str[0]
+		if (progress_str[1] != None):
+			self.application_data_.progress_[1] = self.stringToDatetime(progress_str[1])
 		else:
-			self.application_data_.run_count_ = 1
+			self.application_data_.progress_[1] = None
 
 
 
@@ -126,6 +125,12 @@ class Database():
 		
 		application_data_dict["last_database_save_successful"] = self.application_data_.last_database_save_successful_
 		application_data_dict["run_count"] = self.application_data_.run_count_
+
+		if (self.application_data_.progress_[1] != None):
+			application_data_dict["progress"] = [self.application_data_.progress_[0], self.datetimeToString(self.application_data_.progress_[1])]
+		else:
+			application_data_dict["progress"] = [self.application_data_.progress_[0], None]
+		
 		return application_data_dict
 	
 	
@@ -399,15 +404,33 @@ class Database():
 			return False
 
 
+
+	# Returns the amount of runs of a specific day
+	# Run count increases, if application is found completed or discarded
+	def updateRunCount(self, date):
+		if (date!= None):
+			delta = datetime.now() - date
+			if (delta.days == 0):
+				self.application_data_.run_count_ = self.application_data_.run_count_ + 1
+			else:
+				self.application_data_.run_count_ = 1
+		else:
+			self.application_data_.run_count_ = 1
+			
+				
+
+
+
 	# Determine what the current logfile name is supposed to be
 	def getCurrentLogfileName(self):
 		# Filename: log_<year>_<week>_<day>_run<run count>.json
-		# TODO: Change to use last_execution_date_
-		# TODO: Protocol will be wrongly saved if application terminates unexpectedly (Run count increments)
-		week = date.today().isocalendar()[1]
-		year = date.today().year
-		day = date.today().weekday()
-		return "log_" + str(year) + "_" + str(week) + "_" + str(day) + "_run" + str(self.application_data_.run_count_) + ".json"
+		date = self.application_data_.progress_[1]
+		week = date.isocalendar()[1]
+		year = date.year
+		day = date.weekday()
+		run_count = self.application_data_.run_count_
+		return "log_" + str(year) + "_" + str(week) + "_" + str(day) + "_run" + str(run_count) + ".json"
+		
 
 
 	# Convert log dict into an object array
@@ -423,7 +446,6 @@ class Database():
 			log_item.log_week_and_day_ = dict.get(log_key).get("week_and_day")
 			log_item.room_id_ = dict.get(log_key).get("room_id")
 			log_item.status_ = dict.get(log_key).get("status")
-			log_item.trolley_capacity_ = dict.get(log_key).get("trolley_capacity")
 			log_item.used_water_amount_ = dict.get(log_key).get("used_water_amount")
 			log_item.battery_usage_ = dict.get(log_key).get("battery_usage")
 			log_item_list.append(log_item)
@@ -444,7 +466,6 @@ class Database():
 				"week_and_day": log_item.log_week_and_day_,
 				"room_id": log_item.room_id_,
 				"status": log_item.status_,
-				"trolley_capacity": log_item.trolley_capacity_,
 				"used_water_amount": log_item.used_water_amount_,
 				"battery_usage": log_item.battery_usage_
 			}
@@ -514,6 +535,9 @@ class Database():
 			os.remove(str(self.tmp_application_data_filename_))
 		# Reload database from original files
 		self.loadDatabase()
+		# Mark the discarding in the final file
+		self.application_data_.progress_ = [4, datetime.now()]
+		self.saveCompleteDatabase(temporal_file=False)
 
 	
 	
