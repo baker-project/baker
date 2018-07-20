@@ -12,7 +12,7 @@ class CSVToJsonEncoder():
 
 	# Required attributes
 	csv_file_path_ = ""
-	database_file_path = ""
+	database_file_path = "" # This must be the path of the folder where the "resources" folder is contained.
 	csv_room_plan_ = None
 	csv_territory_plan_ = None 
 	database_ = None
@@ -21,7 +21,7 @@ class CSVToJsonEncoder():
 	# Constructor
 	def __init__(self, csv_file_path="", database_file_path=""):
 		self.csv_file_path_ = csv_file_path
-		self.database_ = database.Database(database_file_path)
+		self.database_ = database.Database(extracted_file_path=database_file_path)
 		#try:
 			# There is a database in the specified directory
 		self.database_.loadDatabase()
