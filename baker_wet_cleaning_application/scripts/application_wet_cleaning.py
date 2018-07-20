@@ -117,6 +117,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		if rospy.has_param('robot_frame'):
 			self.robot_frame_id_ = rospy.get_param("robot_frame")
 			self.printMsg("Imported parameter robot_frame = " + str(self.robot_frame_id_))
+			# todo: write into database
 		if rospy.has_param('robot_radius'):
 			self.robot_radius_ = rospy.get_param("robot_radius")
 			self.printMsg("Imported parameter robot_radius = " + str(self.robot_radius_))
@@ -152,6 +153,22 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		#	exit(1)
 
 
+		shall_continue_old_cleaning = False
+		days_delta = datetime.datetime.now() - self.database_.application_data_.last_execution_date_
+		print "------------ CURRENT_DATE: " + str(datetime.datetime.now)
+		print "------------ LAST_DATE: " + str(self.database_.application_data_.last_execution_date_)
+		print "------------ DAYS_DELTA: " + str(days_delta) + " " + str(days_delta.days)
+		if (self.database_.application_data_.progress_[0] == 1):
+			if (days_delta.days == 0):
+				shall_continue_old_cleaning = True
+			else:
+				self.printMsg("ERROR: Dates do not match! Shall the old progress be discarded?")
+				# TODO: Programm needs to pause here. Then the user must be asked if the old cleaning state shall be overwritten.
+		else:
+			self.database_.application_data_.progress_ = [1, datetime.datetime.now()]
+		self.database_handler_.applyChangesToDatabase()
+
+
 		# Document start of the application
 		# Also determine whether an old task is to be continued, independent of the current date
 		# If datetime "last_execution_date_override" is not None, it will be set in the database.
@@ -159,17 +176,6 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			self.database_.application_data_.last_execution_date_ = datetime.datetime.now()
 		else:
 			self.database_.application_data_.last_execution_date_ = last_execution_date_override
-		
-		shall_continue_old_cleaning = False
-		days_delta = datetime.datetime.now() - self.database_.application_data_.last_execution_date_
-		if (self.database_.application_data_.progress_[0] == 1):
-			if (days_delta.days == 0):
-				shall_continue_old_cleaning = True
-			else:
-				self.printMsg("ERROR: Dates do not match! Shall the old progress be discarded?")
-		else:
-			self.database_.application_data_.progress_ = [1, datetime.datetime.now()]
-		self.database_handler_.applyChangesToDatabase()
 		
 
 		# Interruption opportunity
@@ -200,7 +206,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			#	self.printMsg("Fatal: Restoring of the due rooms failed!")
 			#	exit(1)
 
-		# Sort the due rooms after cleaning method
+		# Sort the due rooms with respect to cleaning method
 		self.printMsg("Sorting the found rooms after cleaning method...")
 		#try:
 		rooms_dry_cleaning, rooms_wet_cleaning = self.database_handler_.sortRoomsList(self.database_handler_.due_rooms_)
@@ -299,7 +305,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.printMsg("Cleaning completed. Overwriting database...")
 		#try:
 		self.database_.application_data_.progress_ = [0, datetime.datetime.now()]
-		self.database_handler_.cleanFinished()
+		self.database_handler_.cleaningFinished()
 		#except:
 		#	self.printMsg("Fatal: Database overwriting failed!")
 		#	exit(1)

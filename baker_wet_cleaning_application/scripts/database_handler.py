@@ -324,7 +324,7 @@ class DatabaseHandler():
 		new_entry.battery_usage_ = battery_usage
 		self.database_.addLogEntry(new_entry)
 
-	# Method to run if a change in the database shall be applied. Applied changes can be discarded
+	# Method to run if a change in the database shall be applied (i.e. writes the temporary files). Applied changes can be discarded
 	def applyChangesToDatabase(self):
 		self.database_.saveCompleteDatabase(temporal_file=True)
 
