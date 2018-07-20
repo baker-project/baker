@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+#========================================================================
+# Description:
+# Contains all classes whose instances are stored in the database
+#========================================================================
+
 
 # Class which contains all the properties of the robot
 class RobotProperties():
@@ -68,6 +73,9 @@ class GlobalApplicationData():
 	# Was the last saving of the database successful?
 	# (BOOLEAN)
 	last_database_save_successful_ = True
+	# Progress status of the application [0=Completed, 1=Running, 2=Paused, 3=Stopped, 4=Discarded] and date the progress belongs to
+	# ([INTEGER, DATETIME])
+	progress_ = [0, None]
 
 
 
@@ -85,7 +93,7 @@ class LogItem():
 	# Concerning cleaning task [-1=trashcan_only, 0=dry_only, 1=wet_only]
 	# (INTEGER)
 	cleaning_task_ = 0
-	# Status [Started, Completed, Stopped, Halted, Paused, Continued, ...]
+	# Status [Started, Completed=1, Stopped, Halted, Paused, Continued, ...]
 	# (INTEGER)
 	status_ = 0
 	# Found trashcans
@@ -100,9 +108,6 @@ class LogItem():
 	# Amount of used water
 	# (FLOAT)
 	used_water_amount_ = 0
-	# Trolley capacity
-	# (FLOAT)
-	trolley_capacity_ = 0
 	# Battery usage
 	# (FLOAT)
 	battery_usage_ = 0

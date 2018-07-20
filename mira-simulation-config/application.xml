@@ -1,5 +1,7 @@
 <root>
 	<var MCFFile="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/lab_ipa/map.mcf"/>
+	<var cleaningMap="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/lab_ipa/map-static.xml"/>
+
 	<var useDocking="false"/>
 
 	<!--var robot="SCITOS-G5"/-->
@@ -14,7 +16,7 @@
 
 	<namespace name="robot">
 		<parameter name="Robot.RobotModelProvider.Model">
-			<MaxForwardVelocity>0.5</MaxForwardVelocity>
+			<MaxForwardVelocity>0.6</MaxForwardVelocity>
 			<MaxBackwardVelocity>-0.3</MaxBackwardVelocity>
 			<MaxRotVelocity>60</MaxRotVelocity>
 		</parameter>

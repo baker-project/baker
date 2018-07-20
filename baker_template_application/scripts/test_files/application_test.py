@@ -99,7 +99,6 @@ class TestBehavior2(behavior_container.BehaviorContainer):
 		self.printMsg("Execution completed.")
 
 
-
 class TestApplication(application_container.ApplicationContainer):
 
 	# This application first runs an TestBehavior1 instance, then an TestBehavior2 instance.
@@ -121,14 +120,14 @@ class TestApplication(application_container.ApplicationContainer):
 		print "Beginning execution"
 		behavior_1 = TestBehavior1(self.application_status)
 		behavior_1.behavior_name = "Test 1"
-		behavior_2 = TestBehavior2(self.application_status)
-		behavior_2.behavior_name = "Test 2"
+		#behavior_2 = TestBehavior2(self.application_status)
+		#behavior_2.behavior_name = "Test 2"
 		print "Executing behavior 1"
 		behavior_1.executeCustomBehavior()
 		if (self.handleInterrupt() == 2):
 			return
-		print "Executing behavior 2"
-		behavior_2.executeCustomBehavior()
+		#print "Executing behavior 2"
+		#behavior_2.executeCustomBehavior()
 		self.handleInterrupt()
 		print "Execution completed"
 		

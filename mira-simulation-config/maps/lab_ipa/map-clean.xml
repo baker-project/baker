@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
 	<Map>
-		<Image>${filePath}/lab_ipa.png</Image>
+		<Image>${filePath}/lab_ipa_clean.png</Image>
 		<CellSize>0.05</CellSize>
 		<Offset>
 			<X>384</X>

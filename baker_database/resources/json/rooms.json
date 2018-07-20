@@ -1,86 +1,772 @@
 {
-    "21": {
-        "last_cleanup_successful": false, 
-        "last_successful_clean_date": null, 
-        "room_center_coords": [
-            1, 
-            2, 
-            3
+    "0": {
+        "open_cleaning_tasks": [], 
+        "room_building_id": "Building C", 
+        "room_cleaning_datestamps": [
+            null, 
+            null, 
+            null
         ], 
-        "room_id": 21, 
-        "room_issues": {
-            "1": {
-                "issue_coords": [
-                    4.02323, 
-                    5, 
-                    6
-                ], 
-                "issue_date": "2018-02-06_10:47", 
-                "issue_id": 1, 
-                "issue_images": [
-                    "~/testordner/OBild1", 
-                    "~/testordner/OBild2"
-                ], 
-                "issue_type": 21
-            }, 
-            "2": {
-                "issue_coords": [
-                    4.02323, 
-                    5, 
-                    6
-                ], 
-                "issue_date": "2018-02-06_10:48", 
-                "issue_id": 2, 
-                "issue_images": [
-                    "~/testordner/OBild3", 
-                    "~/testordner/OBild4"
-                ], 
-                "issue_type": 11
-            }
-        }, 
-        "room_map": "TestRaum.png", 
-        "room_name": "Garage"
+        "room_cleaning_method": 2, 
+        "room_floor_id": "1st Floor", 
+        "room_id": 0, 
+        "room_information_in_meter": [
+            [
+                4.549999237060547, 
+                -1.7000007629394531, 
+                0.0
+            ], 
+            [
+                0.9499988555908203, 
+                -9.850000381469727, 
+                0.0
+            ], 
+            [
+                9.19999885559082, 
+                1.6000003814697266, 
+                0.0
+            ]
+        ], 
+        "room_information_in_pixel": [
+            [
+                475.0, 
+                350.0, 
+                0.0
+            ], 
+            [
+                403.0, 
+                187.0, 
+                0.0
+            ], 
+            [
+                568.0, 
+                416.0, 
+                0.0
+            ]
+        ], 
+        "room_issues": {}, 
+        "room_map": "map_0.png", 
+        "room_name": "room_0", 
+        "room_position_id": "1_0", 
+        "room_scheduled_days": [
+            "x", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "x", 
+            "", 
+            "", 
+            "", 
+            ""
+        ], 
+        "room_surface_area": 3.141, 
+        "room_surface_type": 0, 
+        "room_territory_id": "42", 
+        "room_trashcan_count": 4
     }, 
-    "42": {
-        "last_cleanup_successful": false, 
-        "last_successful_clean_date": null, 
-        "room_center_coords": [
-            1, 
-            2, 
-            3
+    "1": {
+        "open_cleaning_tasks": [], 
+        "room_building_id": "Building C", 
+        "room_cleaning_datestamps": [
+            null, 
+            null, 
+            null
         ], 
-        "room_id": 42, 
-        "room_issues": {
-            "1": {
-                "issue_coords": [
-                    4.02323, 
-                    5, 
-                    6
-                ], 
-                "issue_date": "2018-02-06_10:49", 
-                "issue_id": 1, 
-                "issue_images": [
-                    "~/testordner/OBild1", 
-                    "~/testordner/OBild2"
-                ], 
-                "issue_type": 21
-            }, 
-            "2": {
-                "issue_coords": [
-                    4.02323, 
-                    5, 
-                    6
-                ], 
-                "issue_date": "2018-02-06_10:50", 
-                "issue_id": 2, 
-                "issue_images": [
-                    "~/testordner/OBild3", 
-                    "~/testordner/OBild4"
-                ], 
-                "issue_type": 11
-            }
-        }, 
-        "room_map": "42TestRaum.png", 
-        "room_name": "Kitchen"
+        "room_cleaning_method": 2, 
+        "room_floor_id": "1st Floor", 
+        "room_id": 1, 
+        "room_information_in_meter": [
+            [
+                -9.15000057220459, 
+                -3.700000762939453, 
+                0.0
+            ], 
+            [
+                -14.0, 
+                -9.15000057220459, 
+                0.0
+            ], 
+            [
+                -3.1499996185302734, 
+                2.549999237060547, 
+                0.0
+            ]
+        ], 
+        "room_information_in_pixel": [
+            [
+                201.0, 
+                310.0, 
+                0.0
+            ], 
+            [
+                104.0, 
+                201.0, 
+                0.0
+            ], 
+            [
+                321.0, 
+                435.0, 
+                0.0
+            ]
+        ], 
+        "room_issues": {}, 
+        "room_map": "map_1.png", 
+        "room_name": "room_1", 
+        "room_position_id": "1_1", 
+        "room_scheduled_days": [
+            "p", 
+            "x", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "p", 
+            "x", 
+            "", 
+            "", 
+            ""
+        ], 
+        "room_surface_area": 3.141, 
+        "room_surface_type": 0, 
+        "room_territory_id": "42", 
+        "room_trashcan_count": 4
+    }, 
+    "10": {
+        "open_cleaning_tasks": [], 
+        "room_building_id": "Building C", 
+        "room_cleaning_datestamps": [
+            null, 
+            null, 
+            null
+        ], 
+        "room_cleaning_method": 2, 
+        "room_floor_id": "1st Floor", 
+        "room_id": 10, 
+        "room_information_in_meter": [
+            [
+                -5.050000190734863, 
+                12.849998474121094, 
+                0.0
+            ], 
+            [
+                -7.15000057220459, 
+                11.649999618530273, 
+                0.0
+            ], 
+            [
+                -2.6000003814697266, 
+                14.049999237060547, 
+                0.0
+            ]
+        ], 
+        "room_information_in_pixel": [
+            [
+                283.0, 
+                641.0, 
+                0.0
+            ], 
+            [
+                241.0, 
+                617.0, 
+                0.0
+            ], 
+            [
+                332.0, 
+                665.0, 
+                0.0
+            ]
+        ], 
+        "room_issues": {}, 
+        "room_map": "map_10.png", 
+        "room_name": "room_10", 
+        "room_position_id": "1_10", 
+        "room_scheduled_days": [
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            ""
+        ], 
+        "room_surface_area": 3.141, 
+        "room_surface_type": 0, 
+        "room_territory_id": "42", 
+        "room_trashcan_count": 4
+    }, 
+    "2": {
+        "open_cleaning_tasks": [], 
+        "room_building_id": "Building C", 
+        "room_cleaning_datestamps": [
+            null, 
+            null, 
+            null
+        ], 
+        "room_cleaning_method": 2, 
+        "room_floor_id": "1st Floor", 
+        "room_id": 2, 
+        "room_information_in_meter": [
+            [
+                8.100000381469727, 
+                -4.000000953674316, 
+                0.0
+            ], 
+            [
+                7.299999237060547, 
+                -5.750000953674316, 
+                0.0
+            ], 
+            [
+                10.0, 
+                -2.200000762939453, 
+                0.0
+            ]
+        ], 
+        "room_information_in_pixel": [
+            [
+                546.0, 
+                304.0, 
+                0.0
+            ], 
+            [
+                530.0, 
+                269.0, 
+                0.0
+            ], 
+            [
+                584.0, 
+                340.0, 
+                0.0
+            ]
+        ], 
+        "room_issues": {}, 
+        "room_map": "map_2.png", 
+        "room_name": "room_2", 
+        "room_position_id": "1_2", 
+        "room_scheduled_days": [
+            "", 
+            "p", 
+            "x", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "p", 
+            "x", 
+            "", 
+            ""
+        ], 
+        "room_surface_area": 3.141, 
+        "room_surface_type": 0, 
+        "room_territory_id": "42", 
+        "room_trashcan_count": 4
+    }, 
+    "3": {
+        "open_cleaning_tasks": [], 
+        "room_building_id": "Building C", 
+        "room_cleaning_datestamps": [
+            null, 
+            null, 
+            null
+        ], 
+        "room_cleaning_method": 2, 
+        "room_floor_id": "1st Floor", 
+        "room_id": 3, 
+        "room_information_in_meter": [
+            [
+                -0.05000114440917969, 
+                -3.700000762939453, 
+                0.0
+            ], 
+            [
+                -3.200000762939453, 
+                -4.800000190734863, 
+                0.0
+            ], 
+            [
+                1.0, 
+                -1.75, 
+                0.0
+            ]
+        ], 
+        "room_information_in_pixel": [
+            [
+                383.0, 
+                310.0, 
+                0.0
+            ], 
+            [
+                320.0, 
+                288.0, 
+                0.0
+            ], 
+            [
+                404.0, 
+                349.0, 
+                0.0
+            ]
+        ], 
+        "room_issues": {}, 
+        "room_map": "map_3.png", 
+        "room_name": "room_3", 
+        "room_position_id": "1_3", 
+        "room_scheduled_days": [
+            "", 
+            "", 
+            "p", 
+            "x", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "p", 
+            "x", 
+            ""
+        ], 
+        "room_surface_area": 3.141, 
+        "room_surface_type": 0, 
+        "room_territory_id": "42", 
+        "room_trashcan_count": 4
+    }, 
+    "4": {
+        "open_cleaning_tasks": [], 
+        "room_building_id": "Building C", 
+        "room_cleaning_datestamps": [
+            null, 
+            null, 
+            null
+        ], 
+        "room_cleaning_method": 2, 
+        "room_floor_id": "1st Floor", 
+        "room_id": 4, 
+        "room_information_in_meter": [
+            [
+                -2.1000003814697266, 
+                2.4499988555908203, 
+                0.0
+            ], 
+            [
+                -6.250000953674316, 
+                -1.75, 
+                0.0
+            ], 
+            [
+                1.1499996185302734, 
+                5.94999885559082, 
+                0.0
+            ]
+        ], 
+        "room_information_in_pixel": [
+            [
+                342.0, 
+                433.0, 
+                0.0
+            ], 
+            [
+                259.0, 
+                349.0, 
+                0.0
+            ], 
+            [
+                407.0, 
+                503.0, 
+                0.0
+            ]
+        ], 
+        "room_issues": {}, 
+        "room_map": "map_4.png", 
+        "room_name": "room_4", 
+        "room_position_id": "1_4", 
+        "room_scheduled_days": [
+            "", 
+            "", 
+            "", 
+            "p", 
+            "x", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "p", 
+            "x"
+        ], 
+        "room_surface_area": 3.141, 
+        "room_surface_type": 0, 
+        "room_territory_id": "42", 
+        "room_trashcan_count": 4
+    }, 
+    "5": {
+        "open_cleaning_tasks": [], 
+        "room_building_id": "Building C", 
+        "room_cleaning_datestamps": [
+            null, 
+            null, 
+            null
+        ], 
+        "room_cleaning_method": 2, 
+        "room_floor_id": "1st Floor", 
+        "room_id": 5, 
+        "room_information_in_meter": [
+            [
+                -8.450000762939453, 
+                5.0, 
+                0.0
+            ], 
+            [
+                -10.950000762939453, 
+                2.6000003814697266, 
+                0.0
+            ], 
+            [
+                -6.300000190734863, 
+                6.100000381469727, 
+                0.0
+            ]
+        ], 
+        "room_information_in_pixel": [
+            [
+                215.0, 
+                484.0, 
+                0.0
+            ], 
+            [
+                165.0, 
+                436.0, 
+                0.0
+            ], 
+            [
+                258.0, 
+                506.0, 
+                0.0
+            ]
+        ], 
+        "room_issues": {}, 
+        "room_map": "map_5.png", 
+        "room_name": "room_5", 
+        "room_position_id": "1_5", 
+        "room_scheduled_days": [
+            "", 
+            "", 
+            "", 
+            "", 
+            "p", 
+            "x", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "p"
+        ], 
+        "room_surface_area": 3.141, 
+        "room_surface_type": 0, 
+        "room_territory_id": "42", 
+        "room_trashcan_count": 4
+    }, 
+    "6": {
+        "open_cleaning_tasks": [], 
+        "room_building_id": "Building C", 
+        "room_cleaning_datestamps": [
+            null, 
+            null, 
+            null
+        ], 
+        "room_cleaning_method": 2, 
+        "room_floor_id": "1st Floor", 
+        "room_id": 6, 
+        "room_information_in_meter": [
+            [
+                -5.050000190734863, 
+                8.75, 
+                0.0
+            ], 
+            [
+                -7.40000057220459, 
+                5.94999885559082, 
+                0.0
+            ], 
+            [
+                -2.75, 
+                11.69999885559082, 
+                0.0
+            ]
+        ], 
+        "room_information_in_pixel": [
+            [
+                283.0, 
+                559.0, 
+                0.0
+            ], 
+            [
+                236.0, 
+                503.0, 
+                0.0
+            ], 
+            [
+                329.0, 
+                618.0, 
+                0.0
+            ]
+        ], 
+        "room_issues": {}, 
+        "room_map": "map_6.png", 
+        "room_name": "room_6", 
+        "room_position_id": "1_6", 
+        "room_scheduled_days": [
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "p", 
+            "x", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            ""
+        ], 
+        "room_surface_area": 3.141, 
+        "room_surface_type": 0, 
+        "room_territory_id": "42", 
+        "room_trashcan_count": 4
+    }, 
+    "7": {
+        "open_cleaning_tasks": [], 
+        "room_building_id": "Building C", 
+        "room_cleaning_datestamps": [
+            null, 
+            null, 
+            null
+        ], 
+        "room_cleaning_method": 2, 
+        "room_floor_id": "1st Floor", 
+        "room_id": 7, 
+        "room_information_in_meter": [
+            [
+                -8.300000190734863, 
+                10.0, 
+                0.0
+            ], 
+            [
+                -9.550000190734863, 
+                6.0, 
+                0.0
+            ], 
+            [
+                -7.050000190734863, 
+                14.150001525878906, 
+                0.0
+            ]
+        ], 
+        "room_information_in_pixel": [
+            [
+                218.0, 
+                584.0, 
+                0.0
+            ], 
+            [
+                193.0, 
+                504.0, 
+                0.0
+            ], 
+            [
+                243.0, 
+                667.0, 
+                0.0
+            ]
+        ], 
+        "room_issues": {}, 
+        "room_map": "map_7.png", 
+        "room_name": "room_7", 
+        "room_position_id": "1_7", 
+        "room_scheduled_days": [
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "p", 
+            "x", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            ""
+        ], 
+        "room_surface_area": 3.141, 
+        "room_surface_type": 0, 
+        "room_territory_id": "42", 
+        "room_trashcan_count": 4
+    }, 
+    "8": {
+        "open_cleaning_tasks": [], 
+        "room_building_id": "Building C", 
+        "room_cleaning_datestamps": [
+            null, 
+            null, 
+            null
+        ], 
+        "room_cleaning_method": 2, 
+        "room_floor_id": "1st Floor", 
+        "room_id": 8, 
+        "room_information_in_meter": [
+            [
+                -11.75, 
+                7.649999618530273, 
+                0.0
+            ], 
+            [
+                -13.950000762939453, 
+                6.100000381469727, 
+                0.0
+            ], 
+            [
+                -9.450000762939453, 
+                9.149999618530273, 
+                0.0
+            ]
+        ], 
+        "room_information_in_pixel": [
+            [
+                149.0, 
+                537.0, 
+                0.0
+            ], 
+            [
+                105.0, 
+                506.0, 
+                0.0
+            ], 
+            [
+                195.0, 
+                567.0, 
+                0.0
+            ]
+        ], 
+        "room_issues": {}, 
+        "room_map": "map_8.png", 
+        "room_name": "room_8", 
+        "room_position_id": "1_8", 
+        "room_scheduled_days": [
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "p", 
+            "x", 
+            "", 
+            "", 
+            "", 
+            "", 
+            ""
+        ], 
+        "room_surface_area": 3.141, 
+        "room_surface_type": 0, 
+        "room_territory_id": "42", 
+        "room_trashcan_count": 4
+    }, 
+    "9": {
+        "open_cleaning_tasks": [], 
+        "room_building_id": "Building C", 
+        "room_cleaning_datestamps": [
+            null, 
+            null, 
+            null
+        ], 
+        "room_cleaning_method": 2, 
+        "room_floor_id": "1st Floor", 
+        "room_id": 9, 
+        "room_information_in_meter": [
+            [
+                -11.600000381469727, 
+                11.69999885559082, 
+                0.0
+            ], 
+            [
+                -13.850000381469727, 
+                9.149999618530273, 
+                0.0
+            ], 
+            [
+                -9.250000953674316, 
+                14.299999237060547, 
+                0.0
+            ]
+        ], 
+        "room_information_in_pixel": [
+            [
+                152.0, 
+                618.0, 
+                0.0
+            ], 
+            [
+                107.0, 
+                567.0, 
+                0.0
+            ], 
+            [
+                199.0, 
+                670.0, 
+                0.0
+            ]
+        ], 
+        "room_issues": {}, 
+        "room_map": "map_9.png", 
+        "room_name": "room_9", 
+        "room_position_id": "1_9", 
+        "room_scheduled_days": [
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "", 
+            "p", 
+            "", 
+            "", 
+            "", 
+            "", 
+            ""
+        ], 
+        "room_surface_area": 3.141, 
+        "room_surface_type": 0, 
+        "room_territory_id": "42", 
+        "room_trashcan_count": 4
     }
 }

@@ -10,6 +10,12 @@ from abc import ABCMeta, abstractmethod
 
 
 class BehaviorContainer:
+
+	#========================================================================
+	# Description:
+	# Abstract class which contains one specific behavior of the application
+	#========================================================================
+
 	__metaclass__ = ABCMeta
 	# Arbitrary behavior name. Only used for debug.
 	behavior_name_ = "<Unnamed>"
@@ -55,6 +61,8 @@ class BehaviorContainer:
 			#self.printMsg("action_client.get_state()=" + str(action_client.get_state()))
 			if (self.executionInterrupted()==True or rospy.is_shutdown()==True):
 				action_client.cancel_goal()
+				while ((action_client.get_state()<2 or action_client.get_state()==2) and rospy.is_shutdown()==False):
+					pass
 				return self.handleInterrupt()
 			rospy.sleep(self.sleep_time_)
 		if (action_client.get_state() == 3):

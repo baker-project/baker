@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-	<name>baker_wet_cleaning_application</name>
+	<name>baker_template_application</name>
 	
 	<description>Contains abstract classes for application implementation.</description>
 	
@@ -15,9 +15,7 @@
 	<depend>actionlib</depend>
 	<depend>actionlib_msgs</depend>
 	<depend>baker_msgs</depend>
-	<depend>cob_srvs</depend>
 	<depend>cv_bridge</depend>
-	<depend>dynamic_reconfigure</depend>
 	<depend>eigen_conversions</depend>
 	<depend>geometry_msgs</depend>
 	<depend>ipa_building_msgs</depend>
@@ -29,7 +27,6 @@
 	<depend>scitos_msgs</depend>
 	<depend>sensor_msgs</depend>
 	<depend>std_msgs</depend>
-	<depend>std_srvs</depend>
 	<depend>tf</depend>
 
 </package>

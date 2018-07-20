@@ -8,6 +8,11 @@ import behavior_container
 
 class MapReceivingBehavior(behavior_container.BehaviorContainer):
 
+	#========================================================================
+	# Description:
+	# Class which contains the behavior receiving the map data from ROS.
+	#========================================================================
+
 	def __init__(self, behavior_name, interrupt_var, service_str, map_segmented_receiving_service_str=None):
 		self.behavior_name_ = behavior_name
 		self.interrupt_var_ = interrupt_var
@@ -29,8 +34,8 @@ class MapReceivingBehavior(behavior_container.BehaviorContainer):
 	def executeCustomBehavior(self):
 		# receive the navigation map in sensor_msgs/Image format
 		self.printMsg("Waiting for service " + self.service_str_ + " to become available ...")
-		rospy.wait_for_service(self.service_str_)
 		try:
+			rospy.wait_for_service(self.service_str_)
 			get_map = rospy.ServiceProxy(self.service_str_, baker_msgs.srv.GetMap)
 			self.map_data_ = get_map()
 		except rospy.ServiceException, e:

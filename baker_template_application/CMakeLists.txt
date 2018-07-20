@@ -1,13 +1,11 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(baker_wet_cleaning_application)
+project(baker_template_application)
 
 set(catkin_RUN_PACKAGES
 	actionlib
 	actionlib_msgs
 	baker_msgs
-	cob_srvs
 	cv_bridge
-	dynamic_reconfigure
 	eigen_conversions
 	geometry_msgs
 	ipa_building_msgs
@@ -18,7 +16,6 @@ set(catkin_RUN_PACKAGES
 	scitos_msgs
 	sensor_msgs
 	std_msgs
-	std_srvs
 	tf
 )
 
@@ -42,19 +39,12 @@ find_package(OpenCV REQUIRED)
 ## Declare ROS messages and services ##
 #######################################
 
-## Add the Files for actionlib
-add_action_files(
-	DIRECTORY action
-	FILES 
-		InterruptAction.action
-)
-
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-	DEPENDENCIES
-		actionlib_msgs
-		std_msgs
-)
+#generate_messages(
+#	DEPENDENCIES
+#		actionlib_msgs
+#		std_msgs
+#)
 
 ###################################
 ## catkin specific configuration ##
@@ -83,19 +73,6 @@ DEPENDS
 # include_directories(include)
 include_directories(
 	${catkin_INCLUDE_DIRS}
-)
-
-# map management client
-add_executable(map_management_client
-	src/map_management_client.cpp
-)
-target_link_libraries(map_management_client
-	${catkin_LIBRARIES} 
-	${OpenCV_LIBS}
-)
-add_dependencies(map_management_client 
-	${catkin_EXPORTED_TARGETS}
-#	${${PROJECT_NAME}_EXPORTED_TARGETS}
 )
 
 #############
