@@ -18,8 +18,8 @@ class JSONToCSVEncoder():
     
 
     # Method to create a room book out of the database files.
-    def createRoomBook(self):
-        file = open(str(self.csv_file_path_) + "/csv/ROOMBOOK.csv", "w")
+    def createRoomBook(self, file_name = "ROOMBOOK.csv"):
+        file = open(str(self.csv_file_path_) + str(file_name), "w")
         for room in self.database_.rooms_:
             file.write(str(room.room_position_id_) + ";")
             file.write(str(room.room_floor_id_) + ";")
@@ -42,8 +42,8 @@ class JSONToCSVEncoder():
 
 
     # Method to create a terrytory plan out of the database files.
-    def createTerritoryPlan(self):
-        file = open(str(self.csv_file_path_) + "/csv/TERRITORYPLAN.csv", "w")
+    def createTerritoryPlan(self, file_name = "TERRITORYPLAN.csv"):
+        file = open(str(self.csv_file_path_) + str(file_name), "w")
         for room in self.database_.rooms_:
 			file.write(str(room.room_territory_id_) + ";")
 			file.write(str(room.room_position_id_) + ";")
@@ -63,6 +63,14 @@ class JSONToCSVEncoder():
 
     # Public method which creates a roombook and a territory plan from the stated database files. 
     # Call this method from the outside.
-    def createCSVFiles(self):
-        self.createRoomBook()
-        self.createTerritoryPlan()
+    def createCSVFiles(self, room_book_file_name = "ROOMBOOK.CSV", territory_plan_file_name = "TERRITORYPLAN.CSV"):
+        self.createRoomBook(file_name = room_book_file_name)
+        self.createTerritoryPlan(file_name = territory_plan_file_name)
+
+
+# =========================================================================================
+# Test routine
+# =========================================================================================
+
+encoder = JSONToCSVEncoder(csv_file_path="csv/", database_file_path="")
+encoder.makeDatabase()

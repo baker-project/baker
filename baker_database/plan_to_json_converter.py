@@ -32,12 +32,12 @@ class CSVToJsonEncoder():
 	
 	
 	# Load a CSV file
-	def loadCSVFiles(self):
+	def loadCSVFiles(self, room_plan_name_sub = "ROOMPLAN.csv", territory_plan_name_sub = "TERRITORYPLAN.csv"):
 		# Load the room plan
-		file = open(str(self.csv_file_path_) + "ROOMPLAN.csv", "r")
+		file = open(str(self.csv_file_path_) + str(room_plan_name_sub), "r")
 		self.csv_room_plan_ = csv.reader(file, dialect="excel")
 		# Load the territory plan
-		file = open(str(self.csv_file_path_) + "TERRITORYPLAN.csv", "r")
+		file = open(str(self.csv_file_path_) + str(territory_plan_name_sub), "r")
 		self.csv_territory_plan_ = csv.reader(file, dialect="excel")
 
 	# Fill in the database lists
@@ -105,8 +105,8 @@ class CSVToJsonEncoder():
 		
 		
 	# Public method. This one shall be called. Only this one shall be called.
-	def makeDatabase(self):
-		self.loadCSVFiles()
+	def makeDatabase(self, room_plan_name = "ROOMPLAN.csv", territory_plan_name = "TERRITORYPLAN.csv"):
+		self.loadCSVFiles(room_plan_name_sub = room_plan_name, territory_plan_name_sub = territory_plan_name)
 		self.feedDatabaseWithCSVData()
 		self.saveDatabaseToFile()
 		
