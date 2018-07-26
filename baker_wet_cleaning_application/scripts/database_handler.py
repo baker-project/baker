@@ -102,12 +102,6 @@ class DatabaseHandler():
 		return mapping
 
 
-	# Reconstruct the room object out of the room sequencing result
-	def getRoomFromSequencingResult(self, sequencing_result, checkpoint, current_room):
-		room_id = sequencing_result.checkpoints[checkpoint].room_indices[current_room]
-		return self.database_.getRoom(room_id)
-
-
 	
 	# Method for extracting all due rooms from the due assignment
 	# CASE: First run of application, no rooms collected yet today.

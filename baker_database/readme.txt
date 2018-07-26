@@ -1,8 +1,8 @@
-============================
-BakeR database documentation
+================================================================================================
+BakeR database utilities documentation
 Last updated: 24st July 2018
 Author: rmb-mf
-============================
+================================================================================================
 
 Contents of this folder:
 ========================
@@ -14,11 +14,18 @@ Contents of this folder:
 	plan_to_json_converter.py			Reads the room and territory plan CSV files and fills a previously created database set with the contained data.
 	json_to_plan_converter.py			Reads the database set files and restores a roombook and territory plan from the provided data.
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+THE DOCUMENTATION FOR database.py, database_handler.py AND database_classes.py IS LOCATED AT 
+"[...]/src/baker_baker_wet_cleaning_application/scripts/readme.txt"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 Subfolders of this folder:
 ==========================
 
 	/csv					Contains the room plan and territory plan CSV files.
 	/resources				This is the database set which was created using database_creation_tool.py
+
 
 Use cases:
 ==========
