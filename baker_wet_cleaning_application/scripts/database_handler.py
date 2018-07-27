@@ -102,12 +102,6 @@ class DatabaseHandler():
 		return mapping
 
 
-	# Reconstruct the room object out of the room sequencing result
-	def getRoomFromSequencingResult(self, sequencing_result, checkpoint, current_room):
-		room_id = sequencing_result.checkpoints[checkpoint].room_indices[current_room]
-		return self.database_.getRoom(room_id)
-
-
 	
 	# Method for extracting all due rooms from the due assignment
 	# CASE: First run of application, no rooms collected yet today.
@@ -138,23 +132,23 @@ class DatabaseHandler():
 				if ((schedule_char == "x") or (schedule_char == "X")):
 					# Cleaning method 2 --> Dry, Wet, Trash
 					if (room.room_cleaning_method_ == 2):
-						if not(timestamp_is_new[0]):
+						if not((timestamp_is_new[0]) or (-1 in room.open_cleaning_tasks_)):
 							room.open_cleaning_tasks_.append(-1)
-						if not(timestamp_is_new[1]):
+						if not((timestamp_is_new[1]) or (0 in room.open_cleaning_tasks_)):
 							room.open_cleaning_tasks_.append(0)
-						if not(timestamp_is_new[2]):
+						if not((timestamp_is_new[2]) or (1 in room.open_cleaning_tasks_)):
 							room.open_cleaning_tasks_.append(1)
 					# Cleaning method 1 --> Wet, Trash
 					elif (room.room_cleaning_method_ == 1):
-						if not(timestamp_is_new[0]):
+						if not((timestamp_is_new[0]) or (-1 in room.open_cleaning_tasks_)):
 							room.open_cleaning_tasks_.append(-1)
-						if not(timestamp_is_new[2]):
+						if not((timestamp_is_new[2]) or (1 in room.open_cleaning_tasks_)):
 							room.open_cleaning_tasks_.append(1)
 					# Cleaning method 0 --> Dry, Trash
 					elif (room.room_cleaning_method_ == 0):
-						if not(timestamp_is_new[0]):
+						if not((timestamp_is_new[0]) or (-1 in room.open_cleaning_tasks_)):
 							room.open_cleaning_tasks_.append(-1)
-						if not(timestamp_is_new[1]):
+						if not((timestamp_is_new[1]) or (0 in room.open_cleaning_tasks_)):
 							room.open_cleaning_tasks_.append(0)
 				# If today is only a trashcan day
 				else:
@@ -329,6 +323,6 @@ class DatabaseHandler():
 		self.database_.saveCompleteDatabase(temporal_file=True)
 
 	# Method to run after all cleaning operations were performed
-	def cleanFinished(self):
+	def cleaningFinished(self):
 		self.database_.saveCompleteDatabase(temporal_file=False)
 
