@@ -59,7 +59,17 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 	def returnToRobotStandardState(self):
 		# save current data if necessary
 		# undo or check whether everything has been undone
-		pass
+		# baker_brush_cleaning_module_interface: turn off the cleaning device (service "stop_brush_cleaner")
+		if self.use_cleaning_device_:	# todo: hack: cleaning device can be turned off for trade fair show
+			self.printMsg("Stop cleaning with " + self.stop_cleaning_service_str_)
+			rospy.wait_for_service(self.stop_cleaning_service_str_) 
+			try:
+				req = rospy.ServiceProxy(self.stop_cleaning_service_str_, std_srvs.srv.Trigger)
+				resp = req()
+				print "Stop cleaning returned with success status " + str(resp.success)
+			except rospy.ServiceException, e:
+				print "Service call to " + self.stop_cleaning_service_str_ + " failed: %s" % e
+
 
 	# Implemented Behavior
 	def executeCustomBehavior(self):
