@@ -22,10 +22,11 @@ class MoveBaseWallFollowBehavior(behavior_container.BehaviorContainer):
 		pass
 
 	# Method for setting parameters for the behavior
-	def setParameters(self, map, area_map, coverage_map, path_tolerance, goal_position_tolerance, goal_angle_tolerance):
+	def setParameters(self, map, area_map, coverage_map, map_data, path_tolerance, goal_position_tolerance, goal_angle_tolerance):
 		self.map_ = map
 		self.area_map_ = area_map
 		self.coverage_map_ = coverage_map
+		self.map_data_ = map_data
 		self.path_tolerance_ = path_tolerance
 		self.goal_position_tolerance_ = goal_position_tolerance
 		self.goal_angle_tolerance_ = goal_angle_tolerance
@@ -36,6 +37,8 @@ class MoveBaseWallFollowBehavior(behavior_container.BehaviorContainer):
 		move_base_goal.map = self.map_
 		move_base_goal.area_map = self.area_map_
 		move_base_goal.coverage_map = self.coverage_map_
+		move_base_goal.map_resolution = self.map_data_.map_resolution
+		move_base_goal.map_origin = self.map_data_.map_origin
 		move_base_goal.path_tolerance = self.path_tolerance_
 		move_base_goal.goal_position_tolerance = self.goal_position_tolerance_
 		move_base_goal.goal_angle_tolerance = self.goal_angle_tolerance_
