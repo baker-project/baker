@@ -22,7 +22,7 @@ class MoveBaseWallFollowBehavior(behavior_container.BehaviorContainer):
 		pass
 
 	# Method for setting parameters for the behavior
-	def setParameters(self, map, area_map, coverage_map, map_data, path_tolerance, goal_position_tolerance, goal_angle_tolerance):
+	def setParameters(self, map, area_map, coverage_map, map_data, path_tolerance, goal_position_tolerance, goal_angle_tolerance, target_wall_distance, wall_following_off_traveling_distance_threshold):
 		self.map_ = map
 		self.area_map_ = area_map
 		self.coverage_map_ = coverage_map
@@ -30,6 +30,8 @@ class MoveBaseWallFollowBehavior(behavior_container.BehaviorContainer):
 		self.path_tolerance_ = path_tolerance
 		self.goal_position_tolerance_ = goal_position_tolerance
 		self.goal_angle_tolerance_ = goal_angle_tolerance
+		self.target_wall_distance_ = target_wall_distance
+		self.wall_following_off_traveling_distance_threshold_ = wall_following_off_traveling_distance_threshold
 
 	# Implemented Behavior
 	def executeCustomBehavior(self):
@@ -42,6 +44,8 @@ class MoveBaseWallFollowBehavior(behavior_container.BehaviorContainer):
 		move_base_goal.path_tolerance = self.path_tolerance_
 		move_base_goal.goal_position_tolerance = self.goal_position_tolerance_
 		move_base_goal.goal_angle_tolerance = self.goal_angle_tolerance_
+		move_base_goal.target_wall_distance = self.target_wall_distance_
+		move_base_goal.wall_following_off_traveling_distance_threshold = self.wall_following_off_traveling_distance_threshold_
 		move_base_client = actionlib.SimpleActionClient(self.service_str_, MoveBaseWallFollowAction)
 		self.printMsg("Running move_base_wall_follow action...")
 		self.move_base_wall_follow_result_ = self.runAction(move_base_client, move_base_goal)

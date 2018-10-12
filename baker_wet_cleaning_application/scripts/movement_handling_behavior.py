@@ -225,8 +225,10 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					current_room_map, #self.coverage_map_response_.coverage_map,
 					self.map_data_,
 					0.2,
-					0.4,
-					1.57
+					0.5,
+					1.57,
+					0.1,
+					1.0
 				)
 				self.wall_follower_.executeBehavior()
 				
