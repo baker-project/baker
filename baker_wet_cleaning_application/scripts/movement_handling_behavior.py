@@ -179,7 +179,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				path_tolerance = 0.2
 				goal_position_tolerance = 0.5
 				goal_angle_tolerance = 1.57
-				"""
+				""
 				self.path_follower_.setParameters(
 					self.room_explorer_.exploration_result_.coverage_path_pose_stamped,
 					current_room_map,
@@ -188,7 +188,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					1.57
 				)
 				self.path_follower_.executeBehavior()
-				
+				"""
 				# Interruption opportunity
 				if self.handleInterrupt() == 2:
 					return
@@ -202,6 +202,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				goal_angle_tolerance = 3.14
 				"""
 				# receive coverage map from coverage monitor
+				
 				self.printMsg("Receive coverage image from coverage monitor " + self.receive_coverage_image_service_str_)
 				rospy.wait_for_service(self.receive_coverage_image_service_str_) 
 				try:
@@ -217,17 +218,18 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					print "Receive coverage image returned with success status " + str(resp.success)
 				except rospy.ServiceException, e:
 					print "Service call to " + self.receive_coverage_image_service_str_ + " failed: %s" % e
-				'''
+				
 				self.wall_follower_.setParameters(
-					self.map_data_.map
+					self.map_data_.map,
 					current_room_map,
-					self.coverage_map_response_.coverage_map,
+					current_room_map, #self.coverage_map_response_.coverage_map,
+					self.map_data_,
 					0.2,
 					0.4,
 					1.57
 				)
 				self.wall_follower_.executeBehavior()
-				'''
+				
 				
 				# Interruption opportunity
 				if self.handleInterrupt() == 2:
