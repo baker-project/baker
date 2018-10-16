@@ -32,6 +32,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 							   Point32(x=0.54035, y=-0.364), Point32(x=0.54035, y=0.136)]	# todo: read from MIRA
 
 		# todo: hack: cleaning device can be turned off for trade fair show
+		self.use_cleaning_device_ = False
 		if rospy.has_param('use_cleaning_device'):
 			self.use_cleaning_device_ = rospy.get_param("use_cleaning_device")
 			self.printMsg("Imported parameter use_cleaning_device = " + str(self.use_cleaning_device_))
