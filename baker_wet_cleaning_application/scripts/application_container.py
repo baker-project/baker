@@ -25,6 +25,9 @@ class ApplicationContainer:
 	# but this apparently works to automatically get the changed number also into the client behaviors
 	application_status_ = [2]
 
+	# needs to be set to true after a pause for continuing the application
+	application_resumed_after_pause = False
+	 
 	def publishApplicationStatus(self):
 		self.application_status_pub_ = rospy.Publisher(str(self.application_name_) + '_status', std_msgs.msg.Int32, queue_size=1)
 		rate = rospy.Rate(5) # 5hz
@@ -51,7 +54,7 @@ class ApplicationContainer:
 	# Callback function for interrupt
 	def interruptCallback(self, req):
 		self.application_status_[0] = req.data
-		print "Changed self.application_status_[0] =", self.application_status_[0]
+		self.printMsg("Changed self.application_status_[0] =" + str(self.application_status_[0]))
 		res = SetIntResponse()
 		res.success = True
 		return res
@@ -93,6 +96,7 @@ class ApplicationContainer:
 			while (self.application_status_[0] == 1):
 				pass
 			if self.application_status_[0] == 0:
+				self.application_resumed_after_pause = True
 				self.postPauseProcedure()
 		elif (self.application_status_[0] == 2):
 			self.cancelProcedure()
@@ -104,7 +108,7 @@ class ApplicationContainer:
 	@abstractmethod
 	def executeCustomBehavior(self):
 		# After each command,
-		# if handleInterrupt() == 2:
+		# if handleInterrupt() >= 1:
 		# 	return
 		# has to be inserted.
 		pass
@@ -118,8 +122,9 @@ class ApplicationContainer:
 			if self.application_status_[0] == 0:
 				self.printMsg("Application started.")
 				self.executeCustomBehavior()
-				if self.application_status_[0] == 0:
+				if self.application_status_[0] == 0 and self.application_resumed_after_pause == False:
 					self.application_status_[0] = 2		# set back to 2=Cancelled after successful, uninterrupted execution to avoid automatic restart
-				self.printMsg("Application completed with code " + str(self.application_status_[0]))
+				if self.application_resumed_after_pause == False:
+					self.printMsg("Application completed with code " + str(self.application_status_[0]))
 			elif self.application_status_[0] == 3:
 				break
