@@ -1,6 +1,8 @@
 <root>
-	<var MCFFile="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/lab_ipa/map.mcf"/>
-	<var cleaningMap="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/lab_ipa/map-static.xml"/>
+	<var mapEnvironment="lab_ipa"/>
+	<var MCFFile="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/${mapEnvironment}/map.mcf"/>
+	<var cleaningMap="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/${mapEnvironment}/map-static.xml"/>
+	<!--var segmentationMap="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/${mapEnvironment}/map-segmentation.xml"/-->
 
 	<var useDocking="false"/>
 
