@@ -47,7 +47,7 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 		self.map_segmented_data_ = self.map_receiver_.map_segmented_data_
 
 		# Interruption opportunity
-		if self.handleInterrupt() == 2:
+		if self.handleInterrupt() >= 1:
 			return
 		
 		# Map segmentation
@@ -67,7 +67,7 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 		self.segmentation_data_ = self.map_segmenter_.segmentation_result_
 		
 		# Interruption opportunity
-		if self.handleInterrupt() == 2:
+		if self.handleInterrupt() >= 1:
 			return
 		
 		# Room sequencing
@@ -81,7 +81,7 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 		self.room_sequencing_data_ = self.room_sequencer_.room_sequence_result_
 		
 		# Interruption opportunity
-		if self.handleInterrupt() == 2:
+		if self.handleInterrupt() >= 1:
 			return
 			
 		#self.printMsg("self.room_sequencing_data_.checkpoints=" + str(self.room_sequencing_data_.checkpoints))

@@ -84,7 +84,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				self.printMsg("Attending to next room with current_room_index=" + str(current_room_index))
 
 				# Interruption opportunity
-				if self.handleInterrupt() == 2:
+				if self.handleInterrupt() >= 1:
 					return
 
 				# Room exploration
@@ -117,7 +117,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					continue
 				
 				# Interruption opportunity
-				if self.handleInterrupt() == 2:
+				if self.handleInterrupt() >= 1:
 					return
 	
 				#rospy.sleep(20)
@@ -142,7 +142,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				"""
 				
 				# Interruption opportunity
-				if self.handleInterrupt() == 2:
+				if self.handleInterrupt() >= 1:
 					return
 				
 				# baker_brush_cleaning_module_interface: turn on the cleaning device (service "start_brush_cleaner")
@@ -190,7 +190,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				self.path_follower_.executeBehavior()
 				"""
 				# Interruption opportunity
-				if self.handleInterrupt() == 2:
+				if self.handleInterrupt() >= 1:
 					return
 	
 				# Wall follow
@@ -234,7 +234,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				
 				
 				# Interruption opportunity
-				if self.handleInterrupt() == 2:
+				if self.handleInterrupt() >= 1:
 					return
 
 				# coverage_monitor_server.cpp: turn off logging of the cleaned path (service "stop_coverage_monitoring")

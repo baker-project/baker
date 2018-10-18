@@ -46,7 +46,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.map_handler_.executeBehavior()
 		
 		# Interruption opportunity
-		if self.handleInterrupt() == 2:
+		if self.handleInterrupt() >= 1:
 			return
 		
 		#self.printMsg("self.map_handler_.room_sequencing_data_.checkpoints=" + str(self.map_handler_.room_sequencing_data_.checkpoints))
@@ -65,7 +65,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		)
 		self.movement_handler_.executeBehavior()
 		# Interruption opportunity
-		if self.handleInterrupt() == 2:
+		if self.handleInterrupt() >= 1:
 			return
 
 	# Abstract method that contains the procedure to be done immediately after the application is paused.
