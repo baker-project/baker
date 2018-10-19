@@ -9,6 +9,12 @@ import behavior_container
 
 class RoomExplorationBehavior(behavior_container.BehaviorContainer):
 
+	#========================================================================
+	# Description:
+	# Class which contains the behavior for calculating an exploration
+	# trajectory through a specified room
+	#========================================================================
+
 	def __init__(self, behavior_name, interrupt_var, service_str):
 		self.behavior_name_ = behavior_name
 		self.interrupt_var_ = interrupt_var

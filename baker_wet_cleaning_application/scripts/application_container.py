@@ -16,6 +16,12 @@ from baker_wet_cleaning_application.msg import InterruptActionGoal
 from baker_wet_cleaning_application.msg import InterruptActionResult
 
 class ApplicationContainer:
+
+	#========================================================================
+	# Description:
+	# Abstract class which contains the overall application
+	#========================================================================
+
 	__metaclass__ = ABCMeta
 	# Arbitrary application name. Only used for debug.
 	application_name_ = "<Unnamed>"

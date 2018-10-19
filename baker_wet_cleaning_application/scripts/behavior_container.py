@@ -10,6 +10,12 @@ from abc import ABCMeta, abstractmethod
 
 
 class BehaviorContainer:
+
+	#========================================================================
+	# Description:
+	# Abstract class which contains one specific behavior of the application
+	#========================================================================
+
 	__metaclass__ = ABCMeta
 	# Arbitrary behavior name. Only used for debug.
 	behavior_name_ = "<Unnamed>"

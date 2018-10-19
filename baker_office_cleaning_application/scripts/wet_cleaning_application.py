@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import roslib
-roslib.load_manifest('baker_office_cleaning_application')
+roslib.load_manifest('baker_wet_cleaning_application')
 import actionlib
 import rospy
 import tf
@@ -36,9 +36,9 @@ class SeqControl():
 
 		# receive the navigation map in sensor_msgs/Image format
 		print "Waiting for service '/baker/get_map_image' to become available ..."
-		rospy.wait_for_service('/baker/get_map_image')
+		rospy.wait_for_service('/map_management_client/get_map_image')
 		try:
-			get_map = rospy.ServiceProxy('/baker/get_map_image', GetMap)
+			get_map = rospy.ServiceProxy('/map_management_client/get_map_image', GetMap)
 			self.map_data = get_map()
 		except rospy.ServiceException, e:
 			print "Map-Receiving-Service call failed: %s" % e

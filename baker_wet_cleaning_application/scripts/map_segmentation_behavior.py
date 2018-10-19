@@ -10,6 +10,11 @@ import behavior_container
 
 class MapSegmentationBehavior(behavior_container.BehaviorContainer):
 
+	#========================================================================
+	# Description:
+	# Class which contains the behavior for segmenting a map
+	#========================================================================
+
 	def __init__(self, behavior_name, interrupt_var, service_str):
 		self.behavior_name_ = behavior_name
 		self.interrupt_var_ = interrupt_var

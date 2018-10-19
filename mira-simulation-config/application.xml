@@ -1,8 +1,8 @@
 <root>
-	<var mapEnvironment="AVH2-clean"/> <!-- lab_ipa -->
+	<var mapEnvironment="lab_ipa"/> <!-- lab_ipa -->
 	<var MCFFile="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/${mapEnvironment}/map.mcf"/>
 	<var cleaningMap="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/${mapEnvironment}/map-static.xml"/>
-	<var segmentationMap="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/${mapEnvironment}/map-segmentation.xml"/>
+	<!--var segmentationMap="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/${mapEnvironment}/map-segmentation.xml"/-->
 
 	<var useDocking="false"/>
 
@@ -16,6 +16,14 @@
 	<var pathPlanner="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/SmoothPathPlanner.xml"/>
 
 	<include file="${findpkg SCITOSSimulator}/etc/SCITOS-application.xml"/>
+
+	<!--namespace name="robot">
+		<parameter name="Robot.RobotModelProvider.Model">
+			<MaxForwardVelocity>0.6</MaxForwardVelocity>
+			<MaxBackwardVelocity>-0.3</MaxBackwardVelocity>
+			<MaxRotVelocity>60</MaxRotVelocity>
+		</parameter>
+	</namespace-->
 
 	<namespace name="navigation">
 		<parameter name="Pilot.Planner.Objectives[?].item.Objective{mira::pilot::SmoothTransitionPathObjective}.Planner">
