@@ -164,7 +164,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 
 		shall_continue_old_cleaning = False
 		days_delta = datetime.datetime.now() - self.database_.application_data_.last_execution_date_
-		print "------------ CURRENT_DATE: " + str(datetime.datetime.now)
+		print "------------ CURRENT_DATE: " + str(datetime.datetime.now())
 		print "------------ LAST_DATE: " + str(self.database_.application_data_.last_execution_date_)
 		print "------------ DAYS_DELTA: " + str(days_delta) + " " + str(days_delta.days)
 		if (self.database_.application_data_.progress_[0] == 1):
@@ -198,11 +198,13 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 
 		# Find due rooms
 		self.printMsg("Collecting due rooms...")
+		self.database_handler_.due_rooms_ = []		# todo: verify whether this is correct here (otherwise the list of due rooms is corrupted with double and many-times occurring rooms)
 		if ((self.database_handler_.noPlanningHappenedToday() == True) and (shall_continue_old_cleaning == False)):
 			#try:
+			# todo: check: it looks like the result of restoreDueRooms() could be erased in getAllDueRooms()
 			self.database_handler_.restoreDueRooms()
 			self.database_handler_.getAllDueRooms()
-			print len(self.database_.rooms_)
+			print "len(self.database_.rooms_):", len(self.database_.rooms_), "\ndue rooms:"
 			for room in self.database_handler_.due_rooms_:
 				print room.room_name_
 			#except:
@@ -216,7 +218,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			#	exit(1)
 
 		# Sort the due rooms with respect to cleaning method
-		self.printMsg("Sorting the found rooms after cleaning method...")
+		self.printMsg("Sorting the found rooms with respect to cleaning method...")
 		#try:
 		rooms_dry_cleaning, rooms_wet_cleaning = self.database_handler_.sortRoomsList(self.database_handler_.due_rooms_)
 		for room in rooms_dry_cleaning:
