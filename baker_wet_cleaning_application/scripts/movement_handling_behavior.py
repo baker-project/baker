@@ -89,9 +89,17 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 			except rospy.ServiceException, e:
 				print "Service call to " + self.start_cleaning_service_str_ + " failed: %s" % e
 
-
+		
+		# todo: hack: manually chosen room order
 		for current_checkpoint_index in range(len(self.sequence_data_.checkpoints)):
 			for current_room_index in self.sequence_data_.checkpoints[current_checkpoint_index].room_indices:
+				print "current_room_index:", current_room_index, "     self.sequence_data_.checkpoints[current_checkpoint_index].checkpoint_position_in_pixel:", self.sequence_data_.checkpoints[current_checkpoint_index].checkpoint_position_in_pixel, "   self.sequence_data_.checkpoints[current_checkpoint_index].checkpoint_position_in_meter:", self.sequence_data_.checkpoints[current_checkpoint_index].checkpoint_position_in_meter
+		
+		room_order = []
+		if True:
+			for current_room_index in room_order:
+# 		for current_checkpoint_index in range(len(self.sequence_data_.checkpoints)):
+# 			for current_room_index in self.sequence_data_.checkpoints[current_checkpoint_index].room_indices:
 
 				self.printMsg("Attending to next room with current_room_index=" + str(current_room_index))
 
@@ -240,7 +248,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					0.2,
 					0.5,
 					1.57,
-					0.1,
+					0.02,	# target wall distance
 					1.0
 				)
 				self.wall_follower_.executeBehavior()
