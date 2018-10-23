@@ -93,8 +93,25 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 		# todo: hack: manually chosen room order
 		for current_checkpoint_index in range(len(self.sequence_data_.checkpoints)):
 			for current_room_index in self.sequence_data_.checkpoints[current_checkpoint_index].room_indices:
-				print "current_room_index:", current_room_index, "     self.sequence_data_.checkpoints[current_checkpoint_index].checkpoint_position_in_pixel:", self.sequence_data_.checkpoints[current_checkpoint_index].checkpoint_position_in_pixel, "   self.sequence_data_.checkpoints[current_checkpoint_index].checkpoint_position_in_meter:", self.sequence_data_.checkpoints[current_checkpoint_index].checkpoint_position_in_meter
-		
+				print "current_room_index:", current_room_index, "     self.segmentation_data_.room_information_in_pixel[current_room_index].room_center:", self.segmentation_data_.room_information_in_pixel[current_room_index].room_center, "   self.segmentation_data_.room_information_in_meter[current_room_index].room_center:", self.segmentation_data_.room_information_in_meter[current_room_index].room_center
+
+		# rooms at Leipzig:
+# 		room 0 added, center: [1424, 30]
+# 		checking for accessibility of rooms
+# 		room 1 added, center: [470, 90]
+# 		checking for accessibility of rooms
+# 		room 2 added, center: [115, 92]
+# 		checking for accessibility of rooms
+# 		room 3 added, center: [1372, 215]
+# 		checking for accessibility of rooms
+# 		room 4 added, center: [1441, 86]
+# 		checking for accessibility of rooms
+# 		room 5 added, center: [1051, 144]
+# 		checking for accessibility of rooms
+# 		room 6 added, center: [1457, 338]
+# 		checking for accessibility of rooms
+# 		room 7 added, center: [1251, 254]
+
 		room_order = []
 		if True:
 			for current_room_index in room_order:
