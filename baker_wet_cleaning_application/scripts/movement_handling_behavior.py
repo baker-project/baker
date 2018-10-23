@@ -110,7 +110,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 # 	x	-138.2 = room 4 added, center: [1441, 86]
 # 	x	-135 = room 7 added, center: [1251, 254]
 
-		# for Mo: die Reihenfolge der Räume hier ändern
+		# for Mo: die Reihenfolge der Raeume hier aendern
 		room_order = [5, 0, 3, 6]		# possible rooms: [0, 3, 5, 6, 1, 2] 
 		if True:
 			for current_room_index in room_order:
