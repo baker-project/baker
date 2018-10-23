@@ -184,7 +184,7 @@ class Database():
 		# Exploration server constants
 		self.robot_properties_.exploration_robot_radius_ = dict.get("exploration_robot_radius")
 		self.robot_properties_.exploration_coverage_radius_ = dict.get("exploration_coverage_radius")
-		e_fov_list = dict.get("exploration_field_of_view")
+		e_fov_list = dict.get("exploration_field_of_view")	# todo: only supports 4 point FOVs
 		exploration_field_of_view = [Point32(x=e_fov_list[0][0], y=e_fov_list[0][1]), Point32(x=e_fov_list[1][0], y=e_fov_list[1][1]), Point32(x=e_fov_list[2][0], y=e_fov_list[2][1]), Point32(x=e_fov_list[3][0], y=e_fov_list[3][1])]
 		self.robot_properties_.exploration_field_of_view_ = exploration_field_of_view
 		# Move_Base server constants
