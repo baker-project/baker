@@ -3,12 +3,10 @@
 
 #include <ros/ros.h>
 #include <iostream>
-#include <dataset_create/image_blend.h>
-#include <dataset_create/segment_dirt.h>
-#include <dataset_create/image_blend.h>
-#include <dataset_create/simple_segment.h>
+#include <ipa_dirt_detection_dataset_tools/image_blend.h>
+#include <ipa_dirt_detection_dataset_tools/simple_segmentation.h>
 
-namespace DatasetCreate
+namespace ipa_dirt_detection_dataset_tools
 {
 	class DatasetCreate
 	{

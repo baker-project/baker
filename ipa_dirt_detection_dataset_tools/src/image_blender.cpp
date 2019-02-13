@@ -2,19 +2,18 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-#include "dataset_create/image_blend.h"
-#include "dataset_create/segment_dirt.h"
+#include "ipa_dirt_detection_dataset_tools/image_blender.h"
 
-DatasetCreate::ImageBlend::ImageBlend(std::string& clean_ground_path, std::string& artificial_dirt_path, std::string& artificial_dirt_mask_path,
-		std::string& segmented_pens_path, std::string& segmented_pens_mask_path, std::string& blended_img_folder, std::string& blended_mask_folder, int max_num_dirt,
-		int min_num_dirt, int max_num_pens, int min_num_pens, std::string& filename_bbox, bool flip_clean_ground, std::string& brightness_shadow_mask_path)
+ipa_dirt_detection_dataset_tools::ImageBlend::ImageBlend(std::string& clean_ground_path, std::string& artificial_dirt_path, std::string& artificial_dirt_mask_path,
+		std::string& segmented_objects_path, std::string& segmented_objects_mask_path, std::string& blended_img_folder, std::string& blended_mask_folder, int max_num_dirt,
+		int min_num_dirt, int max_num_objects, int min_num_objects, std::string& filename_bbox, bool flip_clean_ground, std::string& brightness_shadow_mask_path)
 {
 	clean_ground_path_ = clean_ground_path;
 
 	artificial_dirt_path_ = artificial_dirt_path;
 	artificial_dirt_mask_path_ = artificial_dirt_mask_path;
-	segmented_pens_path_ = segmented_pens_path;
-	segmented_pens_mask_path_ = segmented_pens_mask_path;
+	segmented_objects_path_ = segmented_objects_path;
+	segmented_objects_mask_path_ = segmented_objects_mask_path;
 	brightness_shadow_mask_path_ = brightness_shadow_mask_path;
 
 	blended_img_folder_ = blended_img_folder;
@@ -24,12 +23,12 @@ DatasetCreate::ImageBlend::ImageBlend(std::string& clean_ground_path, std::strin
 	max_num_dirt_ = max_num_dirt;
 	min_num_dirt_ = min_num_dirt;
 
-	max_num_pens_ = max_num_pens;
-	min_num_pens_ = min_num_pens;
+	max_num_objects_ = max_num_objects;
+	min_num_objects_ = min_num_objects;
 
 	flip_clean_ground_ = flip_clean_ground;
 
-	img_cols_ = 1280;
+	img_cols_ = 1280;		// todo:
 	img_rows_ = 1024;
 
 	if_resize_dirt_ = 0;
@@ -38,11 +37,11 @@ DatasetCreate::ImageBlend::ImageBlend(std::string& clean_ground_path, std::strin
 	srand((int) time(0));
 }
 
-DatasetCreate::ImageBlend::~ImageBlend()
+ipa_dirt_detection_dataset_tools::ImageBlend::~ImageBlend()
 {
 }
 
-void DatasetCreate::ImageBlend::run()
+void ipa_dirt_detection_dataset_tools::ImageBlend::run()
 {
 	// To list the clean ground file names
 	boost::filesystem::path clean_ground_images(clean_ground_path_);  // The order of clean ground images is random
@@ -105,7 +104,7 @@ void DatasetCreate::ImageBlend::run()
 	}
 
 	// To list the Pens file names
-	boost::filesystem::path artificial_pens_images(segmented_pens_path_);
+	boost::filesystem::path artificial_pens_images(segmented_objects_path_);
 	num_pens_images_ = std::distance(boost::filesystem::directory_iterator(artificial_pens_images), boost::filesystem::directory_iterator
 	{ });
 	boost::filesystem::directory_iterator end_itr4;
@@ -120,7 +119,7 @@ void DatasetCreate::ImageBlend::run()
 	}
 
 	// To list the Pens mask file names
-	boost::filesystem::path artificial_pens_mask_images(segmented_pens_mask_path_);
+	boost::filesystem::path artificial_pens_mask_images(segmented_objects_mask_path_);
 	boost::filesystem::directory_iterator end_itr5;
 	boost::filesystem::directory_iterator itr5(artificial_pens_mask_images);
 
@@ -196,14 +195,14 @@ void DatasetCreate::ImageBlend::run()
 		//-------------------------------------------------------------------------------------------------------
 
 		int dirt_num = rand() % (max_num_dirt_ - min_num_dirt_) + min_num_dirt_;   // generate number of dirts in range max_num_dirt and min_num_dirt
-		int pens_num = rand() % (max_num_pens_ - min_num_pens_) + min_num_pens_;
+		int pens_num = rand() % (max_num_objects_ - min_num_objects_) + min_num_objects_;
 
 		blendImage(dirt_num, myfile, ground_file_name);     // First add artificial dirt , then add the objects for classification
 		blendImage(pens_num, myfile, ground_file_name, true);
 
-		cv::imwrite(blended_mask_folder_ + "/" + ground_file_name + "s" + DatasetCreate::to_string(serie_num_) + ".png", blended_mask_);
-		cv::imwrite(blended_mask_folder_ + "/mask_vis_" + ground_file_name + "s" + DatasetCreate::to_string(serie_num_) + ".png", blended_mask_ * 255);
-		cv::imwrite(blended_img_folder_ + "/" + ground_file_name + "s" + DatasetCreate::to_string(serie_num_) + ".png", blended_img_);
+		cv::imwrite(blended_mask_folder_ + "/" + ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_);
+		cv::imwrite(blended_mask_folder_ + "/mask_vis_" + ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_ * 255);
+		cv::imwrite(blended_img_folder_ + "/" + ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_img_);
 
 		if (flip_clean_ground_ == 1)
 		{
@@ -214,9 +213,9 @@ void DatasetCreate::ImageBlend::run()
 			blendImage(dirt_num, myfile, ground_file_name);
 			blendImage(pens_num, myfile, ground_file_name, true);
 
-			cv::imwrite(blended_mask_folder_ + "/" + ground_file_name + "s" + DatasetCreate::to_string(serie_num_) + ".png", blended_mask_);
-			cv::imwrite(blended_mask_folder_ + "/mask_vis_" + ground_file_name + "s" + DatasetCreate::to_string(serie_num_) + ".png", blended_mask_ * 255);
-			cv::imwrite(blended_img_folder_ + "/" + ground_file_name + "s" + DatasetCreate::to_string(serie_num_) + ".png", blended_img_);
+			cv::imwrite(blended_mask_folder_ + "/" + ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_);
+			cv::imwrite(blended_mask_folder_ + "/mask_vis_" + ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_ * 255);
+			cv::imwrite(blended_img_folder_ + "/" + ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_img_);
 
 			serie_num_ = 2;
 			cv::flip(clean_ground_pattern_, fliped_ground_img_, 1);
@@ -225,9 +224,9 @@ void DatasetCreate::ImageBlend::run()
 			blendImage(dirt_num, myfile, ground_file_name);
 			blendImage(pens_num, myfile, ground_file_name, true);
 
-			cv::imwrite(blended_mask_folder_ + "/" + ground_file_name + "s" + DatasetCreate::to_string(serie_num_) + ".png", blended_mask_);
-			cv::imwrite(blended_mask_folder_ + "/mask_vis_" + ground_file_name + "s" + DatasetCreate::to_string(serie_num_) + ".png", blended_mask_ * 255);
-			cv::imwrite(blended_img_folder_ + "/" + ground_file_name + "s" + DatasetCreate::to_string(serie_num_) + ".png", blended_img_);
+			cv::imwrite(blended_mask_folder_ + "/" + ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_);
+			cv::imwrite(blended_mask_folder_ + "/mask_vis_" + ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_ * 255);
+			cv::imwrite(blended_img_folder_ + "/" + ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_img_);
 
 			serie_num_ = 3;
 			cv::flip(clean_ground_pattern_, fliped_ground_img_, 0);
@@ -236,9 +235,9 @@ void DatasetCreate::ImageBlend::run()
 			blendImage(dirt_num, myfile, ground_file_name);
 			blendImage(pens_num, myfile, ground_file_name, true);
 
-			cv::imwrite(blended_mask_folder_ + "/" + ground_file_name + "s" + DatasetCreate::to_string(serie_num_) + ".png", blended_mask_);
-			cv::imwrite(blended_mask_folder_ + "/mask_vis_" + ground_file_name + "s" + DatasetCreate::to_string(serie_num_) + ".png", blended_mask_ * 255);
-			cv::imwrite(blended_img_folder_ + "/" + ground_file_name + "s" + DatasetCreate::to_string(serie_num_) + ".png", blended_img_);
+			cv::imwrite(blended_mask_folder_ + "/" + ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_);
+			cv::imwrite(blended_mask_folder_ + "/mask_vis_" + ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_ * 255);
+			cv::imwrite(blended_img_folder_ + "/" + ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_img_);
 		}
 		edge_smoothing(3);
 		// if (m % 5 == 1)    // 20% add shadow
@@ -249,7 +248,7 @@ void DatasetCreate::ImageBlend::run()
 	myfile.close();
 }
 
-void DatasetCreate::ImageBlend::blendImage(int dirt_num, std::ofstream& myfile, std::string& ground_file_name)
+void ipa_dirt_detection_dataset_tools::ImageBlend::blendImage(int dirt_num, std::ofstream& myfile, std::string& ground_file_name)
 {
 	int img_cols = clean_ground_pattern_.cols;
 	int img_rows = clean_ground_pattern_.rows;
@@ -295,7 +294,7 @@ void DatasetCreate::ImageBlend::blendImage(int dirt_num, std::ofstream& myfile, 
 			anchor_row = anchor_row - (dirt_rows + anchor_row + 2 - img_rows);
 
 		// write the arguments of the bounding box in file
-		myfile << ground_file_name + "s" + DatasetCreate::to_string(serie_num_) << " " << anchor_col - 2 << " " << anchor_row - 2 << " " << anchor_col + dirt_cols + 2 << " "
+		myfile << ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) << " " << anchor_col - 2 << " " << anchor_row - 2 << " " << anchor_col + dirt_cols + 2 << " "
 				<< anchor_row + dirt_rows + 2 << " " << "Dirt \n";
 
 		for (int i = anchor_row; i < anchor_row + dirt_rows; i++)      // to blend the images
@@ -320,7 +319,7 @@ void DatasetCreate::ImageBlend::blendImage(int dirt_num, std::ofstream& myfile, 
 	//cv::waitKey(0);
 }
 
-void DatasetCreate::ImageBlend::blendImage(int dirt_num, std::ofstream& myfile, std::string& ground_file_name, bool if_for_classification)
+void ipa_dirt_detection_dataset_tools::ImageBlend::blendImage(int dirt_num, std::ofstream& myfile, std::string& ground_file_name, bool if_for_classification)
 {
 	int img_cols = clean_ground_pattern_.cols;
 	int img_rows = clean_ground_pattern_.rows;
@@ -362,7 +361,7 @@ void DatasetCreate::ImageBlend::blendImage(int dirt_num, std::ofstream& myfile, 
 		get_patch_classname(artificial_pens_filenames_[pens_image_index], class_name);
 
 		// write the arguments of the bounding box in file
-		myfile << ground_file_name + "s" + DatasetCreate::to_string(serie_num_) << " " << anchor_col << " " << anchor_row << " " << anchor_col + dirt_cols << " "
+		myfile << ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) << " " << anchor_col << " " << anchor_row << " " << anchor_col + dirt_cols << " "
 				<< anchor_row + dirt_rows << " " << class_name << '\n';
 
 		for (int i = anchor_row; i < anchor_row + dirt_rows; i++)      // to blend the images
@@ -384,7 +383,7 @@ void DatasetCreate::ImageBlend::blendImage(int dirt_num, std::ofstream& myfile, 
 }
 
 // reference: https://www.pyimagesearch.com/2017/01/02/rotate-images-correctly-with-opencv-and-python/
-void DatasetCreate::ImageBlend::rotateImage()
+void ipa_dirt_detection_dataset_tools::ImageBlend::rotateImage()
 {
 	//srand((int)time(0));               // generate random rotation angle
 	double rotate_angle = rand() % 180;
@@ -425,7 +424,7 @@ void DatasetCreate::ImageBlend::rotateImage()
 	//shrank_bounding_box();
 }
 
-void DatasetCreate::ImageBlend::shrank_bounding_box()
+void ipa_dirt_detection_dataset_tools::ImageBlend::shrank_bounding_box()
 {
 	int rows = rotated_artificial_dirt_.rows;
 	int cols = rotated_artificial_dirt_.cols;
@@ -502,7 +501,7 @@ void DatasetCreate::ImageBlend::shrank_bounding_box()
 }
 
 // The function is used for extract the class name from the file name of the segmented patches
-void DatasetCreate::ImageBlend::get_patch_classname(std::string& patch_name, std::string& class_name)
+void ipa_dirt_detection_dataset_tools::ImageBlend::get_patch_classname(std::string& patch_name, std::string& class_name)
 {
 	std::vector<std::string> strs;
 	boost::split(strs, patch_name, boost::is_any_of("\t,/"));
@@ -514,7 +513,7 @@ void DatasetCreate::ImageBlend::get_patch_classname(std::string& patch_name, std
 	std::cout << "Class of the object is: " << class_name << std::endl;
 }
 
-void DatasetCreate::ImageBlend::edge_smoothing(int half_kernel_size)
+void ipa_dirt_detection_dataset_tools::ImageBlend::edge_smoothing(int half_kernel_size)
 {
 	blended_img_.convertTo(blended_img_, CV_32F);
 
@@ -581,7 +580,7 @@ void DatasetCreate::ImageBlend::edge_smoothing(int half_kernel_size)
 }
 
 // The function used to add artificial shalldows and brightness in sythetic images
-void DatasetCreate::ImageBlend::shadow_and_illuminance(bool shadow_or_illuminance)
+void ipa_dirt_detection_dataset_tools::ImageBlend::shadow_and_illuminance(bool shadow_or_illuminance)
 {
 	// random generator for the shape and size
 	int polygon_or_ellipse = rand() % 2;           // 1 for polygon and 0 for ellipse
@@ -655,7 +654,7 @@ void DatasetCreate::ImageBlend::shadow_and_illuminance(bool shadow_or_illuminanc
 	}
 }
 
-void DatasetCreate::ImageBlend::resize_dirt()
+void ipa_dirt_detection_dataset_tools::ImageBlend::resize_dirt()
 {
 	std::cout << artificial_dirt_.cols << ' ' << artificial_dirt_.rows << std::endl;
 	std::cout << artificial_dirt_mask_.cols << ' ' << artificial_dirt_mask_.rows << std::endl;
@@ -666,7 +665,7 @@ void DatasetCreate::ImageBlend::resize_dirt()
 	cv::resize(artificial_dirt_mask_, artificial_dirt_mask_, cv::Size(0, 0), resize_ratio_, resize_ratio_, CV_INTER_NN);
 }
 
-void DatasetCreate::ImageBlend::shadow_and_illuminance_new(bool shadow_or_illuminance)
+void ipa_dirt_detection_dataset_tools::ImageBlend::shadow_and_illuminance_new(bool shadow_or_illuminance)
 {
 	int num_masks = brightness_shadow_mask_filenames_.size();
 	int mask_index = rand() % num_masks;

@@ -1,7 +1,7 @@
-#include "dataset_create/segment_dirt.h"
+#include "ipa_dirt_detection_dataset_tools/obsolete/segment_dirt_watershed.h"
 
 
-DatasetCreate::SegmentDirt::SegmentDirt(const std::string dirt_image_path, const std::string cropped_image_path, const std::string cropped_mask_path, const bool background_color,
+ipa_dirt_detection_dataset_tools::SegmentDirtWatershed::SegmentDirtWatershed(const std::string dirt_image_path, const std::string cropped_image_path, const std::string cropped_mask_path, const bool background_color,
 		const int crop_residual)
 {
 	dirt_image_path_ = dirt_image_path;
@@ -14,11 +14,11 @@ DatasetCreate::SegmentDirt::SegmentDirt(const std::string dirt_image_path, const
 	std::cout << "There three paths are: " << dirt_image_path_ << std::endl << cropped_image_path_ << std::endl << cropped_mask_path_ << std::endl;
 }
 
-DatasetCreate::SegmentDirt::~SegmentDirt()
+ipa_dirt_detection_dataset_tools::SegmentDirtWatershed::~SegmentDirtWatershed()
 {
 }
 
-void DatasetCreate::SegmentDirt::run()
+void ipa_dirt_detection_dataset_tools::SegmentDirtWatershed::run()
 {
 	boost::filesystem::path dirt_images(dirt_image_path_);
 	boost::filesystem::directory_iterator end_itr;
@@ -56,7 +56,7 @@ void DatasetCreate::SegmentDirt::run()
 	}
 }
 
-void DatasetCreate::SegmentDirt::segment()
+void ipa_dirt_detection_dataset_tools::SegmentDirtWatershed::segment()
 {
 	cv::Mat gray_dirt;
 	cv::cvtColor(dirt_frame_, gray_dirt, cv::COLOR_BGR2GRAY);
@@ -110,7 +110,7 @@ void DatasetCreate::SegmentDirt::segment()
 	//}
 }
 
-void DatasetCreate::SegmentDirt::crop()
+void ipa_dirt_detection_dataset_tools::SegmentDirtWatershed::crop()
 {
 	int cols = mask_frame_.cols;
 	int rows = mask_frame_.rows;
@@ -185,7 +185,7 @@ void DatasetCreate::SegmentDirt::crop()
 	cv::waitKey(0);
 }
 
-void DatasetCreate::SegmentDirt::examinate()
+void ipa_dirt_detection_dataset_tools::SegmentDirtWatershed::examinate()
 {
 	std::vector<std::vector<cv::Point> > contours;
 	std::vector<cv::Vec4i> hierarchy;

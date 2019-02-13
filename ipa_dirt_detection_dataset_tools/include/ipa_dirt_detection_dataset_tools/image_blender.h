@@ -21,14 +21,14 @@
 #include <boost/lambda/bind.hpp>
 #include <boost/algorithm/string.hpp>
 
-namespace DatasetCreate
+namespace ipa_dirt_detection_dataset_tools
 {
 class ImageBlend
 {
 public:
-	ImageBlend(std::string& clean_ground_path, std::string& artificial_dirt_path, std::string& artificial_dirt_mask_path, std::string& segmented_pens_path,
-			std::string& segmented_pens_mask_path, std::string& blended_img_folder, std::string& blended_mask_folder, int max_num_dirt, int min_num_dirt, int max_num_pens,
-			int min_num_pens, std::string& filename_bbox, bool flip_clean_ground_, std::string& brightness_shadow_mask_path);
+	ImageBlend(std::string& clean_ground_path, std::string& artificial_dirt_path, std::string& artificial_dirt_mask_path, std::string& segmented_objects_path,
+			std::string& segmented_objects_mask_path, std::string& blended_img_folder, std::string& blended_mask_folder, int max_num_dirt, int min_num_dirt,
+			int max_num_objects, int min_num_objects, std::string& filename_bbox, bool flip_clean_ground, std::string& brightness_shadow_mask_path);
 	~ImageBlend();
 
 	void rotateImage();
@@ -51,8 +51,8 @@ private:
 	int max_num_dirt_;
 	int min_num_dirt_;
 
-	int max_num_pens_;
-	int min_num_pens_;
+	int max_num_objects_;
+	int min_num_objects_;
 
 	bool flip_clean_ground_;
 	bool if_resize_dirt_;
@@ -75,8 +75,8 @@ private:
 	std::string clean_ground_path_;
 	std::string artificial_dirt_path_;
 	std::string artificial_dirt_mask_path_;
-	std::string segmented_pens_path_;
-	std::string segmented_pens_mask_path_;
+	std::string segmented_objects_path_;
+	std::string segmented_objects_mask_path_;
 	std::string brightness_shadow_mask_path_;
 
 	std::string blended_img_folder_;
@@ -102,6 +102,7 @@ std::string to_string(T Number)
 	ss << Number;
 	return ss.str();
 }
-};
+}
+;
 
 #endif

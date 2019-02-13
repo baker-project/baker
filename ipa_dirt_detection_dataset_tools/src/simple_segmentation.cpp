@@ -1,23 +1,21 @@
-#include "dataset_create/simple_segment.h"
+#include "ipa_dirt_detection_dataset_tools/simple_segmentation.h"
 
-DatasetCreate::SimpleSegment::SimpleSegment(const std::string dirt_image_path, const std::string cropped_image_path, const std::string cropped_mask_path,
-		const bool background_color, const int crop_residual)
+ipa_dirt_detection_dataset_tools::SimpleSegmentation::SimpleSegmentation(const std::string dirt_image_path, const std::string cropped_image_path, const std::string cropped_mask_path,
+		const int crop_residual)
 {
 	dirt_image_path_ = dirt_image_path;
 	cropped_image_path_ = cropped_image_path;
 	cropped_mask_path_ = cropped_mask_path;
-
-	background_color_ = background_color;
 	crop_residual_ = crop_residual;
 
 	std::cout << "There three paths are: " << dirt_image_path_ << std::endl << cropped_image_path_ << std::endl << cropped_mask_path_ << std::endl;
 }
 
-DatasetCreate::SimpleSegment::~SimpleSegment()
+ipa_dirt_detection_dataset_tools::SimpleSegmentation::~SimpleSegmentation()
 {
 }
 
-void DatasetCreate::SimpleSegment::run()
+void ipa_dirt_detection_dataset_tools::SimpleSegmentation::run()
 {
 	boost::filesystem::path dirt_images(dirt_image_path_);
 	boost::filesystem::directory_iterator end_itr;
@@ -56,7 +54,7 @@ void DatasetCreate::SimpleSegment::run()
 	}
 }
 
-void DatasetCreate::SimpleSegment::segment()
+void ipa_dirt_detection_dataset_tools::SimpleSegmentation::segment()
 {
 
 	int cols = dirt_frame_.cols;
@@ -113,7 +111,7 @@ void DatasetCreate::SimpleSegment::segment()
 }
 
 /*
- void DatasetCreate::SimpleSegment::segement_singlechannel(int threshold_range)
+ void ipa_dirt_detection_dataset_tools::SimpleSegment::segement_singlechannel(int threshold_range)
  {
  cv::Mat gray_input(dirt_frame_.size(), CV_8UC1);
  gray_input = cv::cvtColor(dirt_frame_, gray_input ,CV_RGB2GRAY);
@@ -143,7 +141,7 @@ void DatasetCreate::SimpleSegment::segment()
  }
  */
 
-void DatasetCreate::SimpleSegment::crop()
+void ipa_dirt_detection_dataset_tools::SimpleSegmentation::crop()
 {
 	int cols = mask_frame_.cols;
 	int rows = mask_frame_.rows;
@@ -218,7 +216,7 @@ void DatasetCreate::SimpleSegment::crop()
 	cv::waitKey(0);
 }
 
-void DatasetCreate::SimpleSegment::examinate()
+void ipa_dirt_detection_dataset_tools::SimpleSegmentation::examinate()
 {
 	std::vector<std::vector<cv::Point> > contours;
 	std::vector<cv::Vec4i> hierarchy;

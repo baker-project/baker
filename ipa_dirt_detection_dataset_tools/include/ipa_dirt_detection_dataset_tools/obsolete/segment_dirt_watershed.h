@@ -1,5 +1,5 @@
-#ifndef SIMPLE_SEGMENT_H
-#define SIMPLE_SEGMENT_H
+#ifndef SEGMENT_DIRT_H
+#define SEGMENT_DIRT_H
 
 #include <iostream>
 #include <string.h>
@@ -13,18 +13,17 @@
 #include <boost/algorithm/string.hpp>
 #include <valarray>
 
-namespace DatasetCreate
+namespace ipa_dirt_detection_dataset_tools
 {
-class SimpleSegment
+class SegmentDirtWatershed
 {
 public:
-	SimpleSegment(const std::string dirt_image_path, const std::string cropped_image_path, const std::string cropped_mask_path, const bool background_color,
+	SegmentDirtWatershed(const std::string dirt_image_path, const std::string cropped_image_path, const std::string cropped_mask_path, const bool background_color,
 			const int crop_residual);
-	~SimpleSegment();
+	~SegmentDirtWatershed();
 
 	void run();
 	void segment();
-	void segement_singlechannel();
 	void crop();
 	void examinate();
 private:

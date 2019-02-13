@@ -1,12 +1,12 @@
-#include "dataset_create/dataset_create.h"
+#include "ipa_dirt_detection_dataset_tools/obsolete/dataset_create.h"
 
 
-DatasetCreate::DatasetCreate::DatasetCreate(ros::NodeHandle nh) :
+ipa_dirt_detection_dataset_tools::DatasetCreate::DatasetCreate(ros::NodeHandle nh) :
 		nh_(nh)
 {
 }
 
-void DatasetCreate::DatasetCreate::init()
+void ipa_dirt_detection_dataset_tools::DatasetCreate::init()
 {
 //  nh_.param("black_white_background", black_white_background_, true);
 //  std::cout << "The dirt frames backgroound is : " << black_white_background_ << std::endl;
@@ -66,14 +66,14 @@ void DatasetCreate::DatasetCreate::init()
 }
 
 
-void DatasetCreate::DatasetCreate::Segmentation()
+void ipa_dirt_detection_dataset_tools::DatasetCreate::Segmentation()
 {
-	SimpleSegment segment_dirt(dirts_to_segmented_path_, segmented_dirt_cropped_path_, segmented_dirt_cropped_mask_path_, black_white_background_, crop_residual_);
+	SimpleSegmentation segment_dirt(dirts_to_segmented_path_, segmented_dirt_cropped_path_, segmented_dirt_cropped_mask_path_, crop_residual_);
 	segment_dirt.run();
 }
 
 
-void DatasetCreate::DatasetCreate::Blending()
+void ipa_dirt_detection_dataset_tools::DatasetCreate::Blending()
 {
 	ImageBlend image_blend(ground_image_path_, segmented_dirt_cropped_path_, segmented_dirt_cropped_mask_path_, segmented_pens_path_, segmented_pens_mask_path_,
 			blended_ground_image_path_, blended_ground_image_mask_path_, max_num_dirts_, min_num_dirts_, max_num_pens_, min_num_pens_, bbox_argus_path_, flip_clean_ground_,
@@ -87,7 +87,7 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "dataset_create");
 	ros::NodeHandle nh;
 
-	DatasetCreate::DatasetCreate dc(nh);
+	ipa_dirt_detection_dataset_tools::DatasetCreate dc(nh);
 	dc.init();
 
 	ros::spin();
