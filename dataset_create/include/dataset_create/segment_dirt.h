@@ -13,36 +13,31 @@
 #include <boost/algorithm/string.hpp>
 #include <valarray>
 
-
 namespace DatasetCreate
 {
-  class SegmentDirt
-  {
-  public:
-    SegmentDirt(const std::string dirt_image_path, 
-		const std::string cropped_image_path,
-		const std::string cropped_mask_path,
-		const bool background_color,
-		const int crop_residual);
-    ~SegmentDirt();
-    
-    void run();
-    void segment();
-    void crop();
-    void examinate();
-  private:
-    
-    std::string dirt_image_path_;
-    std::string cropped_image_path_;
-    std::string cropped_mask_path_;
-    bool background_color_;
-    int crop_residual_;
-    
-    cv::Mat dirt_frame_, cropped_dirt_frame_;
-    cv::Mat mask_frame_, cropped_mask_frame_;
-  
-  };
-};
+class SegmentDirt
+{
+public:
+	SegmentDirt(const std::string dirt_image_path, const std::string cropped_image_path, const std::string cropped_mask_path, const bool background_color,
+			const int crop_residual);
+	~SegmentDirt();
 
+	void run();
+	void segment();
+	void crop();
+	void examinate();
+private:
+
+	std::string dirt_image_path_;
+	std::string cropped_image_path_;
+	std::string cropped_mask_path_;
+	bool background_color_;
+	int crop_residual_;
+
+	cv::Mat dirt_frame_, cropped_dirt_frame_;
+	cv::Mat mask_frame_, cropped_mask_frame_;
+
+};
+};
 
 #endif
