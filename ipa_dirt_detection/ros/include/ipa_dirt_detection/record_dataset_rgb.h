@@ -3,7 +3,7 @@
 
 #include <set>
 #include <iostream>
-#include <string.h>
+#include <string>
 #include <functional>
 #include <fstream>
 #include <vector>
@@ -35,41 +35,50 @@
 
 namespace ipa_DatasetCreate
 {
-  class DatasetCreate
-  {
-  protected:
-    ros::NodeHandle node_handle_;
-    
-    ros::Subscriber camera_rgb_image_sub_;
-    
-  public:
-    DatasetCreate(ros::NodeHandle node_handle);
-    ~DatasetCreate();
-    void init();
-    void imageCallback(const sensor_msgs::ImageConstPtr& msg);
-    
-    std::string rgbImageSavePath_;
-    
-  private:
-    	struct bgr
+class DatasetCreate
+{
+protected:
+	ros::NodeHandle node_handle_;
+
+	ros::Subscriber camera_rgb_image_sub_;
+
+	std::string base_path_;
+
+	int current_floor_index_;
+	int current_image_index_;
+
+	void addZerosToFileName(std::stringstream& name, const int index);
+
+	void selectNextFreeFloorIndex();
+	void selectNextFreeImageIndex();
+
+public:
+	DatasetCreate(ros::NodeHandle node_handle);
+	~DatasetCreate();
+	void init();
+	void imageCallback(const sensor_msgs::ImageConstPtr& msg);
+
+private:
+	struct bgr
 	{
 		uchar b; /**< Blue channel value. */
 		uchar g; /**< Green channel value. */
 		uchar r; /**< Red channel value. */
 	};
-        int frame_counter_;
-  };
+	int frame_counter_;
 };
+}
+;
 
 namespace patch
 {
-    template < typename T > std::string to_string( const T& n )
-    {
-        std::ostringstream stm ;
-        stm << n ;
-        return stm.str() ;
-    }
-};
-
+template<typename T> std::string to_string(const T& n)
+{
+	std::ostringstream stm;
+	stm << n;
+	return stm.str();
+}
+}
+;
 
 #endif

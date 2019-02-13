@@ -170,6 +170,15 @@ target_link_libraries(record_dataset
 )
 add_dependencies(record_dataset ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
+#dataset create
+add_executable(record_dataset_rgb  ros/src/record_dataset_rgb.cpp)                  
+target_link_libraries(record_dataset_rgb
+	${catkin_LIBRARIES}
+	${OpenCV_LIBRARIES}
+	${Boost_LIBRARIES}
+)
+add_dependencies(record_dataset_rgb ${catkin_EXPORTED_TARGETS})
+
 # filter bank create
 add_executable(filterbank_create  ros/src/filterbank_create.cpp
                                   ros/src/feature_extract.cpp)           # ros/src/feature_extract.cpp
