@@ -25,10 +25,11 @@ class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 	#========================================================================
 		
 	# Method for setting parameters for the behavior
-	def setParameters(self, room_map_data, room_center, map_resolution, map_origin, map_header_frame_id, robot_frame_id, robot_radius, coverage_radius, field_of_view):
+	def setParameters(self, room_map_data, room_center, map_data, map_resolution, map_origin, map_header_frame_id, robot_frame_id, robot_radius, coverage_radius, field_of_view, use_cleaning_device):
 		# Parameters set from the outside
 		self.room_map_data_ = room_map_data
 		self.room_center_ = room_center
+		self.map_data_ = map_data
 		self.map_resolution_ = map_resolution
 		self.map_origin_ = map_origin
 		self.map_header_frame_id_ = map_header_frame_id
@@ -36,6 +37,7 @@ class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 		self.robot_radius_ = robot_radius
 		self.coverage_radius_ = coverage_radius
 		self.field_of_view_ = field_of_view
+		self.use_cleaning_device_ = use_cleaning_device	# todo: hack: cleaning device can be turned off for trade fair show
 		# Parameters set autonomously
 		self.room_exploration_service_str_ = '/room_exploration/room_exploration_server'
 		self.move_base_path_service_str_ = '/move_base_path'
@@ -55,7 +57,17 @@ class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 	def returnToRobotStandardState(self):
 		# save current data if necessary
 		# undo or check whether everything has been undone
-		pass
+	
+		if self.use_cleaning_device_:	# todo: hack: cleaning device can be turned off for trade fair show
+			# baker_brush_cleaning_module_interface: turn off the cleaning device (service "stop_brush_cleaner")
+			self.printMsg("Stop cleaning with " + self.stop_cleaning_service_str_)
+			rospy.wait_for_service(self.stop_cleaning_service_str_) 
+			try:
+				req = rospy.ServiceProxy(self.stop_cleaning_service_str_, std_srvs.srv.Trigger)
+				resp = req()
+				print "Stop cleaning returned with success status " + str(resp.success)
+			except rospy.ServiceException, e:
+				print "Service call to " + self.stop_cleaning_service_str_ + " failed: %s" % e
 
 
 
@@ -96,7 +108,7 @@ class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 		if (self.room_explorer_.exploration_result_ != None):
 			
 			# Interruption opportunity
-			if self.handleInterrupt() == 2:
+			if self.handleInterrupt() >= 1:
 				return
 
 			#rospy.sleep(20)
@@ -121,18 +133,19 @@ class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 			"""
 			
 			# Interruption opportunity
-			if self.handleInterrupt() == 2:
+			if self.handleInterrupt() >= 1:
 				return
 			
 			# baker_brush_cleaning_module_interface: turn on the cleaning device (service "start_brush_cleaner")
-			self.printMsg("Start cleaning with " + self.start_cleaning_service_str_)
-			rospy.wait_for_service(self.start_cleaning_service_str_) 
-			try:
-				req = rospy.ServiceProxy(self.start_cleaning_service_str_, std_srvs.srv.Trigger)
-				resp = req()
-				print "Start cleaning returned with success status " + str(resp.success)
-			except rospy.ServiceException, e:
-				print "Service call to " + self.start_cleaning_service_str_ + " failed: %s" % e
+			if self.use_cleaning_device_:	# todo: hack: cleaning device can be turned off for trade fair show
+				self.printMsg("Start cleaning with " + self.start_cleaning_service_str_)
+				rospy.wait_for_service(self.start_cleaning_service_str_) 
+				try:
+					req = rospy.ServiceProxy(self.start_cleaning_service_str_, std_srvs.srv.Trigger)
+					resp = req()
+					print "Start cleaning returned with success status " + str(resp.success)
+				except rospy.ServiceException, e:
+					print "Service call to " + self.start_cleaning_service_str_ + " failed: %s" % e
 			
 			# coverage_monitor_server: set the robot configuration (robot_radius, coverage_radius, coverage_offset) with dynamic reconfigure
 			#                          and turn on logging of the cleaned path (service "start_coverage_monitoring")
@@ -168,7 +181,7 @@ class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 			self.path_follower_.executeBehavior()
 			
 			# Interruption opportunity
-			if self.handleInterrupt() == 2:
+			if self.handleInterrupt() >= 1:
 				return
 
 			# Wall follow
@@ -180,14 +193,13 @@ class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 			goal_angle_tolerance = 3.14
 			"""
 			# receive coverage map from coverage monitor
-			"""
 			self.printMsg("Receive coverage image from coverage monitor " + self.receive_coverage_image_service_str_)
 			rospy.wait_for_service(self.receive_coverage_image_service_str_) 
 			try:
 				req = rospy.ServiceProxy(self.receive_coverage_image_service_str_, ipa_building_msgs.srv.CheckCoverage)
 				req.input_map = self.room_map_data_
-				req.map_resolution = self.map_data_.map_resolution
-				req.map_origin = self.map_data_.map_origin
+				req.map_resolution = self.map_resolution_
+				req.map_origin = self.map_origin_
 				req.field_of_view = self.field_of_view_
 				req.coverage_radius = self.coverage_radius_
 				req.check_for_footprint = False
@@ -196,23 +208,25 @@ class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 				print "Receive coverage image returned with success status " + str(resp.success)
 			except rospy.ServiceException, e:
 				print "Service call to " + self.receive_coverage_image_service_str_ + " failed: %s" % e
-			"""
-			'''
+
 			self.wall_follower_.setParameters(
-				self.map_data_.map
+				self.map_data_,
 				self.room_map_data_,
-				self.coverage_map_response_.coverage_map,
+				self.room_map_data_,	#self.coverage_map_response_.coverage_map,
+				self.map_resolution_,
+				self.map_origin_,
 				0.2,
-				0.4,
-				1.57
+				0.5,
+				1.57,
+				0.1,
+				1.0
 			)
 			self.wall_follower_.executeBehavior()
-			'''
 			
 			# Interruption opportunity
-			if self.handleInterrupt() == 2:
+			if self.handleInterrupt() >= 1:
 				return
-			
+
 			# coverage_monitor_server.cpp: turn off logging of the cleaned path (service "stop_coverage_monitoring")
 			self.printMsg("Stop coverage monitoring with " + self.stop_coverage_monitoring_service_str_)
 			rospy.wait_for_service(self.stop_coverage_monitoring_service_str_) 
@@ -222,14 +236,15 @@ class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 				print "Stop coverage monitoring returned with success status " + str(resp.success)
 			except rospy.ServiceException, e:
 				print "Service call to " + self.stop_coverage_monitoring_service_str_ + " failed: %s" % e
-			
-			
+
+
 			# baker_brush_cleaning_module_interface: turn off the cleaning device (service "stop_brush_cleaner")
-			self.printMsg("Stop cleaning with " + self.stop_cleaning_service_str_)
-			rospy.wait_for_service(self.stop_cleaning_service_str_) 
-			try:
-				req = rospy.ServiceProxy(self.stop_cleaning_service_str_, std_srvs.srv.Trigger)
-				resp = req()
-				print "Stop cleaning returned with success status " + str(resp.success)
-			except rospy.ServiceException, e:
-				print "Service call to " + self.stop_cleaning_service_str_ + " failed: %s" % e
+			if self.use_cleaning_device_:	# todo: hack: cleaning device can be turned off for trade fair show
+				self.printMsg("Stop cleaning with " + self.stop_cleaning_service_str_)
+				rospy.wait_for_service(self.stop_cleaning_service_str_) 
+				try:
+					req = rospy.ServiceProxy(self.stop_cleaning_service_str_, std_srvs.srv.Trigger)
+					resp = req()
+					print "Stop cleaning returned with success status " + str(resp.success)
+				except rospy.ServiceException, e:
+					print "Service call to " + self.stop_cleaning_service_str_ + " failed: %s" % e

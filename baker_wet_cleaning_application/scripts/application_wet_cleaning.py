@@ -37,7 +37,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 				self.printMsg("Order: " + str(checkpoint.room_indices))
 			
 			# Interruption opportunity
-			if self.handleInterrupt() == 2:
+			if self.handleInterrupt() >= 1:
 				return
 
 			# Run Dry Cleaning Behavior
@@ -72,7 +72,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 				self.printMsg("Order: " + str(checkpoint.room_indices))
 
 			# Interruption opportunity
-			if self.handleInterrupt() == 2:
+			if self.handleInterrupt() >= 1:
 				return
 
 			# Run Wet Cleaning Behavior
@@ -84,7 +84,8 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 				self.robot_frame_id_,
 				self.robot_radius_,
 				self.coverage_radius_,
-				self.field_of_view_
+				self.field_of_view_,
+				self.use_cleaning_device_	# todo: hack: cleaning device can be turned off for trade fair show
 			)
 			self.wet_cleaner_.executeBehavior()
 
@@ -126,9 +127,17 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			self.printMsg("Imported parameter robot_radius = " + str(self.coverage_radius_))
 		# todo: get field_of_view
 
+		#self.robot_frame_id_ = 'base_link'
+		#self.robot_radius_ = 0.2875  #0.325	# todo: read from MIRA
+		#self.coverage_radius_ = 0.233655  #0.25	# todo: read from MIRA
 		self.field_of_view_ = [Point32(x=0.04035, y=0.136), Point32(x=0.04035, y=-0.364),
 							   Point32(x=0.54035, y=-0.364), Point32(x=0.54035, y=0.136)]	# todo: read from MIRA
 
+		# todo: hack: cleaning device can be turned off for trade fair show
+		self.use_cleaning_device_ = False
+		if rospy.has_param('use_cleaning_device'):
+			self.use_cleaning_device_ = rospy.get_param("use_cleaning_device")
+			self.printMsg("Imported parameter use_cleaning_device = " + str(self.use_cleaning_device_))
 		
 
 		# Load database, initialize database handler
@@ -155,7 +164,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 
 		shall_continue_old_cleaning = False
 		days_delta = datetime.datetime.now() - self.database_.application_data_.last_execution_date_
-		print "------------ CURRENT_DATE: " + str(datetime.datetime.now)
+		print "------------ CURRENT_DATE: " + str(datetime.datetime.now())
 		print "------------ LAST_DATE: " + str(self.database_.application_data_.last_execution_date_)
 		print "------------ DAYS_DELTA: " + str(days_delta) + " " + str(days_delta.days)
 		if (self.database_.application_data_.progress_[0] == 1):
@@ -179,7 +188,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		
 
 		# Interruption opportunity
-		if self.handleInterrupt() == 2:
+		if self.handleInterrupt() >= 1:
 			return
 
 
@@ -189,11 +198,13 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 
 		# Find due rooms
 		self.printMsg("Collecting due rooms...")
+		self.database_handler_.due_rooms_ = []		# todo: verify whether this is correct here (otherwise the list of due rooms is corrupted with double and many-times occurring rooms)
 		if ((self.database_handler_.noPlanningHappenedToday() == True) and (shall_continue_old_cleaning == False)):
 			#try:
+			# todo: check: it looks like the result of restoreDueRooms() could be erased in getAllDueRooms()
 			self.database_handler_.restoreDueRooms()
 			self.database_handler_.getAllDueRooms()
-			print len(self.database_.rooms_)
+			print "len(self.database_.rooms_):", len(self.database_.rooms_), "\ndue rooms:"
 			for room in self.database_handler_.due_rooms_:
 				print room.room_name_
 			#except:
@@ -207,7 +218,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			#	exit(1)
 
 		# Sort the due rooms with respect to cleaning method
-		self.printMsg("Sorting the found rooms after cleaning method...")
+		self.printMsg("Sorting the found rooms with respect to cleaning method...")
 		#try:
 		rooms_dry_cleaning, rooms_wet_cleaning = self.database_handler_.sortRoomsList(self.database_handler_.due_rooms_)
 		for room in rooms_dry_cleaning:
@@ -224,7 +235,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.database_handler_.applyChangesToDatabase()
 
 		# Interruption opportunity
-		if self.handleInterrupt() == 2:
+		if self.handleInterrupt() >= 1:
 			return
 
 
@@ -235,7 +246,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		
 
 		# Interruption opportunity
-		if self.handleInterrupt() == 2:
+		if self.handleInterrupt() >= 1:
 			return
 
 
@@ -244,9 +255,10 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		# =============================
 		self.processWetCleaning(rooms_wet_cleaning, False)
 		
+		#self.printMsg("self.map_handler_.room_sequencing_data_.checkpoints=" + str(self.map_handler_.room_sequencing_data_.checkpoints))
 		
 		# Interruption opportunity
-		if self.handleInterrupt() == 2:
+		if self.handleInterrupt() >= 1:
 			return
 		
 
@@ -283,7 +295,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.processDryCleaning(rooms_dry_cleaning, True)
 
 		# Interruption opportunity
-		if self.handleInterrupt() == 2:
+		if self.handleInterrupt() >= 1:
 			return
 		
 
@@ -294,7 +306,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.processWetCleaning(rooms_wet_cleaning, True)
 		
 		# Interruption opportunity
-		if self.handleInterrupt() == 2:
+		if self.handleInterrupt() >= 1:
 			return
 
 
@@ -318,18 +330,18 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 
 	# Abstract method that contains the procedure to be done immediately after the application is paused.
 	def prePauseProcedure(self):
-		print "Application: Application paused."
+		self.printMsg("Application paused.")
 		# save current data if necessary
 		# undo or check whether everything has been undone
 		self.returnToRobotStandardState()
 
 	# Abstract method that contains the procedure to be done immediately after the pause has ended
 	def postPauseProcedure(self):
-		print "Application: Application continued."
+		self.printMsg("Application continued.")
 
 	# Abstract method that contains the procedure to be done immediately after the application is cancelled.
 	def cancelProcedure(self):
-		print "Application: Application cancelled."
+		self.printMsg("Application cancelled.")
 		# save current data if necessary
 		# undo or check whether everything has been undone
 		self.returnToRobotStandardState()
@@ -347,6 +359,7 @@ if __name__ == '__main__':
 	try:
 		# Initialize node
 		rospy.init_node('application_wet_cleaning')
+		
 		# Initialize application
 		app = WetCleaningApplication("application_wet_cleaning", "set_application_status_application_wet_cleaning")
 		# Execute application

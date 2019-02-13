@@ -39,10 +39,10 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 		self.room_information_in_pixel_, self.segmented_map_ = self.database_handler_.getMapAndRoomInformationInPixel(self.rooms_list_)
 	
 		# Interruption opportunity
-		if self.handleInterrupt() == 2:
+		if self.handleInterrupt() >= 1:
 			return
 
-		# Sequence the rooms
+		# Room sequencing
 		self.room_sequencer_ = room_sequencing_behavior.RoomSequencingBehavior("Room sequencing", self.interrupt_var_, self.room_sequencing_service_str_)
 		self.room_sequencer_.setParameters(
 			self.database_handler_.database_,

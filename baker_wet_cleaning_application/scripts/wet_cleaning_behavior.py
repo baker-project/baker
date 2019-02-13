@@ -31,7 +31,7 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 
 		
 	# Method for setting parameters for the behavior
-	def setParameters(self, database_handler, room_information_in_meter, sequence_data, mapping, robot_frame_id, robot_radius, coverage_radius, field_of_view):
+	def setParameters(self, database_handler, room_information_in_meter, sequence_data, mapping, robot_frame_id, robot_radius, coverage_radius, field_of_view, use_cleaning_device):
 		# Parameters set from the outside
 		self.database_handler_= database_handler
 		self.room_information_in_meter_ = room_information_in_meter
@@ -41,6 +41,7 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 		self.robot_radius_ = robot_radius
 		self.coverage_radius_ = coverage_radius
 		self.field_of_view_ = field_of_view
+		self.use_cleaning_device_ = use_cleaning_device	# todo: hack: cleaning device can be turned off for trade fair show
 		# Parameters set autonomously
 		self.room_exploration_service_str_ = '/room_exploration/room_exploration_server'
 		self.move_base_path_service_str_ = '/move_base_path'
@@ -70,24 +71,26 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 		self.printMsg("Moving to next room with current_room_index = " + str(current_room_index))
 
 		# Interruption opportunity
-		if self.handleInterrupt() == 2:
+		if self.handleInterrupt() >= 1:
 			return
 
 		self.room_wet_floor_cleaner_.setParameters(
 			self.database_handler_.database_.getRoom(self.mapping_.get(current_room_index)).room_map_data_, 
-			self.room_information_in_meter_[current_room_index].room_center, 
+			self.room_information_in_meter_[current_room_index].room_center,
+			self.database_handler_.database_.global_map_data_.map_image_, 
 			self.database_handler_.database_.global_map_data_.map_resolution_, 
 			self.database_handler_.database_.global_map_data_.map_origin_, 
 			self.database_handler_.database_.global_map_data_.map_header_frame_id_, 
 			self.robot_frame_id_, 
 			self.robot_radius_, 
 			self.coverage_radius_, 
-			self.field_of_view_
+			self.field_of_view_,
+			self.use_cleaning_device_	# todo: hack: cleaning device can be turned off for trade fair show
 		)
 		self.room_wet_floor_cleaner_.executeBehavior()
 
 		# Interruption opportunity
-		if self.handleInterrupt() == 2:
+		if self.handleInterrupt() >= 1:
 			return
 
 		# Mark the current room as finished
@@ -96,7 +99,7 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 		self.printMsg(str(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)).open_cleaning_tasks_))
 
 		# Interruption opportunity
-		if self.handleInterrupt() == 2:
+		if self.handleInterrupt() >= 1:
 			return
 
 		# Adding log entry for wet cleaning

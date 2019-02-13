@@ -105,9 +105,10 @@ class DatabaseHandler():
 	
 	# Method for extracting all due rooms from the due assignment
 	# CASE: First run of application, no rooms collected yet today.
-	# USAGE: Run when the application ist started the first time today. Then run at the beginning.
+	# USAGE: Run when the application is started the first time today. Then run at the beginning.
 	def getAllDueRooms(self):
-		# If the application ran already today and the due rooms list is umenpty, this should not run
+		print "[DatabaseHandler]: getAllDueRooms() ..."
+		# If the application ran already today and the due rooms list is not empty, this should not run
 		if (self.database_.application_data_.last_planning_date_[0] != None):
 			delta = datetime.datetime.now() - self.database_.application_data_.last_planning_date_[0]
 			if ((delta.days == 0) and (len(self.due_rooms_) != 0)):
@@ -122,36 +123,36 @@ class DatabaseHandler():
 				# Find out if the timestamps indicate that the room has been handled already today
 				timestamp_is_new = [
 					(room.room_cleaning_datestamps_[0] != None) 
-					and (datetime.datetime.now() - room.room_cleaning_datestamps_[0] < datetime.timedelta(days=1)),
+					and (datetime.datetime.now() - room.room_cleaning_datestamps_[0] < datetime.timedelta(days=1)),	# trash cans
 					(room.room_cleaning_datestamps_[1] != None) 
-					and (datetime.datetime.now() - room.room_cleaning_datestamps_[1] < datetime.timedelta(days=1)),
+					and (datetime.datetime.now() - room.room_cleaning_datestamps_[1] < datetime.timedelta(days=1)),	# dry cleaning
 					(room.room_cleaning_datestamps_[2] != None) 
-					and (datetime.datetime.now() - room.room_cleaning_datestamps_[2] < datetime.timedelta(days=1))
+					and (datetime.datetime.now() - room.room_cleaning_datestamps_[2] < datetime.timedelta(days=1))	# wet cleaning
 				]
 				# If today is a cleaning day
 				if ((schedule_char == "x") or (schedule_char == "X")):
 					# Cleaning method 2 --> Dry, Wet, Trash
 					if (room.room_cleaning_method_ == 2):
-						if not((timestamp_is_new[0]) or (-1 in room.open_cleaning_tasks_)):
+						if not((timestamp_is_new[0]) or (-1 in room.open_cleaning_tasks_)):	# trash
 							room.open_cleaning_tasks_.append(-1)
-						if not((timestamp_is_new[1]) or (0 in room.open_cleaning_tasks_)):
+						if not((timestamp_is_new[1]) or (0 in room.open_cleaning_tasks_)):	# dry
 							room.open_cleaning_tasks_.append(0)
-						if not((timestamp_is_new[2]) or (1 in room.open_cleaning_tasks_)):
+						if not((timestamp_is_new[2]) or (1 in room.open_cleaning_tasks_)):	# wet
 							room.open_cleaning_tasks_.append(1)
 					# Cleaning method 1 --> Wet, Trash
 					elif (room.room_cleaning_method_ == 1):
-						if not((timestamp_is_new[0]) or (-1 in room.open_cleaning_tasks_)):
+						if not((timestamp_is_new[0]) or (-1 in room.open_cleaning_tasks_)):	# trash
 							room.open_cleaning_tasks_.append(-1)
-						if not((timestamp_is_new[2]) or (1 in room.open_cleaning_tasks_)):
+						if not((timestamp_is_new[2]) or (1 in room.open_cleaning_tasks_)):	# wet
 							room.open_cleaning_tasks_.append(1)
 					# Cleaning method 0 --> Dry, Trash
 					elif (room.room_cleaning_method_ == 0):
-						if not((timestamp_is_new[0]) or (-1 in room.open_cleaning_tasks_)):
+						if not((timestamp_is_new[0]) or (-1 in room.open_cleaning_tasks_)):	# trash
 							room.open_cleaning_tasks_.append(-1)
-						if not((timestamp_is_new[1]) or (0 in room.open_cleaning_tasks_)):
+						if not((timestamp_is_new[1]) or (0 in room.open_cleaning_tasks_)):	# dry
 							room.open_cleaning_tasks_.append(0)
 				# If today is only a trashcan day
-				else:
+				else:	# todo: check for "p" since trash is not just standard procedure
 					room.open_cleaning_tasks_.append(-1)
 				# Append room to the due list if any task is to be done
 				if (room.open_cleaning_tasks_ != []):
@@ -175,7 +176,7 @@ class DatabaseHandler():
 	# CASE: Some cleaning subtasks were not completed in the past (i.e. a scheduled one was missed)
 	# USAGE: Run after all the due rooms are done
 	def getAllOverdueRooms(self):
-		today_index = 0
+		today_index = 0		# todo: verify whether this is always correct: todo_index should be determined correctly for the given day
 		current_schedule_index = today_index - 1
 		day_delta = 1
 		while (current_schedule_index != today_index):

@@ -1,0 +1,11 @@
+42,1_0,1st Floor,0,Bezeichnung 1,Bezeichnung 2,Raumgruppe,Bezeichnung 3,0,3.141,INTERVAL_STRING,x,,,,,,,,,x,,,,
+42,1_1,1st Floor,1,Bezeichnung 1,Bezeichnung 2,Raumgruppe,Bezeichnung 3,0,3.141,INTERVAL_STRING,p,x,,,,,,,,p,x,,,
+42,1_2,1st Floor,2,Bezeichnung 1,Bezeichnung 2,Raumgruppe,Bezeichnung 3,0,3.141,INTERVAL_STRING,,p,x,,,,,,,,p,x,,
+42,1_3,1st Floor,3,Bezeichnung 1,Bezeichnung 2,Raumgruppe,Bezeichnung 3,0,3.141,INTERVAL_STRING,,,p,x,,,,,,,,p,x,
+42,1_4,1st Floor,4,Bezeichnung 1,Bezeichnung 2,Raumgruppe,Bezeichnung 3,0,3.141,INTERVAL_STRING,,,,p,x,,,,,,,,p,x
+42,1_5,1st Floor,5,Bezeichnung 1,Bezeichnung 2,Raumgruppe,Bezeichnung 3,0,3.141,INTERVAL_STRING,,,,,p,x,,,,,,,,p
+42,1_6,1st Floor,6,Bezeichnung 1,Bezeichnung 2,Raumgruppe,Bezeichnung 3,0,3.141,INTERVAL_STRING,,,,,,p,x,,,,,,,
+42,1_7,1st Floor,7,Bezeichnung 1,Bezeichnung 2,Raumgruppe,Bezeichnung 3,0,3.141,INTERVAL_STRING,,,,,,,p,x,,,,,,
+42,1_8,1st Floor,8,Bezeichnung 1,Bezeichnung 2,Raumgruppe,Bezeichnung 3,0,3.141,INTERVAL_STRING,,,,,,,,p,x,,,,,
+42,1_9,1st Floor,9,Bezeichnung 1,Bezeichnung 2,Raumgruppe,Bezeichnung 3,0,3.141,INTERVAL_STRING,,,,,,,,,p,,,,,
+42,1_10,1st Floor,10,Bezeichnung 1,Bezeichnung 2,Raumgruppe,Bezeichnung 3,0,3.141,INTERVAL_STRING,,,,,,,,,,,,,,
