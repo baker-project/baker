@@ -3,12 +3,20 @@
 ipa_dirt_detection_dataset_tools::SimpleSegmentation::SimpleSegmentation(const std::string dirt_image_path, const std::string cropped_image_path, const std::string cropped_mask_path,
 		const int crop_residual)
 {
-	dirt_image_path_ = dirt_image_path;
+	source_image_path_ = dirt_image_path;
 	cropped_image_path_ = cropped_image_path;
 	cropped_mask_path_ = cropped_mask_path;
 	crop_residual_ = crop_residual;
 
-	std::cout << "There three paths are: " << dirt_image_path_ << std::endl << cropped_image_path_ << std::endl << cropped_mask_path_ << std::endl;
+	if (boost::filesystem::exists(source_image_path_) == true)
+		std::cout << "There three paths are: " << source_image_path_ << std::endl << cropped_image_path_ << std::endl << cropped_mask_path_ << std::endl;
+	else
+		std::cout << "The source image path '" << source_image_path_ << "' does not exist." << std::endl;
+
+	if (boost::filesystem::exists(cropped_image_path_) == false)
+		boost::filesystem::create_directory(cropped_image_path_);
+	if (boost::filesystem::exists(cropped_mask_path_) == false)
+		boost::filesystem::create_directory(cropped_mask_path_);
 }
 
 ipa_dirt_detection_dataset_tools::SimpleSegmentation::~SimpleSegmentation()
@@ -17,29 +25,30 @@ ipa_dirt_detection_dataset_tools::SimpleSegmentation::~SimpleSegmentation()
 
 void ipa_dirt_detection_dataset_tools::SimpleSegmentation::run()
 {
-	boost::filesystem::path dirt_images(dirt_image_path_);
+	boost::filesystem::path dirt_images(source_image_path_);
 	boost::filesystem::directory_iterator end_itr;
 
 	for (boost::filesystem::directory_iterator itr(dirt_images); itr != end_itr; ++itr)
 	{
 		const boost::filesystem::directory_entry entry = *itr;
 		std::string path = entry.path().string();
-		std::cout << "Current Path to dirt frame is: " << path << std::endl;
+		std::cout << "Currently processing dirt image: " << path << std::endl;
 
 		dirt_frame_ = cv::imread(path, CV_LOAD_IMAGE_COLOR);
 		dirt_frame_.convertTo(dirt_frame_, CV_32F);
-		segment();
+		segment(dirt_frame_);
 		crop();
 
-		examinate();    // optional, for result visulization
+		examine();    // optional, for result visualization
 
-		std::vector<std::string> strs;              // split the image name from the data path
+		// split the image name from the data path
+		std::vector<std::string> strs;
 		std::string file_name;
 		boost::split(strs, path, boost::is_any_of("\t,/"));
 		for (std::vector<std::string>::iterator it = strs.begin(); it != strs.end(); it++)
 		{
 			std::cout << *it << std::endl;
-			file_name = *(it);
+			file_name = *it;
 		}
 		strs.clear();                // file_name, something like Pen000.png
 		boost::split(strs, file_name, boost::is_any_of("\t,."));
@@ -54,11 +63,11 @@ void ipa_dirt_detection_dataset_tools::SimpleSegmentation::run()
 	}
 }
 
-void ipa_dirt_detection_dataset_tools::SimpleSegmentation::segment()
+void ipa_dirt_detection_dataset_tools::SimpleSegmentation::segment(const cv::Mat& image)
 {
 
-	int cols = dirt_frame_.cols;
-	int rows = dirt_frame_.rows;
+	int cols = image.cols;
+	int rows = image.rows;
 
 	float average_blue = 0;
 	float average_green = 0;
@@ -70,7 +79,7 @@ void ipa_dirt_detection_dataset_tools::SimpleSegmentation::segment()
 	{
 		for (int w = 0; w < 10; w++)
 		{
-			cv::Vec3f intensity = dirt_frame_.at<cv::Vec3f>(h, w);
+			cv::Vec3f intensity = image.at<cv::Vec3f>(h, w);
 			float blue = intensity[0];
 			float green = intensity[1];
 			float red = intensity[2];
@@ -89,7 +98,7 @@ void ipa_dirt_detection_dataset_tools::SimpleSegmentation::segment()
 	{
 		for (int w = 0; w < cols; w++)
 		{
-			cv::Vec3f intensity = dirt_frame_.at<cv::Vec3f>(h, w);
+			cv::Vec3f intensity = image.at<cv::Vec3f>(h, w);
 			float blue = intensity[0];
 			float green = intensity[1];
 			float red = intensity[2];
@@ -107,7 +116,7 @@ void ipa_dirt_detection_dataset_tools::SimpleSegmentation::segment()
 
 	//cv::dilate(mask_frame_ , mask_frame_, element);
 
-	std::cout << mask_frame_ << std::endl;
+	//std::cout << mask_frame_ << std::endl;
 }
 
 /*
@@ -216,7 +225,7 @@ void ipa_dirt_detection_dataset_tools::SimpleSegmentation::crop()
 	cv::waitKey(0);
 }
 
-void ipa_dirt_detection_dataset_tools::SimpleSegmentation::examinate()
+void ipa_dirt_detection_dataset_tools::SimpleSegmentation::examine()
 {
 	std::vector<std::vector<cv::Point> > contours;
 	std::vector<cv::Vec4i> hierarchy;

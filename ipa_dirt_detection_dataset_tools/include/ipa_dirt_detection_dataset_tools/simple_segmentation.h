@@ -22,13 +22,13 @@ public:
 	~SimpleSegmentation();
 
 	void run();
-	void segment();
+	void segment(const cv::Mat& image);
 	void segement_singlechannel();
 	void crop();
-	void examinate();
+	void examine();
 private:
 
-	std::string dirt_image_path_;
+	std::string source_image_path_;
 	std::string cropped_image_path_;
 	std::string cropped_mask_path_;
 	int crop_residual_;

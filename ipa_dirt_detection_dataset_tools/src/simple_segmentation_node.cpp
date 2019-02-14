@@ -9,9 +9,12 @@ int main(int argc, char** argv)
 	ros::NodeHandle pnh("~");
 
 	// read parameters
-	std::string dirt_image_path;
-	pnh.param("images_to_be_segmented_path", dirt_image_path, std::string("/home/rmb-jx/dataset_new/Dirt"));
-	std::cout << "images_to_be_segmented_path: " << dirt_image_path << std::endl;
+	std::string base_path;
+	pnh.param("base_path", base_path, std::string(""));
+	std::cout << "base_path: " << base_path << std::endl;
+	std::string source_image_path;
+	pnh.param("source_image_path", source_image_path, std::string("/home/rmb-jx/dataset_new/Dirt"));
+	std::cout << "images_to_be_segmented_path: " << source_image_path << std::endl;
 	std::string cropped_image_path;
 	pnh.param("segmented_dirt_cropped_path", cropped_image_path, std::string("/home/rmb-jx/dataset_new/Dirt"));
 	std::cout << "Path to save the segmented dirt after cropping: " << cropped_image_path << std::endl;
@@ -23,7 +26,7 @@ int main(int argc, char** argv)
 	std::cout << "Border residual for cropping bounding box is: " << crop_residual << std::endl;
 
 	// run segmentation
-	ipa_dirt_detection_dataset_tools::SimpleSegmentation segment_dirt(dirt_image_path, cropped_image_path, cropped_mask_path, crop_residual);
+	ipa_dirt_detection_dataset_tools::SimpleSegmentation segment_dirt(base_path+source_image_path, base_path+cropped_image_path, base_path+cropped_mask_path, crop_residual);
 	segment_dirt.run();
 
 	return 0;
