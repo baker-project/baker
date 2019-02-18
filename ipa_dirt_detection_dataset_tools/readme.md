@@ -12,7 +12,7 @@ roslaunch ipa_dirt_detection_dataset_tools record_dataset_rgb.launch
 - The camera points to the ground at 90 deg angle and the pictures are taken from different views (different locations, illumination conditions, camera rotations).
 
 ### Dirt and Objects
-- The dirt spots and objects are placed on uniformly colored background.
+- The dirt spots and objects are placed on uniformly colored background. Ideally, a rectangular sheet of (colored) paper is used a background. It should have some contrast to the background of the sheet. The edges of the rectangular sheet should be aligned in parallel with the camera image.
 - The background color should be strongly contrasting to the object's colors (i.e. segmentation will later remove all parts with the background color from the scene).
 - The dirt and object images belonging to the same class (e.g. Food dirt, Paper dirt, Pen objects, Notebook objetcs) should be stored in the same folder
 and the folder should be named with the class name.

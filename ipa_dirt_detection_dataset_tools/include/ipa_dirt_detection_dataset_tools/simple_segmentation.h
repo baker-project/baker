@@ -22,20 +22,25 @@ public:
 	~SimpleSegmentation();
 
 	void run();
-	void segment(const cv::Mat& image);
-	void segement_singlechannel();
-	void crop();
-	void examine();
+
+	// find rectangular background
+	cv::RotatedRect findRectangularBackground(const cv::Mat& image);
+
+	// crop original image to inner axis aligned rectangle of target rectangular background
+	void removeUncontrolledBackground(const cv::Mat& src_image, cv::Mat& cropped_image, const cv::RotatedRect& foreground_rectangle);
+
+	void segment(const cv::Mat& image, cv::Mat& mask_frame);
+
+	void crop(const cv::Mat& dirt_frame, const cv::Mat& mask_frame, cv::Mat& cropped_dirt_frame, cv::Mat& cropped_mask_frame);
+
+	void examine(const cv::Mat& dirt_frame, const cv::Mat& mask_frame);
 private:
 
+	// parameters
 	std::string source_image_path_;
 	std::string cropped_image_path_;
 	std::string cropped_mask_path_;
 	int crop_residual_;
-
-	cv::Mat dirt_frame_, cropped_dirt_frame_;
-	cv::Mat mask_frame_, cropped_mask_frame_;
-
 };
 };
 
