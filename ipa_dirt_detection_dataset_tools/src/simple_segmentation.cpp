@@ -1,11 +1,19 @@
 #include "ipa_dirt_detection_dataset_tools/simple_segmentation.h"
 
-ipa_dirt_detection_dataset_tools::SimpleSegmentation::SimpleSegmentation(const std::string dirt_image_path, const std::string cropped_image_path, const std::string cropped_mask_path,
+ipa_dirt_detection_dataset_tools::SimpleSegmentation::SimpleSegmentation(const std::string dirt_image_path, const std::string cropped_image_path,
+		const std::string cropped_mask_path, const double foreground_rectangle_canny1, const double foreground_rectangle_canny2, const double foreground_rectangle_min_area,
+		const double foreground_rectangle_target_area, const double foreground_rectangle_shape_threshold, const int foreground_rectangle_additional_cropping,
 		const int crop_residual)
 {
 	source_image_path_ = dirt_image_path;
 	cropped_image_path_ = cropped_image_path;
 	cropped_mask_path_ = cropped_mask_path;
+	foreground_rectangle_canny1_ = foreground_rectangle_canny1;
+	foreground_rectangle_canny2_ = foreground_rectangle_canny2;
+	foreground_rectangle_min_area_ = foreground_rectangle_min_area;
+	foreground_rectangle_target_area_ = foreground_rectangle_target_area;
+	foreground_rectangle_shape_threshold_ = foreground_rectangle_shape_threshold;
+	foreground_rectangle_additional_cropping_ = foreground_rectangle_additional_cropping;
 	crop_residual_ = crop_residual;
 
 	if (boost::filesystem::exists(source_image_path_) == true)
@@ -53,7 +61,8 @@ void ipa_dirt_detection_dataset_tools::SimpleSegmentation::run()
 		cv::Mat cropped_dirt_frame, cropped_mask_frame;
 		crop(cropped_image, mask_frame, cropped_dirt_frame, cropped_mask_frame);
 
-		examine(cropped_image, mask_frame);		// optional, for result visualization
+		// optional, for result visualization
+		examine(cropped_image, mask_frame);
 
 		// split the image name from the data path
 		std::vector<std::string> strs;
@@ -83,9 +92,9 @@ cv::RotatedRect ipa_dirt_detection_dataset_tools::SimpleSegmentation::findRectan
 	// convert image to gray scale, find Canny edges, find largest contours
 	cv::Mat image_temp, image_canny;
 	cv::cvtColor(image, image_temp, CV_BGR2GRAY);
-	cv::Canny(image_temp, image_canny, 500, 1250, 5);
-	cv::dilate(image_canny, image_canny, cv::Mat(), cv::Point(-1,-1), 1);	// close 1 pixel gaps in contours
-	cv::erode(image_canny, image_canny, cv::Mat(), cv::Point(-1,-1), 1);
+	cv::Canny(image_temp, image_canny, foreground_rectangle_canny1_, foreground_rectangle_canny2_, 5);
+	cv::dilate(image_canny, image_canny, cv::Mat(), cv::Point(-1,-1), 5);	// close 5 pixel gaps in contours
+	cv::erode(image_canny, image_canny, cv::Mat(), cv::Point(-1,-1), 5);
 //	cv::imshow("canny", image_canny);
 //	cv::waitKey();
 
@@ -98,10 +107,10 @@ cv::RotatedRect ipa_dirt_detection_dataset_tools::SimpleSegmentation::findRectan
 	for (int current_contour = 0; current_contour < contours.size(); current_contour++)
 	{
 		const double contour_area = cv::contourArea(contours[current_contour]);
-		if (contour_area * image_area_inv > 0.15)	// the contour should fill at least 15% of the image			// todo: param
+		if (contour_area * image_area_inv > foreground_rectangle_min_area_)	// the contour should fill at least foreground_rectangle_min_area_% of the image
 		{
 			cv::RotatedRect rr = cv::minAreaRect(contours[current_contour]);
-			if (contour_area/(rr.size.height*rr.size.width) > 0.8)		// ensures a rectangular shape			// todo: param
+			if (contour_area/(rr.size.height*rr.size.width) > foreground_rectangle_shape_threshold_)		// ensures a rectangular shape
 			{
 				rectangular_contours[contour_area * image_area_inv] = rr;
 //				cv::drawContours(image_disp, contours, current_contour, cv::Scalar(0,255,0), 2, 8, hierarchy, 2);
@@ -112,12 +121,11 @@ cv::RotatedRect ipa_dirt_detection_dataset_tools::SimpleSegmentation::findRectan
 //	cv::waitKey();
 
 	// select the contour with best area fit to the target rectangle
-	const double target_area = 0.25;					// target area in percentage of the whole image size		// todo: param
-	cv::RotatedRect best_fit_rectangle(cv::Point2f(0.5f*image.cols, 0.5f*image.rows), cv::Size2f(image.cols, image.rows), 0);	// take whole image as default
-	double best_fit_area_distance = fabs(best_fit_rectangle.size.width*best_fit_rectangle.size.height*image_area_inv - target_area);
+	cv::RotatedRect best_fit_rectangle(cv::Point2f(image.cols/2, image.rows/2), cv::Size2f(image.cols, image.rows), 0);	// take whole image as default
+	double best_fit_area_distance = fabs(best_fit_rectangle.size.width*best_fit_rectangle.size.height*image_area_inv - foreground_rectangle_target_area_);
 	for (std::map<double, cv::RotatedRect>::iterator it=rectangular_contours.begin(); it!=rectangular_contours.end(); ++it)
 	{
-		double dist = fabs(it->first - target_area);
+		double dist = fabs(it->first - foreground_rectangle_target_area_);
 		if (dist < best_fit_area_distance)
 		{
 			best_fit_area_distance = dist;
@@ -131,8 +139,6 @@ cv::RotatedRect ipa_dirt_detection_dataset_tools::SimpleSegmentation::findRectan
 
 void ipa_dirt_detection_dataset_tools::SimpleSegmentation::removeUncontrolledBackground(const cv::Mat& src_image, cv::Mat& cropped_image, const cv::RotatedRect& foreground_rectangle)
 {
-	const int additional_cropping_margin = 10;	// number of pixels that are additionally cropped from the foreground rectangle		// todo: param
-
 	// norm angle between [0,90) deg, i.e. convert foreground_rectangle.angle to angle alpha, which is the turn angle from the negative y-axis (image coordinate system) to side s (see below)
 	double alpha = foreground_rectangle.angle;
 	while (alpha < 0)
@@ -147,10 +153,10 @@ void ipa_dirt_detection_dataset_tools::SimpleSegmentation::removeUncontrolledBac
 	{
 		// the rotated rectangle is already axis-aligned
 		aligned_foreground_rectangle = foreground_rectangle.boundingRect();
-		aligned_foreground_rectangle.x += additional_cropping_margin;
-		aligned_foreground_rectangle.y += additional_cropping_margin;
-		aligned_foreground_rectangle.width -= 2*additional_cropping_margin;
-		aligned_foreground_rectangle.height -= 2*additional_cropping_margin;
+		aligned_foreground_rectangle.x += foreground_rectangle_additional_cropping_;
+		aligned_foreground_rectangle.y += foreground_rectangle_additional_cropping_;
+		aligned_foreground_rectangle.width -= 2*foreground_rectangle_additional_cropping_;
+		aligned_foreground_rectangle.height -= 2*foreground_rectangle_additional_cropping_;
 	}
 	else
 	{
@@ -195,10 +201,10 @@ void ipa_dirt_detection_dataset_tools::SimpleSegmentation::removeUncontrolledBac
 		// construct the rectangle
 		const cv::Point2f upper_left = left + a*(top-left);
 		const cv::Point2f lower_right = right + a*(bottom-right);
-		aligned_foreground_rectangle.x = upper_left.x + additional_cropping_margin;
-		aligned_foreground_rectangle.y = upper_left.y + additional_cropping_margin;
-		aligned_foreground_rectangle.width = lower_right.x-upper_left.x - 2*additional_cropping_margin;
-		aligned_foreground_rectangle.height = lower_right.y-upper_left.y - 2*additional_cropping_margin;
+		aligned_foreground_rectangle.x = upper_left.x + foreground_rectangle_additional_cropping_;
+		aligned_foreground_rectangle.y = upper_left.y + foreground_rectangle_additional_cropping_;
+		aligned_foreground_rectangle.width = lower_right.x-upper_left.x - 2*foreground_rectangle_additional_cropping_;
+		aligned_foreground_rectangle.height = lower_right.y-upper_left.y - 2*foreground_rectangle_additional_cropping_;
 		std::cout << "aligned_foreground_rectangle=" << aligned_foreground_rectangle << std::endl;
 	}
 
@@ -211,26 +217,40 @@ void ipa_dirt_detection_dataset_tools::SimpleSegmentation::removeUncontrolledBac
 
 void ipa_dirt_detection_dataset_tools::SimpleSegmentation::segment(const cv::Mat& image, cv::Mat& mask_frame)
 {
-	const int color_segmentation_theshold = 60;		// todo: param
+	cv::Mat image_smoothed, image_preprocessed;
+	cv::medianBlur(image, image_smoothed, 3);
+
+
+	cv::Mat hsv;
+	cv::cvtColor(image_smoothed, image_preprocessed, CV_BGR2Lab);
+	std::vector<cv::Mat> hsv_vec;
+	cv::split(image_preprocessed, hsv_vec);
+	cv::imshow("hue", hsv_vec[0]);
+	cv::imshow("sat", hsv_vec[1]);
+	cv::imshow("val", hsv_vec[2]);
+	cv::waitKey();
+
+
+	const int color_segmentation_theshold = 40;		// todo: param
 
 	// get average color
 	const int avg_color_area_side_length = 10;
 	cv::Scalar mean_colors(0);
-	mean_colors += cv::mean(cv::Mat(image, cv::Rect(0, 0, avg_color_area_side_length, avg_color_area_side_length)));
-	mean_colors += cv::mean(cv::Mat(image, cv::Rect(image.cols-avg_color_area_side_length-1, 0, avg_color_area_side_length, avg_color_area_side_length)));
-	mean_colors += cv::mean(cv::Mat(image, cv::Rect(0, image.rows-avg_color_area_side_length-1, avg_color_area_side_length, avg_color_area_side_length)));
-	mean_colors += cv::mean(cv::Mat(image, cv::Rect(image.cols-avg_color_area_side_length-1, image.rows-avg_color_area_side_length-1, avg_color_area_side_length, avg_color_area_side_length)));
+	mean_colors += cv::mean(cv::Mat(image_preprocessed, cv::Rect(0, 0, avg_color_area_side_length, avg_color_area_side_length)));
+	mean_colors += cv::mean(cv::Mat(image_preprocessed, cv::Rect(image_preprocessed.cols-avg_color_area_side_length-1, 0, avg_color_area_side_length, avg_color_area_side_length)));
+	mean_colors += cv::mean(cv::Mat(image_preprocessed, cv::Rect(0, image_preprocessed.rows-avg_color_area_side_length-1, avg_color_area_side_length, avg_color_area_side_length)));
+	mean_colors += cv::mean(cv::Mat(image_preprocessed, cv::Rect(image_preprocessed.cols-avg_color_area_side_length-1, image_preprocessed.rows-avg_color_area_side_length-1, avg_color_area_side_length, avg_color_area_side_length)));
 	mean_colors *= 0.25;
 
 	// create segmentation mask
-	mask_frame = cv::Mat::zeros(image.rows, image.cols, CV_8UC1);
-	for (int h = 0; h < image.rows; h++)
+	mask_frame = cv::Mat::zeros(image_preprocessed.rows, image_preprocessed.cols, CV_8UC1);
+	for (int h = 0; h < image_preprocessed.rows; h++)
 	{
-		for (int w = 0; w < image.cols; w++)
+		for (int w = 0; w < image_preprocessed.cols; w++)
 		{
-			const cv::Vec3b& intensity = image.at<cv::Vec3b>(h, w);
+			const cv::Vec3b& intensity = image_preprocessed.at<cv::Vec3b>(h, w);
 			if (fabs((double)intensity[0] - mean_colors[0]) > color_segmentation_theshold || fabs((double)intensity[1] - mean_colors[1]) > color_segmentation_theshold ||
-					fabs((double)intensity[2] - mean_colors[2]) > color_segmentation_theshold) // The threshold 15 here can be changed TODO  || abs(blue - average_blue) > 60 || abs(red - average_red) > 60
+					fabs((double)intensity[2] - mean_colors[2]) > color_segmentation_theshold)
 			{
 				mask_frame.at<uchar>(h, w) = 255;
 			}

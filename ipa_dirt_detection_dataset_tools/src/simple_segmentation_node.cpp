@@ -13,20 +13,40 @@ int main(int argc, char** argv)
 	pnh.param("base_path", base_path, std::string(""));
 	std::cout << "base_path: " << base_path << std::endl;
 	std::string source_image_path;
-	pnh.param("source_image_path", source_image_path, std::string("/home/rmb-jx/dataset_new/Dirt"));
+	pnh.param("source_image_path", source_image_path, std::string("dirt"));
 	std::cout << "images_to_be_segmented_path: " << source_image_path << std::endl;
 	std::string cropped_image_path;
-	pnh.param("segmented_dirt_cropped_path", cropped_image_path, std::string("/home/rmb-jx/dataset_new/Dirt"));
+	pnh.param("segmented_dirt_cropped_path", cropped_image_path, std::string("dirt_segmented"));
 	std::cout << "Path to save the segmented dirt after cropping: " << cropped_image_path << std::endl;
 	std::string cropped_mask_path;
-	pnh.param("segmented_dirt_cropped_mask_path", cropped_mask_path, std::string("/home/rmb-jx/dataset_new/Dirtmask"));
+	pnh.param("segmented_dirt_cropped_mask_path", cropped_mask_path, std::string("dirt_segmented"));
 	std::cout << "segmented_dirt_cropped_mask_path: " << cropped_mask_path << std::endl;
+	double foreground_rectangle_canny1;
+	pnh.param("foreground_rectangle_canny1", foreground_rectangle_canny1, 500.);
+	std::cout << "foreground_rectangle_canny1: " << foreground_rectangle_canny1 << std::endl;
+	double foreground_rectangle_canny2;
+	pnh.param("foreground_rectangle_canny2", foreground_rectangle_canny2, 1000.);
+	std::cout << "foreground_rectangle_canny2: " << foreground_rectangle_canny2 << std::endl;
+	double foreground_rectangle_min_area;
+	pnh.param("foreground_rectangle_min_area", foreground_rectangle_min_area, 0.15);
+	std::cout << "foreground_rectangle_min_area: " << foreground_rectangle_min_area << std::endl;
+	double foreground_rectangle_target_area;
+	pnh.param("foreground_rectangle_target_area", foreground_rectangle_target_area, 0.25);
+	std::cout << "foreground_rectangle_target_area: " << foreground_rectangle_target_area << std::endl;
+	double foreground_rectangle_shape_threshold;
+	pnh.param("foreground_rectangle_shape_threshold", foreground_rectangle_shape_threshold, 0.8);
+	std::cout << "foreground_rectangle_shape_threshold: " << foreground_rectangle_shape_threshold << std::endl;
+	int foreground_rectangle_additional_cropping;
+	pnh.param("foreground_rectangle_additional_cropping", foreground_rectangle_additional_cropping, 10);
+	std::cout << "foreground_rectangle_additional_cropping: " << foreground_rectangle_additional_cropping << std::endl;
 	int crop_residual;
 	pnh.param("crop_residual", crop_residual, 2);
 	std::cout << "Border residual for cropping bounding box is: " << crop_residual << std::endl;
 
 	// run segmentation
-	ipa_dirt_detection_dataset_tools::SimpleSegmentation segment_dirt(base_path+source_image_path, base_path+cropped_image_path, base_path+cropped_mask_path, crop_residual);
+	ipa_dirt_detection_dataset_tools::SimpleSegmentation segment_dirt(base_path + source_image_path, base_path + cropped_image_path, base_path + cropped_mask_path,
+			foreground_rectangle_canny1, foreground_rectangle_canny2, foreground_rectangle_min_area, foreground_rectangle_target_area, foreground_rectangle_shape_threshold,
+			foreground_rectangle_additional_cropping, crop_residual);
 	segment_dirt.run();
 
 	return 0;

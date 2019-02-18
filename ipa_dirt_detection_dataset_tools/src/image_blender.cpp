@@ -45,8 +45,7 @@ void ipa_dirt_detection_dataset_tools::ImageBlend::run()
 {
 	// To list the clean ground file names
 	boost::filesystem::path clean_ground_images(clean_ground_path_);  // The order of clean ground images is random
-	num_clean_ground_images_ = std::distance(boost::filesystem::directory_iterator(clean_ground_images), boost::filesystem::directory_iterator
-	{ });
+	num_clean_ground_images_ = std::distance(boost::filesystem::directory_iterator(clean_ground_images), boost::filesystem::directory_iterator{ });
 	boost::filesystem::directory_iterator end_itr1;
 	boost::filesystem::directory_iterator itr1(clean_ground_images);
 
@@ -62,8 +61,7 @@ void ipa_dirt_detection_dataset_tools::ImageBlend::run()
 
 	// To list the artificial dirt file names
 	boost::filesystem::path artificial_dirt_images(artificial_dirt_path_);
-	num_artificial_dirt_images_ = std::distance(boost::filesystem::directory_iterator(artificial_dirt_images), boost::filesystem::directory_iterator
-	{ });
+	num_artificial_dirt_images_ = std::distance(boost::filesystem::directory_iterator(artificial_dirt_images), boost::filesystem::directory_iterator{ });
 	boost::filesystem::directory_iterator end_itr2;
 	boost::filesystem::directory_iterator itr2(artificial_dirt_images);
 
