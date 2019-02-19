@@ -4,21 +4,23 @@
 
 #include "ipa_dirt_detection_dataset_tools/image_blender.h"
 
-ipa_dirt_detection_dataset_tools::ImageBlend::ImageBlend(std::string& clean_ground_path, std::string& artificial_dirt_path, std::string& artificial_dirt_mask_path,
-		std::string& segmented_objects_path, std::string& segmented_objects_mask_path, std::string& blended_img_folder, std::string& blended_mask_folder, int max_num_dirt,
-		int min_num_dirt, int max_num_objects, int min_num_objects, std::string& filename_bbox, bool flip_clean_ground, std::string& brightness_shadow_mask_path)
+ipa_dirt_detection_dataset_tools::ImageBlender::ImageBlender(const std::string& clean_ground_path, const std::string& segmented_dirt_path,
+		const std::string& segmented_dirt_mask_path, const std::string& segmented_objects_path, const std::string& segmented_objects_mask_path,
+		const std::string& brightness_shadow_mask_path, const std::string& blended_img_folder, const std::string& blended_mask_folder,
+		const std::string& blended_img_bbox_filename, const int max_num_dirt, const int min_num_dirt, const int max_num_objects, const int min_num_objects,
+		const bool flip_clean_ground, const int ground_image_reuse_times)
 {
 	clean_ground_path_ = clean_ground_path;
 
-	artificial_dirt_path_ = artificial_dirt_path;
-	artificial_dirt_mask_path_ = artificial_dirt_mask_path;
+	segmented_dirt_path_ = segmented_dirt_path;
+	segmented_dirt_mask_path_ = segmented_dirt_mask_path;
 	segmented_objects_path_ = segmented_objects_path;
 	segmented_objects_mask_path_ = segmented_objects_mask_path;
 	brightness_shadow_mask_path_ = brightness_shadow_mask_path;
 
 	blended_img_folder_ = blended_img_folder;
 	blended_mask_folder_ = blended_mask_folder;
-	filename_bbox_ = filename_bbox;
+	blended_img_bbox_filename_ = blended_img_bbox_filename;
 
 	max_num_dirt_ = max_num_dirt;
 	min_num_dirt_ = min_num_dirt;
@@ -27,6 +29,8 @@ ipa_dirt_detection_dataset_tools::ImageBlend::ImageBlend(std::string& clean_grou
 	min_num_objects_ = min_num_objects;
 
 	flip_clean_ground_ = flip_clean_ground;
+	ground_image_reuse_times_ = ground_image_reuse_times;
+
 
 	img_cols_ = 1280;		// todo:
 	img_rows_ = 1024;
@@ -37,170 +41,47 @@ ipa_dirt_detection_dataset_tools::ImageBlend::ImageBlend(std::string& clean_grou
 	srand((int) time(0));
 }
 
-ipa_dirt_detection_dataset_tools::ImageBlend::~ImageBlend()
+ipa_dirt_detection_dataset_tools::ImageBlender::~ImageBlender()
 {
 }
 
-void ipa_dirt_detection_dataset_tools::ImageBlend::run()
+void ipa_dirt_detection_dataset_tools::ImageBlender::run()
 {
-	// To list the clean ground file names
-	boost::filesystem::path clean_ground_images(clean_ground_path_);  // The order of clean ground images is random
-	num_clean_ground_images_ = std::distance(boost::filesystem::directory_iterator(clean_ground_images), boost::filesystem::directory_iterator{ });
-	boost::filesystem::directory_iterator end_itr1;
-	boost::filesystem::directory_iterator itr1(clean_ground_images);
-
-	for (boost::filesystem::directory_iterator itr1(clean_ground_images); itr1 != end_itr1; ++itr1)
-	{
-		const boost::filesystem::directory_entry entry = *itr1;
-		std::string path = entry.path().string();
-		// std::cout << path << std::endl;
-
-		clean_ground_filenames_.push_back(path);
-	}
-	std::cout << "The number of files is " << clean_ground_filenames_.size() << std::endl;
-
-	// To list the artificial dirt file names
-	boost::filesystem::path artificial_dirt_images(artificial_dirt_path_);
-	num_artificial_dirt_images_ = std::distance(boost::filesystem::directory_iterator(artificial_dirt_images), boost::filesystem::directory_iterator{ });
-	boost::filesystem::directory_iterator end_itr2;
-	boost::filesystem::directory_iterator itr2(artificial_dirt_images);
-
-	for (boost::filesystem::directory_iterator itr2(artificial_dirt_images); itr2 != end_itr2; ++itr2)
-	{
-		const boost::filesystem::directory_entry entry = *itr2;
-		std::string path = entry.path().string();
-		//std::cout << path << std::endl;
-
-		artificial_dirt_filenames_.push_back(path);
-	}
-
-	// TO list the mask file names
-	boost::filesystem::path artificial_dirt_mask_images(artificial_dirt_mask_path_);
-	boost::filesystem::directory_iterator end_itr3;
-	boost::filesystem::directory_iterator itr3(artificial_dirt_mask_images);
-
-	for (boost::filesystem::directory_iterator itr3(artificial_dirt_mask_images); itr3 != end_itr3; ++itr3)
-	{
-		const boost::filesystem::directory_entry entry = *itr3;
-		std::string path = entry.path().string();
-		//std::cout << path << std::endl;
-
-		artificial_dirt_mask_filenames_.push_back(path);
-	}
-
-	sort(artificial_dirt_filenames_.begin(), artificial_dirt_filenames_.end());
-	for (std::vector<std::string>::iterator it = artificial_dirt_filenames_.begin(); it != artificial_dirt_filenames_.end(); it++)
-	{
-		std::cout << *it << std::endl;
-	}
-
-	std::cout << artificial_dirt_mask_filenames_.size() << std::endl;
-	sort(artificial_dirt_mask_filenames_.begin(), artificial_dirt_mask_filenames_.end());
-	for (std::vector<std::string>::iterator it = artificial_dirt_mask_filenames_.begin(); it != artificial_dirt_mask_filenames_.end(); it++)
-	{
-		std::cout << *it << std::endl;
-	}
-
-	// To list the Pens file names
-	boost::filesystem::path artificial_pens_images(segmented_objects_path_);
-	num_pens_images_ = std::distance(boost::filesystem::directory_iterator(artificial_pens_images), boost::filesystem::directory_iterator
-	{ });
-	boost::filesystem::directory_iterator end_itr4;
-	boost::filesystem::directory_iterator itr4(artificial_pens_images);
-
-	for (boost::filesystem::directory_iterator itr4(artificial_pens_images); itr4 != end_itr4; ++itr4)
-	{
-		const boost::filesystem::directory_entry entry = *itr4;
-		std::string path = entry.path().string();
-		//std::cout << path << std::endl;
-		artificial_pens_filenames_.push_back(path);
-	}
-
-	// To list the Pens mask file names
-	boost::filesystem::path artificial_pens_mask_images(segmented_objects_mask_path_);
-	boost::filesystem::directory_iterator end_itr5;
-	boost::filesystem::directory_iterator itr5(artificial_pens_mask_images);
-
-	for (boost::filesystem::directory_iterator itr5(artificial_pens_mask_images); itr5 != end_itr5; ++itr5)
-	{
-		const boost::filesystem::directory_entry entry = *itr5;
-		std::string path = entry.path().string();
-		//std::cout << path << std::endl;
-		artificial_pens_mask_filenames_.push_back(path);
-	}
-
-	sort(artificial_pens_filenames_.begin(), artificial_pens_filenames_.end());
-	for (std::vector<std::string>::iterator it = artificial_pens_filenames_.begin(); it != artificial_pens_filenames_.end(); it++)
-	{
-		std::cout << *it << std::endl;
-	}
-
-	std::cout << artificial_pens_mask_filenames_.size() << std::endl;
-	sort(artificial_pens_mask_filenames_.begin(), artificial_pens_mask_filenames_.end());
-	for (std::vector<std::string>::iterator it = artificial_pens_mask_filenames_.begin(); it != artificial_pens_mask_filenames_.end(); it++)
-	{
-		std::cout << *it << std::endl;
-	}
-
-	// To list the brightness and shadow masks
-	boost::filesystem::path brightness_shadow_masks(brightness_shadow_mask_path_);
-	boost::filesystem::directory_iterator end_itr6;
-	boost::filesystem::directory_iterator itr6(brightness_shadow_masks);
-
-	for (boost::filesystem::directory_iterator itr6(brightness_shadow_masks); itr6 != end_itr6; ++itr6)
-	{
-		const boost::filesystem::directory_entry entry = *itr6;
-		std::string path = entry.path().string();
-		//std::cout << path << std::endl;
-		brightness_shadow_mask_filenames_.push_back(path);
-	}
-
-	//sort(artificial_dirt_filenames_.begin(), artificial_dirt_filenames_.end());
-	for (std::vector<std::string>::iterator it = brightness_shadow_mask_filenames_.begin(); it != brightness_shadow_mask_filenames_.end(); it++)
-	{
-		std::cout << *it << std::endl;
-	}
+	// create lists of all image files (clean images, dirt images and masks, object images, illumination and shadow images)
+	collectImageFiles();
 
 	//-------------------------------------------------------------------------------------------------------------------------------------
-	std::ofstream myfile;
-	myfile.open(filename_bbox_.c_str());
+	std::ofstream blended_img_bbox_labels;
+	blended_img_bbox_labels.open(blended_img_bbox_filename_.c_str());
 
-	// start to blend images, reuse of the ground pattern with different dirts
-	for (int m = 0; m < clean_ground_filenames_.size(); m++)
+	// start to blend images, reuse the ground pattern with different dirts
+	for (int m = 0; m < clean_ground_filenames_.size(); ++m)
 	{
 		clean_ground_pattern_ = cv::imread(clean_ground_filenames_[m], CV_LOAD_IMAGE_COLOR);
+
+		// todo: ground_image_reuse_times_ , also put into filenames
+
+		//-------------------------------------------------------------------------------------------------------
+		// create the file name of the blended ground
+		std::vector<std::string> strs, strs1;
+		boost::split(strs, clean_ground_filenames_[m], boost::is_any_of("\t,/"));			// folders and filename
+		boost::split(strs1, strs[strs.size()-1], boost::is_any_of("\t,."));		// remove the suffix of the image name
+		const std::string ground_file_name = strs[strs.size()-2] + "_" + strs1[0];
+		std::cout << "FILE NAME " << ground_file_name << std::endl;
+		//-------------------------------------------------------------------------------------------------------
+
+		getchar();
+
+		int dirt_num = min_num_dirt_ + rand() % (max_num_dirt_ - min_num_dirt_);		// generate number of dirts in range max_num_dirt and min_num_dirt
+		int objects_num = min_num_objects_ + rand() % (max_num_objects_ - min_num_objects_);		// generate number of objects in range max_num_objects and min_num_objects
+
+		blendImage(dirt_num, blended_img_bbox_labels, ground_file_name);     // First add artificial dirt , then add the objects for classification
+		blendImage(objects_num, blended_img_bbox_labels, ground_file_name, true);
+
 		serie_num_ = 0;
-
-		//-------------------------------------------------------------------------------------------------------
-		std::string ground_file_name = clean_ground_filenames_[m];    // get the file name of the ground
-		std::vector<std::string> strs;
-		boost::split(strs, ground_file_name, boost::is_any_of("\t,/"));
-		for (std::vector<std::string>::iterator it = strs.begin(); it != strs.end(); it++)
-		{
-			std::cout << *it << std::endl;
-			ground_file_name = *(it);
-		}
-
-		// remove the suffix of the image name
-		std::vector<std::string> strs1;
-		boost::split(strs1, ground_file_name, boost::is_any_of("\t,."));
-		for (std::vector<std::string>::iterator it1 = strs1.begin(); it1 != strs1.end() - 1; it1++)
-		{
-			std::cout << *it1 << std::endl;
-			ground_file_name = *(it1);
-		}
-		std::cout << "FLIE NAME " << ground_file_name << std::endl;
-		//-------------------------------------------------------------------------------------------------------
-
-		int dirt_num = rand() % (max_num_dirt_ - min_num_dirt_) + min_num_dirt_;   // generate number of dirts in range max_num_dirt and min_num_dirt
-		int pens_num = rand() % (max_num_objects_ - min_num_objects_) + min_num_objects_;
-
-		blendImage(dirt_num, myfile, ground_file_name);     // First add artificial dirt , then add the objects for classification
-		blendImage(pens_num, myfile, ground_file_name, true);
-
-		cv::imwrite(blended_mask_folder_ + "/" + ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_);
-		cv::imwrite(blended_mask_folder_ + "/mask_vis_" + ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_ * 255);
-		cv::imwrite(blended_img_folder_ + "/" + ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_img_);
+		cv::imwrite(blended_mask_folder_ + "/" + ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_);
+		cv::imwrite(blended_mask_folder_ + "/mask_vis_" + ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_ * 255);
+		cv::imwrite(blended_img_folder_ + "/" + ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_img_);
 
 		if (flip_clean_ground_ == 1)
 		{
@@ -208,34 +89,34 @@ void ipa_dirt_detection_dataset_tools::ImageBlend::run()
 			cv::flip(clean_ground_pattern_, fliped_ground_img_, 0);
 			clean_ground_pattern_ = fliped_ground_img_;
 			dirt_num = rand() % (max_num_dirt_ - min_num_dirt_) + min_num_dirt_;
-			blendImage(dirt_num, myfile, ground_file_name);
-			blendImage(pens_num, myfile, ground_file_name, true);
+			blendImage(dirt_num, blended_img_bbox_labels, ground_file_name);
+			blendImage(objects_num, blended_img_bbox_labels, ground_file_name, true);
 
-			cv::imwrite(blended_mask_folder_ + "/" + ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_);
-			cv::imwrite(blended_mask_folder_ + "/mask_vis_" + ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_ * 255);
-			cv::imwrite(blended_img_folder_ + "/" + ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_img_);
+			cv::imwrite(blended_mask_folder_ + "/" + ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_);
+			cv::imwrite(blended_mask_folder_ + "/mask_vis_" + ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_ * 255);
+			cv::imwrite(blended_img_folder_ + "/" + ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_img_);
 
 			serie_num_ = 2;
 			cv::flip(clean_ground_pattern_, fliped_ground_img_, 1);
 			clean_ground_pattern_ = fliped_ground_img_;
 			dirt_num = rand() % (max_num_dirt_ - min_num_dirt_) + min_num_dirt_;
-			blendImage(dirt_num, myfile, ground_file_name);
-			blendImage(pens_num, myfile, ground_file_name, true);
+			blendImage(dirt_num, blended_img_bbox_labels, ground_file_name);
+			blendImage(objects_num, blended_img_bbox_labels, ground_file_name, true);
 
-			cv::imwrite(blended_mask_folder_ + "/" + ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_);
-			cv::imwrite(blended_mask_folder_ + "/mask_vis_" + ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_ * 255);
-			cv::imwrite(blended_img_folder_ + "/" + ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_img_);
+			cv::imwrite(blended_mask_folder_ + "/" + ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_);
+			cv::imwrite(blended_mask_folder_ + "/mask_vis_" + ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_ * 255);
+			cv::imwrite(blended_img_folder_ + "/" + ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_img_);
 
 			serie_num_ = 3;
 			cv::flip(clean_ground_pattern_, fliped_ground_img_, 0);
 			clean_ground_pattern_ = fliped_ground_img_;
 			dirt_num = rand() % (max_num_dirt_ - min_num_dirt_) + min_num_dirt_;
-			blendImage(dirt_num, myfile, ground_file_name);
-			blendImage(pens_num, myfile, ground_file_name, true);
+			blendImage(dirt_num, blended_img_bbox_labels, ground_file_name);
+			blendImage(objects_num, blended_img_bbox_labels, ground_file_name, true);
 
-			cv::imwrite(blended_mask_folder_ + "/" + ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_);
-			cv::imwrite(blended_mask_folder_ + "/mask_vis_" + ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_ * 255);
-			cv::imwrite(blended_img_folder_ + "/" + ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_img_);
+			cv::imwrite(blended_mask_folder_ + "/" + ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_);
+			cv::imwrite(blended_mask_folder_ + "/mask_vis_" + ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_ * 255);
+			cv::imwrite(blended_img_folder_ + "/" + ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_img_);
 		}
 		edge_smoothing(3);
 		// if (m % 5 == 1)    // 20% add shadow
@@ -243,10 +124,75 @@ void ipa_dirt_detection_dataset_tools::ImageBlend::run()
 		// if (m % 5 == 2)
 		//   shadow_and_illuminance(0);
 	}
-	myfile.close();
+	blended_img_bbox_labels.close();
 }
 
-void ipa_dirt_detection_dataset_tools::ImageBlend::blendImage(int dirt_num, std::ofstream& myfile, std::string& ground_file_name)
+
+void ipa_dirt_detection_dataset_tools::ImageBlender::collectImageFiles()
+{
+	boost::filesystem::directory_iterator end_itr;
+
+	// to list the clean ground file names
+	for (boost::filesystem::directory_iterator itr1(clean_ground_path_); itr1 != end_itr; ++itr1)
+	{
+		for (boost::filesystem::directory_iterator itr2(itr1->path()); itr2 != end_itr; ++itr2)
+			clean_ground_filenames_.push_back(itr2->path().string());
+	}
+	num_clean_ground_images_ = clean_ground_filenames_.size();
+	std::cout << "The number of clean ground images is " << num_clean_ground_images_ << std::endl;
+	std::sort(clean_ground_filenames_.begin(), clean_ground_filenames_.end());
+	for (std::vector<std::string>::iterator it = clean_ground_filenames_.begin(); it != clean_ground_filenames_.end(); ++it)
+		std::cout << "   - " << *it << std::endl;
+
+	// to list the segmented dirt file names
+	for (boost::filesystem::directory_iterator itr2(segmented_dirt_path_); itr2 != end_itr; ++itr2)
+		if (itr2->path().string().find("_mask.png") == std::string::npos)
+			segmented_dirt_filenames_.push_back(itr2->path().string());
+	num_segmented_dirt_images_ = segmented_dirt_filenames_.size();
+	std::cout << "\nThe number of dirt samples is " << num_segmented_dirt_images_ << std::endl;
+	std::sort(segmented_dirt_filenames_.begin(), segmented_dirt_filenames_.end());
+	for (std::vector<std::string>::iterator it = segmented_dirt_filenames_.begin(); it != segmented_dirt_filenames_.end(); ++it)
+		std::cout << "   - " << *it << std::endl;
+
+	// to list the segmented dirt mask file names
+	for (boost::filesystem::directory_iterator itr3(segmented_dirt_mask_path_); itr3 != end_itr; ++itr3)
+		if (itr3->path().string().find("_mask.png") != std::string::npos)
+			segmented_dirt_mask_filenames_.push_back(itr3->path().string());
+	std::cout << "\nThe number of dirt masks is " << segmented_dirt_mask_filenames_.size() << std::endl;
+	std::sort(segmented_dirt_mask_filenames_.begin(), segmented_dirt_mask_filenames_.end());
+	for (std::vector<std::string>::iterator it = segmented_dirt_mask_filenames_.begin(); it != segmented_dirt_mask_filenames_.end(); ++it)
+		std::cout << "   - " << *it << std::endl;
+
+	// to list the objects file names
+	for (boost::filesystem::directory_iterator itr4(segmented_objects_path_); itr4 != end_itr; ++itr4)
+		if (itr4->path().string().find("_mask.png") == std::string::npos)
+			segmented_objects_filenames_.push_back(itr4->path().string());
+	num_object_images_ = segmented_objects_filenames_.size();
+	std::cout << "\nThe number of object samples is " << num_object_images_ << std::endl;
+	std::sort(segmented_objects_filenames_.begin(), segmented_objects_filenames_.end());
+	for (std::vector<std::string>::iterator it = segmented_objects_filenames_.begin(); it != segmented_objects_filenames_.end(); ++it)
+		std::cout << "   - " << *it << std::endl;
+
+	// to list the object mask file names
+	for (boost::filesystem::directory_iterator itr5(segmented_objects_mask_path_); itr5 != end_itr; ++itr5)
+		if (itr5->path().string().find("_mask.png") != std::string::npos)
+			segmented_objects_mask_filenames_.push_back(itr5->path().string());
+	std::cout << "\nThe number of object masks is " << segmented_objects_mask_filenames_.size() << std::endl;
+	std::sort(segmented_objects_mask_filenames_.begin(), segmented_objects_mask_filenames_.end());
+	for (std::vector<std::string>::iterator it = segmented_objects_mask_filenames_.begin(); it != segmented_objects_mask_filenames_.end(); ++it)
+		std::cout << "   - " << *it << std::endl;
+
+	// to list the brightness and shadow masks
+	for (boost::filesystem::directory_iterator itr6(brightness_shadow_mask_path_); itr6 != end_itr; ++itr6)
+		brightness_shadow_mask_filenames_.push_back(itr6->path().string());
+	std::cout << "\nThe number of illumination and shadow masks is " << brightness_shadow_mask_filenames_.size() << std::endl;
+	std::sort(brightness_shadow_mask_filenames_.begin(), brightness_shadow_mask_filenames_.end());
+	for (std::vector<std::string>::iterator it = brightness_shadow_mask_filenames_.begin(); it != brightness_shadow_mask_filenames_.end(); ++it)
+		std::cout << "   - " << *it << std::endl;
+}
+
+
+void ipa_dirt_detection_dataset_tools::ImageBlender::blendImage(int dirt_num, std::ofstream& myfile, const std::string& ground_file_name)
 {
 	int img_cols = clean_ground_pattern_.cols;
 	int img_rows = clean_ground_pattern_.rows;
@@ -261,13 +207,13 @@ void ipa_dirt_detection_dataset_tools::ImageBlend::blendImage(int dirt_num, std:
 
 		if_resize_dirt_ = bool(rand() % 4);                // 20% of the dirt will be resized
 
-		int dirt_image_index = rand() % num_artificial_dirt_images_ - 1;     // TODO for testing
+		int dirt_image_index = rand() % num_segmented_dirt_images_ - 1;     // TODO for testing
 		if (dirt_image_index == -1)
 			dirt_image_index = 0;
-		artificial_dirt_ = cv::imread(artificial_dirt_filenames_[dirt_image_index], CV_LOAD_IMAGE_COLOR);
-		std::cout << artificial_dirt_filenames_[dirt_image_index] << std::endl;
-		artificial_dirt_mask_ = cv::imread(artificial_dirt_mask_filenames_[dirt_image_index], CV_LOAD_IMAGE_GRAYSCALE);
-		std::cout << artificial_dirt_mask_filenames_[dirt_image_index] << std::endl;
+		artificial_dirt_ = cv::imread(segmented_dirt_filenames_[dirt_image_index], CV_LOAD_IMAGE_COLOR);
+		std::cout << segmented_dirt_filenames_[dirt_image_index] << std::endl;
+		artificial_dirt_mask_ = cv::imread(segmented_dirt_mask_filenames_[dirt_image_index], CV_LOAD_IMAGE_GRAYSCALE);
+		std::cout << segmented_dirt_mask_filenames_[dirt_image_index] << std::endl;
 
 		// remove some edges TODO
 		cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), cv::Point(1, 1));
@@ -292,7 +238,7 @@ void ipa_dirt_detection_dataset_tools::ImageBlend::blendImage(int dirt_num, std:
 			anchor_row = anchor_row - (dirt_rows + anchor_row + 2 - img_rows);
 
 		// write the arguments of the bounding box in file
-		myfile << ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) << " " << anchor_col - 2 << " " << anchor_row - 2 << " " << anchor_col + dirt_cols + 2 << " "
+		myfile << ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) << " " << anchor_col - 2 << " " << anchor_row - 2 << " " << anchor_col + dirt_cols + 2 << " "
 				<< anchor_row + dirt_rows + 2 << " " << "Dirt \n";
 
 		for (int i = anchor_row; i < anchor_row + dirt_rows; i++)      // to blend the images
@@ -317,7 +263,7 @@ void ipa_dirt_detection_dataset_tools::ImageBlend::blendImage(int dirt_num, std:
 	//cv::waitKey(0);
 }
 
-void ipa_dirt_detection_dataset_tools::ImageBlend::blendImage(int dirt_num, std::ofstream& myfile, std::string& ground_file_name, bool if_for_classification)
+void ipa_dirt_detection_dataset_tools::ImageBlender::blendImage(int dirt_num, std::ofstream& myfile, const std::string& ground_file_name, bool if_for_classification)
 {
 	int img_cols = clean_ground_pattern_.cols;
 	int img_rows = clean_ground_pattern_.rows;
@@ -330,17 +276,17 @@ void ipa_dirt_detection_dataset_tools::ImageBlend::blendImage(int dirt_num, std:
 		int anchor_col = rand() % img_cols;
 		int anchor_row = rand() % img_rows;     // top left point of the blending position
 
-		int pens_image_index = rand() % num_pens_images_ - 1;     // TODO for testing
+		int pens_image_index = rand() % num_object_images_ - 1;     // TODO for testing
 		if (pens_image_index == -1)
 			pens_image_index = 0;
-		artificial_dirt_ = cv::imread(artificial_pens_filenames_[pens_image_index], CV_LOAD_IMAGE_COLOR);
-		std::cout << artificial_pens_filenames_[pens_image_index] << std::endl;
-		artificial_dirt_mask_ = cv::imread(artificial_pens_mask_filenames_[pens_image_index], CV_LOAD_IMAGE_GRAYSCALE);
+		artificial_dirt_ = cv::imread(segmented_objects_filenames_[pens_image_index], CV_LOAD_IMAGE_COLOR);
+		std::cout << segmented_objects_filenames_[pens_image_index] << std::endl;
+		artificial_dirt_mask_ = cv::imread(segmented_objects_mask_filenames_[pens_image_index], CV_LOAD_IMAGE_GRAYSCALE);
 		// remove some edges TODO
 		//cv::Mat element = cv::getStructuringElement( cv::MORPH_RECT, cv::Size(3 , 3), cv::Point(1, 1) );
 		//cv::morphologyEx(artificial_dirt_mask_, artificial_dirt_mask_, cv::MORPH_ERODE, element);
 
-		std::cout << artificial_pens_mask_filenames_[pens_image_index] << std::endl;
+		std::cout << segmented_objects_mask_filenames_[pens_image_index] << std::endl;
 		rotateImage();
 		shrank_bounding_box();
 
@@ -356,10 +302,10 @@ void ipa_dirt_detection_dataset_tools::ImageBlend::blendImage(int dirt_num, std:
 			break;  //anchor_row = anchor_row - (dirt_rows + anchor_row - img_rows);
 
 		std::string class_name;
-		get_patch_classname(artificial_pens_filenames_[pens_image_index], class_name);
+		get_patch_classname(segmented_objects_filenames_[pens_image_index], class_name);
 
 		// write the arguments of the bounding box in file
-		myfile << ground_file_name + "s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) << " " << anchor_col << " " << anchor_row << " " << anchor_col + dirt_cols << " "
+		myfile << ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) << " " << anchor_col << " " << anchor_row << " " << anchor_col + dirt_cols << " "
 				<< anchor_row + dirt_rows << " " << class_name << '\n';
 
 		for (int i = anchor_row; i < anchor_row + dirt_rows; i++)      // to blend the images
@@ -381,7 +327,7 @@ void ipa_dirt_detection_dataset_tools::ImageBlend::blendImage(int dirt_num, std:
 }
 
 // reference: https://www.pyimagesearch.com/2017/01/02/rotate-images-correctly-with-opencv-and-python/
-void ipa_dirt_detection_dataset_tools::ImageBlend::rotateImage()
+void ipa_dirt_detection_dataset_tools::ImageBlender::rotateImage()
 {
 	//srand((int)time(0));               // generate random rotation angle
 	double rotate_angle = rand() % 180;
@@ -422,7 +368,7 @@ void ipa_dirt_detection_dataset_tools::ImageBlend::rotateImage()
 	//shrank_bounding_box();
 }
 
-void ipa_dirt_detection_dataset_tools::ImageBlend::shrank_bounding_box()
+void ipa_dirt_detection_dataset_tools::ImageBlender::shrank_bounding_box()
 {
 	int rows = rotated_artificial_dirt_.rows;
 	int cols = rotated_artificial_dirt_.cols;
@@ -499,7 +445,7 @@ void ipa_dirt_detection_dataset_tools::ImageBlend::shrank_bounding_box()
 }
 
 // The function is used for extract the class name from the file name of the segmented patches
-void ipa_dirt_detection_dataset_tools::ImageBlend::get_patch_classname(std::string& patch_name, std::string& class_name)
+void ipa_dirt_detection_dataset_tools::ImageBlender::get_patch_classname(std::string& patch_name, std::string& class_name)
 {
 	std::vector<std::string> strs;
 	boost::split(strs, patch_name, boost::is_any_of("\t,/"));
@@ -511,7 +457,7 @@ void ipa_dirt_detection_dataset_tools::ImageBlend::get_patch_classname(std::stri
 	std::cout << "Class of the object is: " << class_name << std::endl;
 }
 
-void ipa_dirt_detection_dataset_tools::ImageBlend::edge_smoothing(int half_kernel_size)
+void ipa_dirt_detection_dataset_tools::ImageBlender::edge_smoothing(int half_kernel_size)
 {
 	blended_img_.convertTo(blended_img_, CV_32F);
 
@@ -577,8 +523,8 @@ void ipa_dirt_detection_dataset_tools::ImageBlend::edge_smoothing(int half_kerne
 	}
 }
 
-// The function used to add artificial shalldows and brightness in sythetic images
-void ipa_dirt_detection_dataset_tools::ImageBlend::shadow_and_illuminance(bool shadow_or_illuminance)
+// The function used to add artificial shadows and brightness in synthetic images
+void ipa_dirt_detection_dataset_tools::ImageBlender::shadow_and_illuminance(bool shadow_or_illuminance)
 {
 	// random generator for the shape and size
 	int polygon_or_ellipse = rand() % 2;           // 1 for polygon and 0 for ellipse
@@ -652,7 +598,7 @@ void ipa_dirt_detection_dataset_tools::ImageBlend::shadow_and_illuminance(bool s
 	}
 }
 
-void ipa_dirt_detection_dataset_tools::ImageBlend::resize_dirt()
+void ipa_dirt_detection_dataset_tools::ImageBlender::resize_dirt()
 {
 	std::cout << artificial_dirt_.cols << ' ' << artificial_dirt_.rows << std::endl;
 	std::cout << artificial_dirt_mask_.cols << ' ' << artificial_dirt_mask_.rows << std::endl;
@@ -663,7 +609,7 @@ void ipa_dirt_detection_dataset_tools::ImageBlend::resize_dirt()
 	cv::resize(artificial_dirt_mask_, artificial_dirt_mask_, cv::Size(0, 0), resize_ratio_, resize_ratio_, CV_INTER_NN);
 }
 
-void ipa_dirt_detection_dataset_tools::ImageBlend::shadow_and_illuminance_new(bool shadow_or_illuminance)
+void ipa_dirt_detection_dataset_tools::ImageBlender::shadow_and_illuminance_new(bool shadow_or_illuminance)
 {
 	int num_masks = brightness_shadow_mask_filenames_.size();
 	int mask_index = rand() % num_masks;

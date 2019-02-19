@@ -75,7 +75,7 @@ void ipa_dirt_detection_dataset_tools::DatasetCreate::Segmentation()
 
 void ipa_dirt_detection_dataset_tools::DatasetCreate::Blending()
 {
-	ImageBlend image_blend(ground_image_path_, segmented_dirt_cropped_path_, segmented_dirt_cropped_mask_path_, segmented_pens_path_, segmented_pens_mask_path_,
+	ImageBlender image_blend(ground_image_path_, segmented_dirt_cropped_path_, segmented_dirt_cropped_mask_path_, segmented_pens_path_, segmented_pens_mask_path_,
 			blended_ground_image_path_, blended_ground_image_mask_path_, max_num_dirts_, min_num_dirts_, max_num_pens_, min_num_pens_, bbox_argus_path_, flip_clean_ground_,
 			brightness_shadow_mask_path_);
 	image_blend.run();

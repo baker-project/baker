@@ -23,18 +23,22 @@
 
 namespace ipa_dirt_detection_dataset_tools
 {
-class ImageBlend
+class ImageBlender
 {
 public:
-	ImageBlend(std::string& clean_ground_path, std::string& artificial_dirt_path, std::string& artificial_dirt_mask_path, std::string& segmented_objects_path,
-			std::string& segmented_objects_mask_path, std::string& blended_img_folder, std::string& blended_mask_folder, int max_num_dirt, int min_num_dirt,
-			int max_num_objects, int min_num_objects, std::string& filename_bbox, bool flip_clean_ground, std::string& brightness_shadow_mask_path);
-	~ImageBlend();
+	ImageBlender(const std::string& clean_ground_path, const std::string& segmented_dirt_path, const std::string& segmented_dirt_mask_path,
+			const std::string& segmented_objects_path, const std::string& segmented_objects_mask_path, const std::string& brightness_shadow_mask_path,
+			const std::string& blended_img_folder, const std::string& blended_mask_folder, const std::string& blended_img_bbox_filename, const int max_num_dirt,
+			const int min_num_dirt, const int max_num_objects, const int min_num_objects, const bool flip_clean_ground, const int ground_image_reuse_times);
+	~ImageBlender();
+
+	// creates lists of all image files (clean images, dirt images and masks, object images, illumination and shadow images)
+	void collectImageFiles();
 
 	void rotateImage();
 	void resize_dirt();
-	void blendImage(int dirt_num, std::ofstream& myfile, std::string& ground_image_name);
-	void blendImage(int dirt_num, std::ofstream& myfile, std::string& ground_image_name, bool if_for_classification);
+	void blendImage(int dirt_num, std::ofstream& myfile, const std::string& ground_image_name);
+	void blendImage(int dirt_num, std::ofstream& myfile, const std::string& ground_image_name, bool if_for_classification);
 	void shrank_bounding_box();
 	void get_patch_classname(std::string& patch_name, std::string& class_name);
 	void run();
@@ -48,17 +52,10 @@ private:
 	int img_cols_;
 	int img_rows_;
 
-	int max_num_dirt_;
-	int min_num_dirt_;
-
-	int max_num_objects_;
-	int min_num_objects_;
-
-	bool flip_clean_ground_;
 	bool if_resize_dirt_;
 	float resize_ratio_;
 
-	int serie_num_;    // the index to distinguish the same ground image of diiferent poses or after reusing
+	int serie_num_;    // the index to distinguish the same ground image of different poses or after reusing
 
 	cv::Mat clean_ground_pattern_;
 	cv::Mat artificial_dirt_;
@@ -72,28 +69,38 @@ private:
 
 	cv::Mat fliped_ground_img_;
 
-	std::string clean_ground_path_;
-	std::string artificial_dirt_path_;
-	std::string artificial_dirt_mask_path_;
-	std::string segmented_objects_path_;
-	std::string segmented_objects_mask_path_;
-	std::string brightness_shadow_mask_path_;
-
-	std::string blended_img_folder_;
-	std::string blended_mask_folder_;
-	std::string filename_bbox_;
-
 	std::vector<std::string> clean_ground_filenames_;
-	std::vector<std::string> artificial_dirt_filenames_;
-	std::vector<std::string> artificial_dirt_mask_filenames_;
+	std::vector<std::string> segmented_dirt_filenames_;
+	std::vector<std::string> segmented_dirt_mask_filenames_;
+	std::vector<std::string> segmented_objects_filenames_;
+	std::vector<std::string> segmented_objects_mask_filenames_;
 	std::vector<std::string> brightness_shadow_mask_filenames_;
 
-	std::vector<std::string> artificial_pens_filenames_;
-	std::vector<std::string> artificial_pens_mask_filenames_;
+	int num_clean_ground_images_;
+	int num_segmented_dirt_images_;
+	int num_object_images_;
 
-	int num_clean_ground_images_, num_artificial_dirt_images_;
-	int num_pens_images_;
 
+	// parameters
+	std::string clean_ground_path_;				// clean ground images path
+	std::string segmented_dirt_path_;			// path to the segmented dirt samples
+	std::string segmented_dirt_mask_path_;		// path to the segmented dirt masks
+	std::string segmented_objects_path_;		// path to the segmented object samples
+	std::string segmented_objects_mask_path_;	// path to the segmented object masks
+	std::string brightness_shadow_mask_path_;	// path to brightness and shadow masks, source folder for illumination and shadow masks
+
+	std::string blended_img_folder_;			// path to save the blended images
+	std::string blended_mask_folder_;			// path to save the blended image masks
+	std::string blended_img_bbox_filename_;		// name to the output file which stores the parameters of the bounding boxes of the blended images
+
+	int max_num_dirt_;		// maximum number of dirt spots per frame
+	int min_num_dirt_;		// minimum number of dirt spots per frame
+
+	int max_num_objects_;	// maximum number of objects per frame
+	int min_num_objects_;	// minimum number of objects per frame
+
+	bool flip_clean_ground_;		// option, whether to flip the clean ground images horizontally and vertically or not (generates 4 images out of one ground image), False=off, True=on
+	int ground_image_reuse_times_;	// number of reuses for the same ground pattern (i.e. how many times each image will be used for blending artificial images)
 };
 template<typename T>
 std::string to_string(T Number)
