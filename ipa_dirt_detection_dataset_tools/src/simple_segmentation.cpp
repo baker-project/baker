@@ -1,11 +1,13 @@
 #include "ipa_dirt_detection_dataset_tools/simple_segmentation.h"
 
-ipa_dirt_detection_dataset_tools::SimpleSegmentation::SimpleSegmentation(const std::string dirt_image_path, const std::string cropped_image_path,
-		const std::string cropped_mask_path, const double foreground_rectangle_canny1, const double foreground_rectangle_canny2, const double foreground_rectangle_min_area,
-		const double foreground_rectangle_target_area, const double foreground_rectangle_shape_threshold, const int foreground_rectangle_additional_cropping,
-		const int crop_residual)
+ipa_dirt_detection_dataset_tools::SimpleSegmentation::SimpleSegmentation(const std::string src_image_path, const std::string rename_img_to,
+		const std::string cropped_image_path, const std::string cropped_mask_path, const double foreground_rectangle_canny1, const double foreground_rectangle_canny2,
+		const double foreground_rectangle_min_area, const double foreground_rectangle_target_area, const double foreground_rectangle_shape_threshold,
+		const int foreground_rectangle_additional_cropping, const double segmentation_threshold_L_lower, const double segmentation_threshold_L_upper,
+		const double segmentation_threshold_ab, const int crop_residual)
 {
-	source_image_path_ = dirt_image_path;
+	source_image_path_ = src_image_path;
+	rename_img_to_ = rename_img_to;
 	cropped_image_path_ = cropped_image_path;
 	cropped_mask_path_ = cropped_mask_path;
 	foreground_rectangle_canny1_ = foreground_rectangle_canny1;
@@ -14,6 +16,9 @@ ipa_dirt_detection_dataset_tools::SimpleSegmentation::SimpleSegmentation(const s
 	foreground_rectangle_target_area_ = foreground_rectangle_target_area;
 	foreground_rectangle_shape_threshold_ = foreground_rectangle_shape_threshold;
 	foreground_rectangle_additional_cropping_ = foreground_rectangle_additional_cropping;
+	segmentation_threshold_L_lower_ = segmentation_threshold_L_lower;
+	segmentation_threshold_L_upper_ = segmentation_threshold_L_upper;
+	segmentation_threshold_ab_ = segmentation_threshold_ab;
 	crop_residual_ = crop_residual;
 
 	if (boost::filesystem::exists(source_image_path_) == true)
@@ -76,9 +81,16 @@ void ipa_dirt_detection_dataset_tools::SimpleSegmentation::run()
 		strs.clear();                // file_name, something like Pen000.png
 		boost::split(strs, file_name, boost::is_any_of("\t,."));
 		std::cout << "image name is: " << strs[0] << std::endl;
+		std::string filename = strs[0];
 
-		std::string dirt_path = cropped_image_path_ + '/' + strs[0] + ".png";
-		std::string mask_path = cropped_mask_path_ + '/' + strs[0] + "_mask.png";
+		// rename file if desired
+		if (rename_img_to_.length() > 0)
+		{
+			filename.replace(0, 3, rename_img_to_);
+		}
+
+		std::string dirt_path = cropped_image_path_ + '/' + filename + ".png";
+		std::string mask_path = cropped_mask_path_ + '/' + filename + "_mask.png";
 		std::cout << dirt_path << std::endl;
 		std::cout << mask_path << std::endl;
 		cv::imwrite(dirt_path, cropped_dirt_frame);
@@ -95,8 +107,23 @@ cv::RotatedRect ipa_dirt_detection_dataset_tools::SimpleSegmentation::findRectan
 	cv::Canny(image_temp, image_canny, foreground_rectangle_canny1_, foreground_rectangle_canny2_, 5);
 	cv::dilate(image_canny, image_canny, cv::Mat(), cv::Point(-1,-1), 5);	// close 5 pixel gaps in contours
 	cv::erode(image_canny, image_canny, cv::Mat(), cv::Point(-1,-1), 5);
+	// draw white rim around everything for image filling background cases
+	for (int u=0; u<image_canny.cols; ++u)
+	{
+		image_canny.at<uchar>(0,u) = 255;
+		image_canny.at<uchar>(1,u) = 255;
+		image_canny.at<uchar>(image_canny.rows-2,u) = 255;
+		image_canny.at<uchar>(image_canny.rows-1,u) = 255;
+	}
+	for (int v=0; v<image_canny.rows; ++v)
+	{
+		image_canny.at<uchar>(v,0) = 255;
+		image_canny.at<uchar>(v,1) = 255;
+		image_canny.at<uchar>(v,image_canny.cols-2) = 255;
+		image_canny.at<uchar>(v,image_canny.cols-1) = 255;
+	}
 //	cv::imshow("canny", image_canny);
-//	cv::waitKey();
+//	cv::waitKey(20);
 
 	std::vector < std::vector<cv::Point> > contours;
 	std::vector < cv::Vec4i > hierarchy;
@@ -118,7 +145,7 @@ cv::RotatedRect ipa_dirt_detection_dataset_tools::SimpleSegmentation::findRectan
 		}
 	}
 //	cv::imshow("contours", image_disp);
-//	cv::waitKey();
+//	cv::waitKey(20);
 
 	// select the contour with best area fit to the target rectangle
 	cv::RotatedRect best_fit_rectangle(cv::Point2f(image.cols/2, image.rows/2), cv::Size2f(image.cols, image.rows), 0);	// take whole image as default
@@ -211,7 +238,7 @@ void ipa_dirt_detection_dataset_tools::SimpleSegmentation::removeUncontrolledBac
 	cropped_image = cv::Mat(src_image, aligned_foreground_rectangle);
 
 	cv::imshow("cropped", cropped_image);
-	cv::waitKey();
+	cv::waitKey(20);
 }
 
 
@@ -225,16 +252,14 @@ void ipa_dirt_detection_dataset_tools::SimpleSegmentation::segment(const cv::Mat
 	cv::cvtColor(image_smoothed, image_preprocessed, CV_BGR2Lab);
 	std::vector<cv::Mat> hsv_vec;
 	cv::split(image_preprocessed, hsv_vec);
-	cv::imshow("hue", hsv_vec[0]);
-	cv::imshow("sat", hsv_vec[1]);
-	cv::imshow("val", hsv_vec[2]);
-	cv::waitKey();
+	cv::imshow("L", hsv_vec[0]);
+	cv::imshow("a", hsv_vec[1]);
+	cv::imshow("b", hsv_vec[2]);
+	cv::waitKey(20);
 
-
-	const int color_segmentation_theshold = 40;		// todo: param
 
 	// get average color
-	const int avg_color_area_side_length = 10;
+	const int avg_color_area_side_length = 20;
 	cv::Scalar mean_colors(0);
 	mean_colors += cv::mean(cv::Mat(image_preprocessed, cv::Rect(0, 0, avg_color_area_side_length, avg_color_area_side_length)));
 	mean_colors += cv::mean(cv::Mat(image_preprocessed, cv::Rect(image_preprocessed.cols-avg_color_area_side_length-1, 0, avg_color_area_side_length, avg_color_area_side_length)));
@@ -244,15 +269,19 @@ void ipa_dirt_detection_dataset_tools::SimpleSegmentation::segment(const cv::Mat
 
 	// create segmentation mask
 	mask_frame = cv::Mat::zeros(image_preprocessed.rows, image_preprocessed.cols, CV_8UC1);
+	const double segmentation_threshold_L_diff_inv = 1./(segmentation_threshold_L_upper_ - segmentation_threshold_L_lower_);
 	for (int h = 0; h < image_preprocessed.rows; h++)
 	{
 		for (int w = 0; w < image_preprocessed.cols; w++)
 		{
 			const cv::Vec3b& intensity = image_preprocessed.at<cv::Vec3b>(h, w);
-			if (fabs((double)intensity[0] - mean_colors[0]) > color_segmentation_theshold || fabs((double)intensity[1] - mean_colors[1]) > color_segmentation_theshold ||
-					fabs((double)intensity[2] - mean_colors[2]) > color_segmentation_theshold)
-			{
+			if (fabs((double)intensity[1] - mean_colors[1]) > segmentation_threshold_ab_ || fabs((double)intensity[2] - mean_colors[2]) > segmentation_threshold_ab_)
+			{	// always take the pixel if above ab threshold
 				mask_frame.at<uchar>(h, w) = 255;
+			}
+			else
+			{	// always take the pixel if above upper luminance threshold, between lower and upper luminance threshold degrade the mask strength for applying transparency
+				mask_frame.at<uchar>(h, w) = 255 * std::max(0., std::min(1., (fabs((double)intensity[0]-mean_colors[0])-segmentation_threshold_L_lower_)*segmentation_threshold_L_diff_inv));
 			}
 		}
 	}
@@ -273,34 +302,39 @@ void ipa_dirt_detection_dataset_tools::SimpleSegmentation::crop(const cv::Mat& d
 	int top_edge = mask_frame.rows-1;
 	int bottom_edge = 0;
 
-	bool left_edge_flag = 0;
-	bool upper_edge_flag = 0;
-
+	bool mask_empty = true;
 	for (int v=0; v<mask_frame.rows; ++v)
 	{
 		for (int u=0; u<mask_frame.cols; ++u)
 		{
-			if (mask_frame.at<uchar>(v,u) == 255)
+			if (mask_frame.at<uchar>(v,u) != 0)
 			{
 				left_edge = std::min(left_edge, u);
 				right_edge = std::max(right_edge, u);
 				top_edge = std::min(top_edge, v);
 				bottom_edge = std::max(bottom_edge, v);
+				mask_empty = false;
 			}
 		}
 	}
 
-	std::cout << left_edge << ' ' << right_edge << std::endl;
-	std::cout << top_edge << ' ' << bottom_edge << std::endl;
-
-	const int max_x = std::min(dirt_frame.cols-1, right_edge+crop_residual_);
-	const int max_y = std::min(dirt_frame.rows-1, bottom_edge+crop_residual_);
 	cv::Rect roi;
-	roi.x = std::max(0, left_edge-crop_residual_);
-	roi.y = std::max(0, top_edge-crop_residual_);
-	roi.width = max_x - roi.x;
-	roi.height = max_y - roi.y;
-
+	if (mask_empty == false)
+	{
+		const int max_x = std::min(dirt_frame.cols-1, right_edge+crop_residual_+1);
+		const int max_y = std::min(dirt_frame.rows-1, bottom_edge+crop_residual_+1);
+		roi.x = std::max(0, left_edge-crop_residual_);
+		roi.y = std::max(0, top_edge-crop_residual_);
+		roi.width = max_x - roi.x;
+		roi.height = max_y - roi.y;
+	}
+	else
+	{
+		roi.x = 0;
+		roi.y = 0;
+		roi.width = dirt_frame.cols-1;
+		roi.height = dirt_frame.rows-1;
+	}
 	cropped_dirt_frame = dirt_frame(roi);
 	cropped_mask_frame = mask_frame(roi);
 
@@ -309,7 +343,7 @@ void ipa_dirt_detection_dataset_tools::SimpleSegmentation::crop(const cv::Mat& d
 //	cv::morphologyEx(cropped_mask_frame, cropped_mask_frame, cv::MORPH_CLOSE, element);
 
 	cv::imshow("cropped_mask_frame", cropped_mask_frame);
-	cv::waitKey(0);
+	cv::waitKey(20);
 }
 
 void ipa_dirt_detection_dataset_tools::SimpleSegmentation::examine(const cv::Mat& dirt_frame, const cv::Mat& mask_frame)
