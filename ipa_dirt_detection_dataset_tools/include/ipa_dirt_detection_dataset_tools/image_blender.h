@@ -32,43 +32,33 @@ public:
 			const int min_num_dirt, const int max_num_objects, const int min_num_objects, const bool flip_clean_ground, const int ground_image_reuse_times);
 	~ImageBlender();
 
+	void run();
+
 	// creates lists of all image files (clean images, dirt images and masks, object images, illumination and shadow images)
 	void collectImageFiles();
 
-	void rotateImage();
-	void resize_dirt();
-	void blendImage(int dirt_num, std::ofstream& myfile, const std::string& ground_image_name);
-	void blendImage(int dirt_num, std::ofstream& myfile, const std::string& ground_image_name, bool if_for_classification);
-	void shrank_bounding_box();
-	void get_patch_classname(std::string& patch_name, std::string& class_name);
-	void run();
-	void edge_smoothing(int half_kernel_size);
-	void shadow_and_illuminance(bool shadow_or_illuminance);
-	void shadow_and_illuminance_new(bool shadow_or_illuminance);
+	// blend dirt samples into the image
+	void blendImageDirt(cv::Mat& blended_image, cv::Mat& blended_mask, const int dirt_num, std::ofstream& bbox_labels_file, const std::string& base_filename);
 
-	cv::Mat blended_img_;
-	cv::Mat blended_mask_;
+	// blend object samples into the image
+	void blendImageObjects(cv::Mat& blended_image, cv::Mat& blended_mask, const int object_num, std::ofstream& bbox_labels_file, const std::string& base_filename);
+
+	// rotates the image and mask with random rotation
+	void rotateImage(cv::Mat& image, cv::Mat& image_mask, const double scale_factor=1., const int interpolation_mode=CV_INTER_LINEAR);
+
+	// reduces an image's bounding box to the area of the mask
+	void shrinkBoundingBox(cv::Mat& image, cv::Mat& image_mask);
+
+	// the function is used for extracting the class name from the file name of the segmented patches
+	void getPatchClassname(const std::string& patch_name, std::string& class_name);
+
+	void edge_smoothing(cv::Mat& blended_image, cv::Mat& blended_mask, const int half_kernel_size);
+	void shadow_and_illuminance(cv::Mat& blended_image, const bool shadow_or_illuminance);
+	void shadow_and_illuminance_new(cv::Mat& blended_image, const bool shadow_or_illuminance);
+
+	void resizeDirt(cv::Mat& dirt_image, cv::Mat& dirt_mask);
+
 private:
-	int img_cols_;
-	int img_rows_;
-
-	bool if_resize_dirt_;
-	float resize_ratio_;
-
-	int serie_num_;    // the index to distinguish the same ground image of different poses or after reusing
-
-	cv::Mat clean_ground_pattern_;
-	cv::Mat artificial_dirt_;
-	cv::Mat artificial_dirt_mask_;
-
-	cv::Mat rotated_artificial_dirt_;
-	cv::Mat rotated_artificial_dirt_mask_;
-
-	cv::Mat rotated_schranked_artificial_dirt_;
-	cv::Mat rotated_shranked_artificial_dirt_mask_;
-
-	cv::Mat fliped_ground_img_;
-
 	std::vector<std::string> clean_ground_filenames_;
 	std::vector<std::string> segmented_dirt_filenames_;
 	std::vector<std::string> segmented_dirt_mask_filenames_;
@@ -78,7 +68,8 @@ private:
 
 	int num_clean_ground_images_;
 	int num_segmented_dirt_images_;
-	int num_object_images_;
+	int num_segmented_object_images_;
+	int num_brightness_shadow_mask_images_;
 
 
 	// parameters
@@ -99,7 +90,7 @@ private:
 	int max_num_objects_;	// maximum number of objects per frame
 	int min_num_objects_;	// minimum number of objects per frame
 
-	bool flip_clean_ground_;		// option, whether to flip the clean ground images horizontally and vertically or not (generates 4 images out of one ground image), False=off, True=on
+	bool flip_clean_ground_;		// option, whether to flip the clean ground images horizontally and vertically or not (generates 4 images out of one ground image), false=off, true=on
 	int ground_image_reuse_times_;	// number of reuses for the same ground pattern (i.e. how many times each image will be used for blending artificial images)
 };
 template<typename T>

@@ -44,8 +44,8 @@ max_num_objects: 6
 # int
 min_num_objects: 2
 
-# option, whether to flip the clean ground images horizontally and vertically or not (generates 4 images out of one ground image), False=off, True=on
-flip_clean_ground: True
+# option, whether to flip the clean ground images horizontally and vertically or not (generates 4 images out of one ground image), false=off, true=on
+flip_clean_ground: true
 
 # number of reuses for the same ground pattern (i.e. how many times each image will be used for blending artificial images)
 # int

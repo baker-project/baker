@@ -30,15 +30,12 @@ ipa_dirt_detection_dataset_tools::ImageBlender::ImageBlender(const std::string& 
 
 	flip_clean_ground_ = flip_clean_ground;
 	ground_image_reuse_times_ = ground_image_reuse_times;
+	if (ground_image_reuse_times_ <= 0)
+		ground_image_reuse_times_ = 1;
 
 
-	img_cols_ = 1280;		// todo:
-	img_rows_ = 1024;
-
-	if_resize_dirt_ = 0;
-	resize_ratio_ = 1.0;
-
-	srand((int) time(0));
+	//srand((int) time(0));
+	srand(0);		// keep things repeatable
 }
 
 ipa_dirt_detection_dataset_tools::ImageBlender::~ImageBlender()
@@ -51,15 +48,14 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::run()
 	collectImageFiles();
 
 	//-------------------------------------------------------------------------------------------------------------------------------------
-	std::ofstream blended_img_bbox_labels;
-	blended_img_bbox_labels.open(blended_img_bbox_filename_.c_str());
+	std::ofstream bbox_labels_file;
+	bbox_labels_file.open(blended_img_bbox_filename_.c_str());
 
 	// start to blend images, reuse the ground pattern with different dirts
 	for (int m = 0; m < clean_ground_filenames_.size(); ++m)
 	{
-		clean_ground_pattern_ = cv::imread(clean_ground_filenames_[m], CV_LOAD_IMAGE_COLOR);
-
-		// todo: ground_image_reuse_times_ , also put into filenames
+		// load clean floor image
+		const cv::Mat clean_ground_image = cv::imread(clean_ground_filenames_[m], CV_LOAD_IMAGE_COLOR);
 
 		//-------------------------------------------------------------------------------------------------------
 		// create the file name of the blended ground
@@ -70,61 +66,48 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::run()
 		std::cout << "FILE NAME " << ground_file_name << std::endl;
 		//-------------------------------------------------------------------------------------------------------
 
-		getchar();
-
-		int dirt_num = min_num_dirt_ + rand() % (max_num_dirt_ - min_num_dirt_);		// generate number of dirts in range max_num_dirt and min_num_dirt
-		int objects_num = min_num_objects_ + rand() % (max_num_objects_ - min_num_objects_);		// generate number of objects in range max_num_objects and min_num_objects
-
-		blendImage(dirt_num, blended_img_bbox_labels, ground_file_name);     // First add artificial dirt , then add the objects for classification
-		blendImage(objects_num, blended_img_bbox_labels, ground_file_name, true);
-
-		serie_num_ = 0;
-		cv::imwrite(blended_mask_folder_ + "/" + ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_);
-		cv::imwrite(blended_mask_folder_ + "/mask_vis_" + ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_ * 255);
-		cv::imwrite(blended_img_folder_ + "/" + ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_img_);
-
-		if (flip_clean_ground_ == 1)
+		// generates as many synthesized images from each clean image as requested by ground_image_reuse_times_
+		for (int r=0; r<ground_image_reuse_times_; ++r)
 		{
-			serie_num_ = 1;
-			cv::flip(clean_ground_pattern_, fliped_ground_img_, 0);
-			clean_ground_pattern_ = fliped_ground_img_;
-			dirt_num = rand() % (max_num_dirt_ - min_num_dirt_) + min_num_dirt_;
-			blendImage(dirt_num, blended_img_bbox_labels, ground_file_name);
-			blendImage(objects_num, blended_img_bbox_labels, ground_file_name, true);
+			// apply image flipping if requested by flip_clean_ground_
+			const int max_flipping_operations = (flip_clean_ground_==true) ? 4 : 1;
+			for (int flip_index=0; flip_index<max_flipping_operations; ++flip_index)
+			{
+				// apply flip operation
+				cv::Mat blended_image = clean_ground_image.clone();
+				if (flip_index == 1)
+					cv::flip(clean_ground_image, blended_image, 0);
+				if (flip_index == 2)
+					cv::flip(clean_ground_image, blended_image, 1);
+				if (flip_index == 3)
+					cv::flip(clean_ground_image, blended_image, -1);
 
-			cv::imwrite(blended_mask_folder_ + "/" + ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_);
-			cv::imwrite(blended_mask_folder_ + "/mask_vis_" + ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_ * 255);
-			cv::imwrite(blended_img_folder_ + "/" + ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_img_);
+				// create mask
+				cv::Mat blended_mask = cv::Mat::zeros(blended_image.rows, blended_image.cols, CV_8UC1);
 
-			serie_num_ = 2;
-			cv::flip(clean_ground_pattern_, fliped_ground_img_, 1);
-			clean_ground_pattern_ = fliped_ground_img_;
-			dirt_num = rand() % (max_num_dirt_ - min_num_dirt_) + min_num_dirt_;
-			blendImage(dirt_num, blended_img_bbox_labels, ground_file_name);
-			blendImage(objects_num, blended_img_bbox_labels, ground_file_name, true);
+				// random numbers of dirt and objects
+				const int dirt_num = min_num_dirt_ + rand() % (max_num_dirt_ - min_num_dirt_);		// generate number of dirts in range max_num_dirt and min_num_dirt
+				const int objects_num = min_num_objects_ + rand() % (max_num_objects_ - min_num_objects_);		// generate number of objects in range max_num_objects and min_num_objects
 
-			cv::imwrite(blended_mask_folder_ + "/" + ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_);
-			cv::imwrite(blended_mask_folder_ + "/mask_vis_" + ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_ * 255);
-			cv::imwrite(blended_img_folder_ + "/" + ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_img_);
+				// blend images
+				const std::string base_filename(ground_file_name + "_r" + ipa_dirt_detection_dataset_tools::to_string(r) + "_f" + ipa_dirt_detection_dataset_tools::to_string(flip_index));
+				blendImageDirt(blended_image, blended_mask, dirt_num, bbox_labels_file, base_filename);			// first add artificial dirt,
+				blendImageObjects(blended_image, blended_mask, objects_num, bbox_labels_file, base_filename);	// then add the objects for classification
 
-			serie_num_ = 3;
-			cv::flip(clean_ground_pattern_, fliped_ground_img_, 0);
-			clean_ground_pattern_ = fliped_ground_img_;
-			dirt_num = rand() % (max_num_dirt_ - min_num_dirt_) + min_num_dirt_;
-			blendImage(dirt_num, blended_img_bbox_labels, ground_file_name);
-			blendImage(objects_num, blended_img_bbox_labels, ground_file_name, true);
+				//edge_smoothing(3);
+				// if (m % 5 == 1)    // 20% add shadow
+				//   shadow_and_illuminance(1);
+				// if (m % 5 == 2)
+				//   shadow_and_illuminance(0);
 
-			cv::imwrite(blended_mask_folder_ + "/" + ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_);
-			cv::imwrite(blended_mask_folder_ + "/mask_vis_" + ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_mask_ * 255);
-			cv::imwrite(blended_img_folder_ + "/" + ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) + ".png", blended_img_);
+				// store blended images and masks
+				cv::imwrite(blended_mask_folder_ + "/" + base_filename + "_mask.png", blended_mask);
+				cv::imwrite(blended_mask_folder_ + "/" + base_filename + "_mask_vis.png", blended_mask * 255);
+				cv::imwrite(blended_img_folder_ + "/" + base_filename + ".png", blended_image);
+			}
 		}
-		edge_smoothing(3);
-		// if (m % 5 == 1)    // 20% add shadow
-		//   shadow_and_illuminance(1);
-		// if (m % 5 == 2)
-		//   shadow_and_illuminance(0);
 	}
-	blended_img_bbox_labels.close();
+	bbox_labels_file.close();
 }
 
 
@@ -167,8 +150,8 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::collectImageFiles()
 	for (boost::filesystem::directory_iterator itr4(segmented_objects_path_); itr4 != end_itr; ++itr4)
 		if (itr4->path().string().find("_mask.png") == std::string::npos)
 			segmented_objects_filenames_.push_back(itr4->path().string());
-	num_object_images_ = segmented_objects_filenames_.size();
-	std::cout << "\nThe number of object samples is " << num_object_images_ << std::endl;
+	num_segmented_object_images_ = segmented_objects_filenames_.size();
+	std::cout << "\nThe number of object samples is " << num_segmented_object_images_ << std::endl;
 	std::sort(segmented_objects_filenames_.begin(), segmented_objects_filenames_.end());
 	for (std::vector<std::string>::iterator it = segmented_objects_filenames_.begin(); it != segmented_objects_filenames_.end(); ++it)
 		std::cout << "   - " << *it << std::endl;
@@ -185,267 +168,242 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::collectImageFiles()
 	// to list the brightness and shadow masks
 	for (boost::filesystem::directory_iterator itr6(brightness_shadow_mask_path_); itr6 != end_itr; ++itr6)
 		brightness_shadow_mask_filenames_.push_back(itr6->path().string());
-	std::cout << "\nThe number of illumination and shadow masks is " << brightness_shadow_mask_filenames_.size() << std::endl;
+	num_brightness_shadow_mask_images_ = brightness_shadow_mask_filenames_.size();
+	std::cout << "\nThe number of illumination and shadow masks is " << num_brightness_shadow_mask_images_ << std::endl;
 	std::sort(brightness_shadow_mask_filenames_.begin(), brightness_shadow_mask_filenames_.end());
 	for (std::vector<std::string>::iterator it = brightness_shadow_mask_filenames_.begin(); it != brightness_shadow_mask_filenames_.end(); ++it)
 		std::cout << "   - " << *it << std::endl;
 }
 
 
-void ipa_dirt_detection_dataset_tools::ImageBlender::blendImage(int dirt_num, std::ofstream& myfile, const std::string& ground_file_name)
+void ipa_dirt_detection_dataset_tools::ImageBlender::blendImageDirt(cv::Mat& blended_image, cv::Mat& blended_mask, const int dirt_num, std::ofstream& bbox_labels_file, const std::string& base_filename)
 {
-	int img_cols = clean_ground_pattern_.cols;
-	int img_rows = clean_ground_pattern_.rows;
-
-	blended_img_ = clean_ground_pattern_.clone();
-	blended_mask_ = cv::Mat::zeros(img_rows, img_cols, CV_32S);
-
-	for (int n = 0; n < dirt_num; n++)
+	for (int n = 0; n < dirt_num; ++n)
 	{
-		int anchor_col = rand() % img_cols + 2;
-		int anchor_row = rand() % img_rows + 2;     // top left point of the blending position
-
-		if_resize_dirt_ = bool(rand() % 4);                // 20% of the dirt will be resized
-
-		int dirt_image_index = rand() % num_segmented_dirt_images_ - 1;     // TODO for testing
-		if (dirt_image_index == -1)
-			dirt_image_index = 0;
-		artificial_dirt_ = cv::imread(segmented_dirt_filenames_[dirt_image_index], CV_LOAD_IMAGE_COLOR);
+		// select and load dirt image and mask
+		const int dirt_image_index = rand() % num_segmented_dirt_images_;
+		cv::Mat dirt_image = cv::imread(segmented_dirt_filenames_[dirt_image_index], CV_LOAD_IMAGE_COLOR);
 		std::cout << segmented_dirt_filenames_[dirt_image_index] << std::endl;
-		artificial_dirt_mask_ = cv::imread(segmented_dirt_mask_filenames_[dirt_image_index], CV_LOAD_IMAGE_GRAYSCALE);
+		cv::Mat dirt_mask = cv::imread(segmented_dirt_mask_filenames_[dirt_image_index], CV_LOAD_IMAGE_GRAYSCALE);
 		std::cout << segmented_dirt_mask_filenames_[dirt_image_index] << std::endl;
 
-		// remove some edges TODO
-		cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), cv::Point(1, 1));
-		cv::morphologyEx(artificial_dirt_mask_, artificial_dirt_mask_, cv::MORPH_ERODE, element);
+//		// remove some edges TODO
+//		cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), cv::Point(1, 1));
+//		cv::morphologyEx(dirt_mask, dirt_mask, cv::MORPH_ERODE, element);
 
-		if (if_resize_dirt_)
+		// 20% of the dirt will be resized
+		double scale_factor = 1.;
+		int interpolation_mode = CV_INTER_LINEAR;
+		if (rand()%5 == 0)
 		{
-			resize_dirt();
+			scale_factor = (rand() % 41 + 80) * 0.01;		// resize ratio in range 0.8 to 1.2
+			std::cout << "resize scale_factor: " << scale_factor << std::endl;
+			if (scale_factor < 1.)
+				interpolation_mode = CV_INTER_AREA;		// best for shrinking images
+			if (scale_factor > 1.)
+				interpolation_mode = CV_INTER_CUBIC;	// best for enlarging images
+//			resizeDirt(artificial_dirt_, dirt_mask);	--> this is done with the rotation
 		}
-		rotateImage();
-		shrank_bounding_box();
 
-		rotated_shranked_artificial_dirt_mask_.convertTo(rotated_shranked_artificial_dirt_mask_, CV_32S);
-		rotated_schranked_artificial_dirt_.convertTo(rotated_schranked_artificial_dirt_, blended_img_.type());
-		std::cout << "rotate matrix finished" << std::endl;
-		int dirt_cols = rotated_schranked_artificial_dirt_.cols;
-		int dirt_rows = rotated_schranked_artificial_dirt_.rows;
+		// rotate the dirt sample
+		rotateImage(dirt_image, dirt_mask, scale_factor, interpolation_mode);
+		shrinkBoundingBox(dirt_image, dirt_mask);
 
-		if ((anchor_col + dirt_cols + 2) > img_cols)
-			anchor_col = anchor_col - (dirt_cols + anchor_col + 2 - img_cols);    // add 2 free space
-		if ((anchor_row + dirt_rows + 2) > img_rows)
-			anchor_row = anchor_row - (dirt_rows + anchor_row + 2 - img_rows);
+		// place dirt at random location
+		dirt_image.convertTo(dirt_image, blended_image.type());
+		const int dirt_cols = dirt_image.cols;
+		const int dirt_rows = dirt_image.rows;
+		const int anchor_offset = 2;			// add 2 free space
+		int anchor_col = anchor_offset + rand() % blended_image.cols;		// top left point of the blending position
+		int anchor_row = anchor_offset + rand() % blended_image.rows;
+		if ((anchor_col + dirt_cols + anchor_offset) >= blended_image.cols)
+			anchor_col = blended_image.cols - 1 - (dirt_cols + anchor_offset);
+		if ((anchor_row + dirt_rows + anchor_offset) >= blended_image.rows)
+			anchor_row = blended_image.rows - 1 - (dirt_rows + anchor_offset);
 
 		// write the arguments of the bounding box in file
-		myfile << ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) << " " << anchor_col - 2 << " " << anchor_row - 2 << " " << anchor_col + dirt_cols + 2 << " "
-				<< anchor_row + dirt_rows + 2 << " " << "Dirt \n";
+		bbox_labels_file << base_filename << " " << anchor_col - anchor_offset << " " << anchor_row - anchor_offset << " "
+				<< anchor_col + dirt_cols + anchor_offset << " " << anchor_row + dirt_rows + anchor_offset << " " << "Dirt\n";
 
-		for (int i = anchor_row; i < anchor_row + dirt_rows; i++)      // to blend the images
+		// blend patch into the image		// todo: identify larger/non-tiny object masks and implement smooth 2 pixel blend at border
+		for (int i = anchor_row; i < anchor_row + dirt_rows; ++i)
 		{
-			for (int j = anchor_col; j < anchor_col + dirt_cols; j++)
+			for (int j = anchor_col; j < anchor_col + dirt_cols; ++j)
 			{
 				int mask_row = i - anchor_row;
 				int mask_col = j - anchor_col;
-				if (rotated_shranked_artificial_dirt_mask_.at<int>(mask_row, mask_col) > 0)        // data type of the mask !!!
+				const double opacity_factor = (double)dirt_mask.at<uchar>(mask_row, mask_col) * 1./255.;
+				if (opacity_factor > 0.)
 				{
-					blended_img_.at<cv::Vec3b>(i, j) = rotated_schranked_artificial_dirt_.at<cv::Vec3b>(mask_row, mask_col);
-					blended_mask_.at<int>(i, j) = 1;
+					if (opacity_factor > 0.999)
+						blended_image.at<cv::Vec3b>(i, j) = dirt_image.at<cv::Vec3b>(mask_row, mask_col);
+					else
+						blended_image.at<cv::Vec3b>(i, j) += opacity_factor * (dirt_image.at<cv::Vec3b>(mask_row, mask_col)-blended_image.at<cv::Vec3b>(i, j));
+					blended_mask.at<uchar>(i, j) = 1;
 				}
 			}
 		}
-		std::cout << "one dirt finished" << std::endl;
+		std::cout << "------- one dirt finished" << std::endl;
 	}
-	//blended_mask_.convertTo(blended_mask_, CV_8UC1);
-	//std::cout << "datat type is" << artificial_dirt_mask_.type() << std::endl;
-
-	//cv::imshow("test", blended_img_);
-	//cv::waitKey(0);
+	//cv::imshow("test", blended_image);
+	//cv::waitKey();
 }
 
-void ipa_dirt_detection_dataset_tools::ImageBlender::blendImage(int dirt_num, std::ofstream& myfile, const std::string& ground_file_name, bool if_for_classification)
+void ipa_dirt_detection_dataset_tools::ImageBlender::blendImageObjects(cv::Mat& blended_image, cv::Mat& blended_mask, const int object_num, std::ofstream& bbox_labels_file, const std::string& base_filename)
 {
-	int img_cols = clean_ground_pattern_.cols;
-	int img_rows = clean_ground_pattern_.rows;
-
-	//blended_img_ = clean_ground_pattern_.clone();
-	//blended_mask_ = cv::Mat::zeros(img_rows, img_cols, CV_32S);
-
-	for (int n = 0; n < dirt_num; n++)
+	for (int n = 0; n < object_num; ++n)
 	{
-		int anchor_col = rand() % img_cols;
-		int anchor_row = rand() % img_rows;     // top left point of the blending position
+		// select and load object image and mask
+		const int object_image_index = rand() % num_segmented_object_images_;
+		cv::Mat object_image = cv::imread(segmented_objects_filenames_[object_image_index], CV_LOAD_IMAGE_COLOR);
+		std::cout << segmented_objects_filenames_[object_image_index] << std::endl;
+		cv::Mat object_mask = cv::imread(segmented_objects_mask_filenames_[object_image_index], CV_LOAD_IMAGE_GRAYSCALE);
+		std::cout << segmented_objects_mask_filenames_[object_image_index] << std::endl;
 
-		int pens_image_index = rand() % num_object_images_ - 1;     // TODO for testing
-		if (pens_image_index == -1)
-			pens_image_index = 0;
-		artificial_dirt_ = cv::imread(segmented_objects_filenames_[pens_image_index], CV_LOAD_IMAGE_COLOR);
-		std::cout << segmented_objects_filenames_[pens_image_index] << std::endl;
-		artificial_dirt_mask_ = cv::imread(segmented_objects_mask_filenames_[pens_image_index], CV_LOAD_IMAGE_GRAYSCALE);
-		// remove some edges TODO
-		//cv::Mat element = cv::getStructuringElement( cv::MORPH_RECT, cv::Size(3 , 3), cv::Point(1, 1) );
-		//cv::morphologyEx(artificial_dirt_mask_, artificial_dirt_mask_, cv::MORPH_ERODE, element);
+//		// remove some edges TODO
+//		cv::Mat element = cv::getStructuringElement( cv::MORPH_RECT, cv::Size(3 , 3), cv::Point(1, 1) );
+//		cv::morphologyEx(object_mask, object_mask, cv::MORPH_ERODE, element);
 
-		std::cout << segmented_objects_mask_filenames_[pens_image_index] << std::endl;
-		rotateImage();
-		shrank_bounding_box();
+		// rotate the object sample
+		rotateImage(object_image, object_mask);
+		shrinkBoundingBox(object_image, object_mask);
 
-		rotated_shranked_artificial_dirt_mask_.convertTo(rotated_shranked_artificial_dirt_mask_, CV_32S);
-		rotated_schranked_artificial_dirt_.convertTo(rotated_schranked_artificial_dirt_, blended_img_.type());
-		std::cout << "rotate matrix finished" << std::endl;
-		int dirt_cols = rotated_schranked_artificial_dirt_.cols;
-		int dirt_rows = rotated_schranked_artificial_dirt_.rows;
+		// place object at random location
+		object_image.convertTo(object_image, blended_image.type());
+		const int object_cols = object_image.cols;
+		const int object_rows = object_image.rows;
+		int anchor_col = rand() % blended_image.cols;		// top left point of the blending position
+		int anchor_row = rand() % blended_image.rows;
+		if ((anchor_col + object_cols) >= blended_image.cols)
+			anchor_col = blended_image.cols - 1 - object_cols;
+		if ((anchor_row + object_rows) >= blended_image.rows)
+			anchor_row = blended_image.rows - 1 - object_rows;
 
-		if ((anchor_col + dirt_cols) > img_cols)
-			break;   //anchor_col = anchor_col - (dirt_cols + anchor_col - img_cols);
-		if ((anchor_row + dirt_rows) > img_rows)
-			break;  //anchor_row = anchor_row - (dirt_rows + anchor_row - img_rows);
-
+		// determine class name
 		std::string class_name;
-		get_patch_classname(segmented_objects_filenames_[pens_image_index], class_name);
+		getPatchClassname(segmented_objects_filenames_[object_image_index], class_name);
 
 		// write the arguments of the bounding box in file
-		myfile << ground_file_name + "_s" + ipa_dirt_detection_dataset_tools::to_string(serie_num_) << " " << anchor_col << " " << anchor_row << " " << anchor_col + dirt_cols << " "
-				<< anchor_row + dirt_rows << " " << class_name << '\n';
+		bbox_labels_file << base_filename << " " << anchor_col << " " << anchor_row << " " << anchor_col + object_cols << " "
+				<< anchor_row + object_rows << " " << class_name << "\n";
 
-		for (int i = anchor_row; i < anchor_row + dirt_rows; i++)      // to blend the images
+		// blend patch into the image		// todo: merge with above code?
+		for (int i = anchor_row; i < anchor_row + object_rows; ++i)
 		{
-			for (int j = anchor_col; j < anchor_col + dirt_cols; j++)
+			for (int j = anchor_col; j < anchor_col + object_cols; ++j)
 			{
-				int mask_row = i - anchor_row;
-				int mask_col = j - anchor_col;
-				if (rotated_shranked_artificial_dirt_mask_.at<int>(mask_row, mask_col) > 0)        // data type of the mask !!!
+				const int mask_row = i - anchor_row;
+				const int mask_col = j - anchor_col;
+				const double opacity_factor = (double)object_mask.at<uchar>(mask_row, mask_col) * 1./255.;
+				if (opacity_factor > 0)
 				{
-					blended_img_.at<cv::Vec3b>(i, j) = rotated_schranked_artificial_dirt_.at<cv::Vec3b>(mask_row, mask_col);
-					blended_mask_.at<int>(i, j) = 1;
+					if (opacity_factor > 0.999)
+						blended_image.at<cv::Vec3b>(i, j) = object_image.at<cv::Vec3b>(mask_row, mask_col);
+					else
+						blended_image.at<cv::Vec3b>(i, j) += opacity_factor * (object_image.at<cv::Vec3b>(mask_row, mask_col)-blended_image.at<cv::Vec3b>(i, j));
+					blended_mask.at<uchar>(i, j) = 1;
 				}
 			}
 		}
-		std::cout << "one dirt finished" << std::endl;
+		std::cout << "------- one object finished" << std::endl;
 	}
-	blended_mask_.convertTo(blended_mask_, CV_8UC1);
 }
 
 // reference: https://www.pyimagesearch.com/2017/01/02/rotate-images-correctly-with-opencv-and-python/
-void ipa_dirt_detection_dataset_tools::ImageBlender::rotateImage()
+void ipa_dirt_detection_dataset_tools::ImageBlender::rotateImage(cv::Mat& image, cv::Mat& mask, const double scale_factor, const int interpolation_mode)
 {
-	//srand((int)time(0));               // generate random rotation angle
-	double rotate_angle = rand() % 180;
-	std::cout << "The rotation angle is " << rotate_angle << std::endl;
+	double rotation_angle = rand() % 180;
+	std::cout << "The rotation angle is " << rotation_angle << std::endl;
 
-	int img_cols = artificial_dirt_.cols;
-	int img_rows = artificial_dirt_.rows;
+	cv::Point2f rotation_center = cv::Point(ceil(image.cols / 2), ceil(image.rows / 2));
+	cv::Mat rotation_matrix = cv::getRotationMatrix2D(rotation_center, rotation_angle, scale_factor);
+//	std::cout << rotation_matrix.at<double>(0, 0) << rotation_matrix.at<double>(0, 1) << std::endl;
 
-	cv::Point2f rotate_center = cv::Point(ceil(img_cols / 2), ceil(img_rows / 2));
-	cv::Mat rotate_matrix = cv::getRotationMatrix2D(rotate_center, rotate_angle, 1.0);
-	std::cout << rotate_matrix << std::endl;
-	cv::Mat t = rotate_matrix.clone();
-	std::cout << rotate_matrix.at<double>(0, 0) << rotate_matrix.at<double>(0, 1) << std::endl;
+	// resize target image to contain all rotated data
+	const double c = fabs(rotation_matrix.at<double>(0, 0));
+	const double s = fabs(rotation_matrix.at<double>(0, 1));
+	const int new_width = image.rows * s + image.cols * c;
+	const int new_height = image.rows * c + image.cols * s;
+	rotation_matrix.at<double>(0, 2) += (new_width / 2) - (image.cols / 2);
+	rotation_matrix.at<double>(1, 2) += (new_height / 2) - (image.rows / 2);
 
-	float c = abs(rotate_matrix.at<double>(0, 0));
-	float s = abs(rotate_matrix.at<double>(0, 1));
+//	std::cout << "start to rotate matrix" << std::endl;
+//	std::cout << image.cols << ' ' << image.rows << ' ' << new_width << ' ' << new_height << std::endl;
 
-	int nW = img_rows * s + img_cols * c;
-	int nH = img_rows * c + img_cols * s;
+	if (image.type() != CV_8UC3)
+		std::cout << "ImageBlender::rotateImage: Error: The image format of the color image is not CV_8UC3.\n" << std::endl;
 
-	rotate_matrix.at<double>(0, 2) += (nW / 2) - (img_cols / 2);
-	rotate_matrix.at<double>(1, 2) += (nH / 2) - (img_rows / 2);
+//	cv::imshow("orig", image);
 
-	std::cout << "start to rotate matrix" << std::endl;
-	std::cout << img_cols << ' ' << img_rows << ' ' << nW << ' ' << nH << std::endl;
-	rotated_artificial_dirt_.create(nH, nW, artificial_dirt_.type());
-	rotated_artificial_dirt_mask_.create(nH, nW, artificial_dirt_mask_.type());
+	cv::Mat temp, temp2;
+	cv::warpAffine(image, temp, rotation_matrix, cv::Size(new_width, new_height), interpolation_mode);
+	image = temp;
+	cv::warpAffine(mask, temp2, rotation_matrix, cv::Size(new_width, new_height), interpolation_mode);
+	mask = temp2;
 
-	if (artificial_dirt_.type() != CV_8UC3)
-	{
-		std::cout << "ImageFlip::imageCallback: Error: The image format of the color image is not CV_8UC3.\n" << std::endl;
-	}
-
-	std::cout << "rotating matrix" << std::endl;
-	cv::warpAffine(artificial_dirt_, rotated_artificial_dirt_, rotate_matrix, rotated_artificial_dirt_.size());
-	cv::warpAffine(artificial_dirt_mask_, rotated_artificial_dirt_mask_, rotate_matrix, rotated_artificial_dirt_mask_.size());
-
-	//shrank_bounding_box();
+//	cv::imshow("rot", image);
+//	cv::imshow("rot_mask", mask);
+//	cv::waitKey();
 }
 
-void ipa_dirt_detection_dataset_tools::ImageBlender::shrank_bounding_box()
+void ipa_dirt_detection_dataset_tools::ImageBlender::shrinkBoundingBox(cv::Mat& image, cv::Mat& image_mask)
 {
-	int rows = rotated_artificial_dirt_.rows;
-	int cols = rotated_artificial_dirt_.cols;
-
-	int left_edge_flag = 0;
-	int upper_edge_flag = 0;
-
-	int left_edge = 0;
+	int left_edge = image_mask.cols-1;
 	int right_edge = 0;
-	int upper_edge = 0;
-	int down_edge = 0;
-	cv::Mat frame_mask = rotated_artificial_dirt_mask_.clone();
-	frame_mask.convertTo(frame_mask, CV_32S);
+	int top_edge = image_mask.rows-1;
+	int bottom_edge = 0;
 
-	// std::cout  << frame_mask << std::endl;
-
-	for (int i = 0; i < rows; i++)
+	bool mask_empty = true;
+	for (int v=0; v<image_mask.rows; ++v)
 	{
-		for (int j = 0; j < cols; j++)
+		for (int u=0; u<image_mask.cols; ++u)
 		{
-			if (int(frame_mask.at<int>(i, j)) > 0 && left_edge_flag == 0)
+			if (image_mask.at<uchar>(v,u) != 0)
 			{
-				std::cout << frame_mask.at<int>(i, j) << std::endl;
-				left_edge = j;
-				left_edge_flag = 1;
-			}
-			else if (int(frame_mask.at<int>(i, j)) > 0 && left_edge_flag == 1)
-			{
-				if (j > left_edge)
-					right_edge = j > right_edge ? j : right_edge;
-				else
-					left_edge = j;
-			}
-			if (int(frame_mask.at<int>(i, j)) > 0 && upper_edge_flag == 0)
-			{
-				upper_edge = i;
-				upper_edge_flag = 1;
-			}
-			else if (int(frame_mask.at<int>(i, j)) > 0 && upper_edge_flag == 1)
-			{
-				if (i > upper_edge)
-					down_edge = i > down_edge ? i : down_edge;
-				else
-					upper_edge = i;
+				left_edge = std::min(left_edge, u);
+				right_edge = std::max(right_edge, u);
+				top_edge = std::min(top_edge, v);
+				bottom_edge = std::max(bottom_edge, v);
+				mask_empty = false;
 			}
 		}
 	}
 
-	std::cout << "x, y, w, h: " << left_edge << " " << upper_edge << " " << right_edge - left_edge << " " << down_edge << " " << upper_edge << std::endl;
+	const int mask_padding = 2;
 	cv::Rect roi;
-	roi.x = left_edge;     // add some free space , specially for small objects in training
-	if (left_edge >= 1)
-		roi.x = left_edge;
-	roi.y = upper_edge;
-	if (upper_edge >= 1)
-		roi.y = upper_edge;
-	roi.width = right_edge - left_edge;
-	//if ((right_edge - left_edge) >= cols + 1)
-	//    roi.width = right_edge - left_edge + 1;
-	roi.height = down_edge - upper_edge;
-	//if ((down_edge - upper_edge) >= rows + 1)
-	//    roi.height = down_edge - upper_edge + 1;
+	if (mask_empty == false)
+	{
+		const int max_x = std::min(image.cols-1, right_edge+mask_padding+1);
+		const int max_y = std::min(image.rows-1, bottom_edge+mask_padding+1);
+		roi.x = std::max(0, left_edge-mask_padding);
+		roi.y = std::max(0, top_edge-mask_padding);
+		roi.width = max_x - roi.x;
+		roi.height = max_y - roi.y;
+	}
+	else
+	{
+		roi.x = 0;
+		roi.y = 0;
+		roi.width = image.cols-1;
+		roi.height = image.rows-1;
+	}
 
-	rotated_schranked_artificial_dirt_ = rotated_artificial_dirt_(roi);
-	rotated_shranked_artificial_dirt_mask_ = rotated_artificial_dirt_mask_(roi);
+	cv::Mat temp = image(roi);
+	image = temp;
+	cv::Mat temp2 = image_mask(roi);
+	image_mask = temp2;
 
-	// For TEST
-	cv::imwrite("/home/robot/artificial dirt1.jpg", artificial_dirt_);
-	cv::imwrite("/home/robot/rotate dirt1.jpg", rotated_artificial_dirt_);
-	cv::imwrite("/home/robot/schrank dirt1.jpg", rotated_schranked_artificial_dirt_);
+//	// For TEST
+//	cv::imwrite("/home/robot/artificial dirt1.jpg", artificial_dirt_);
+//	cv::imwrite("/home/robot/rotate dirt1.jpg", rotated_artificial_dirt_);
+//	cv::imwrite("/home/robot/schrank dirt1.jpg", rotated_schranked_artificial_dirt_);
 
-	//cv::imshow("shranked dirt", artificial_dirt_);
-	//cv::waitKey(0);
+//	cv::imshow("shrinked_image", image);
+//	cv::waitKey();
 }
 
-// The function is used for extract the class name from the file name of the segmented patches
-void ipa_dirt_detection_dataset_tools::ImageBlender::get_patch_classname(std::string& patch_name, std::string& class_name)
+// the function is used for extracting the class name from the file name of the segmented patches
+void ipa_dirt_detection_dataset_tools::ImageBlender::getPatchClassname(const std::string& patch_name, std::string& class_name)
 {
 	std::vector<std::string> strs;
 	boost::split(strs, patch_name, boost::is_any_of("\t,/"));
@@ -454,21 +412,22 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::get_patch_classname(std::st
 	std::vector<std::string> splits;
 	boost::split(splits, image_name, boost::is_any_of("\t,_"));
 	class_name = splits[0];
-	std::cout << "Class of the object is: " << class_name << std::endl;
+	std::cout << "class of the object is: " << class_name << std::endl;
 }
 
-void ipa_dirt_detection_dataset_tools::ImageBlender::edge_smoothing(int half_kernel_size)
+void ipa_dirt_detection_dataset_tools::ImageBlender::edge_smoothing(cv::Mat& blended_image, cv::Mat& blended_mask, const int half_kernel_size)
 {
-	blended_img_.convertTo(blended_img_, CV_32F);
+	blended_image.convertTo(blended_image, CV_32F);
 
 	std::vector<std::vector<cv::Point> > contours;
 	std::vector<cv::Vec4i> hierarchy;
 
 	// each contour is stored as a vector of points, than we only need to loop over these points to smooth the object edge
-	cv::findContours(blended_mask_, contours, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+	cv::Mat temp = blended_mask.clone();
+	cv::findContours(temp, contours, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 
 	/*
-	 cv::Mat drawing = blended_img_.clone();
+	 cv::Mat drawing = blended_image.clone();
 	 for( int i = 0; i< contours.size(); i++ )
 	 {
 	 cv::Scalar color = cv::Scalar(255,0,0);
@@ -498,12 +457,12 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::edge_smoothing(int half_ker
 			int point_x = anchor_point.x;
 			int point_y = anchor_point.y;
 
-			if ((point_x - half_kernel_size) < 0 || (point_x + half_kernel_size) >= img_cols_ || (point_y - half_kernel_size) < 0 || (point_y + half_kernel_size) >= img_rows_) // if the ROI is out of the image range, continue
+			if ((point_x - half_kernel_size) < 0 || (point_x + half_kernel_size) >= blended_image.cols || (point_y - half_kernel_size) < 0 || (point_y + half_kernel_size) >= blended_image.rows) // if the ROI is out of the image range, continue
 				continue;
 
 			cv::Mat image_roi;
 			cv::Rect region_of_interest(point_x - half_kernel_size, point_y - half_kernel_size, 2 * half_kernel_size + 1, 2 * half_kernel_size + 1);
-			image_roi = blended_img_(region_of_interest);
+			image_roi = blended_image(region_of_interest);
 
 			// split three color channels
 			std::vector<cv::Mat> rgb;
@@ -515,34 +474,34 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::edge_smoothing(int half_ker
 			cv::Mat r = rgb[2];
 			float new_pixel_value_r = cv::sum(r.mul(gaussian_kernel))[0];
 
-			blended_img_.at<cv::Vec3f>(point_y, point_x)[0] = new_pixel_value_b;      // check point_x and point_y order TODO
-			blended_img_.at<cv::Vec3f>(point_y, point_x)[1] = new_pixel_value_g;
-			blended_img_.at<cv::Vec3f>(point_y, point_x)[2] = new_pixel_value_r;
+			blended_image.at<cv::Vec3f>(point_y, point_x)[0] = new_pixel_value_b;      // check point_x and point_y order TODO
+			blended_image.at<cv::Vec3f>(point_y, point_x)[1] = new_pixel_value_g;
+			blended_image.at<cv::Vec3f>(point_y, point_x)[2] = new_pixel_value_r;
 
 		}
 	}
 }
 
 // The function used to add artificial shadows and brightness in synthetic images
-void ipa_dirt_detection_dataset_tools::ImageBlender::shadow_and_illuminance(bool shadow_or_illuminance)
+void ipa_dirt_detection_dataset_tools::ImageBlender::shadow_and_illuminance(cv::Mat& blended_image, const bool shadow_or_illuminance)
 {
 	// random generator for the shape and size
 	int polygon_or_ellipse = rand() % 2;           // 1 for polygon and 0 for ellipse
-	cv::Mat mask = cv::Mat::zeros(img_rows_, img_cols_, CV_32F);
+	cv::Mat mask = cv::Mat::zeros(blended_image.rows, blended_image.cols, CV_32F);
 	float f = (rand() % 5) / 10;           //  opacity factor as in Gimp
 
 	if (polygon_or_ellipse)                        // assume the polygon with 4 points
 	{
 		cv::Point rook_points[1][4];
-		int start_point_x = rand() % img_cols_;
-		int start_point_y = rand() % img_rows_;
+		int start_point_x = rand() % blended_image.cols;
+		int start_point_y = rand() % blended_image.rows;
 		float x1 = rand() % abs(start_point_x - 80) + 40;
 		float y1 = rand() % abs(start_point_y - 80) + 40;
 		float x2 = rand() % abs(start_point_x - 80) + 40;
-		float y2 = rand() % abs(abs(start_point_y - img_rows_) - 80) + 40;
-		float x3 = rand() % abs(abs(start_point_x - img_cols_) - 80) + 40;
-		float y3 = rand() % abs(abs(start_point_y - img_rows_) - 80) + 40;
-		float x4 = rand() % abs(abs(start_point_x - img_cols_) - 80) + 40;
+		float y2 = rand() % abs(abs(start_point_y - blended_image.rows) - 80) + 40;
+		float x3 = rand() % abs(abs(start_point_x - blended_image.cols) - 80) + 40;
+		float y3 = rand() % abs(abs(start_point_y - blended_image.rows) - 80) + 40;
+		float x4 = rand() % abs(abs(start_point_x - blended_image.cols) - 80) + 40;
 		float y4 = rand() % abs(start_point_y - 80) + 40;
 		// minimum coordinate distance between each point with the center is 80, maximun is 40
 
@@ -560,8 +519,8 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::shadow_and_illuminance(bool
 	}
 	else
 	{
-		int start_x = rand() % img_cols_;
-		int start_y = rand() % img_rows_;        // the minimum length of the axis is 40, maximun is 80
+		int start_x = rand() % blended_image.cols;
+		int start_y = rand() % blended_image.rows;        // the minimum length of the axis is 40, maximun is 80
 		int axes_x = rand() % 80 + 60;
 		int axes_y = rand() % 80 + 60;              // TODO check if out of image range cause any problems
 
@@ -574,42 +533,31 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::shadow_and_illuminance(bool
 
 	if (shadow_or_illuminance)      // 1 for shadow
 	{
-		mask.convertTo(mask, blended_img_.type());
+		mask.convertTo(mask, blended_image.type());
 		cv::GaussianBlur(mask, mask, cv::Size(31, 31), 50, 50);
 
 		std::vector<cv::Mat> rgb;
-		cv::split(blended_img_, rgb);
+		cv::split(blended_image, rgb);
 		rgb[0] = rgb[0] - f * mask;
 		rgb[1] = rgb[1] - f * mask;
 		rgb[2] = rgb[2] - f * mask;
-		cv::merge(rgb, blended_img_);
+		cv::merge(rgb, blended_image);
 	}
 	else
 	{
-		mask.convertTo(mask, blended_img_.type());
-		cv::GaussianBlur(mask, mask, cv::Size((img_cols_ / 3 / 2) * 2 + 1, (img_cols_ / 3 / 2) * 2 + 1), 50, 50);
+		mask.convertTo(mask, blended_image.type());
+		cv::GaussianBlur(mask, mask, cv::Size((blended_image.cols / 3 / 2) * 2 + 1, (blended_image.cols / 3 / 2) * 2 + 1), 50, 50);
 		std::vector<cv::Mat> rgb;
 
-		cv::split(blended_img_, rgb);
+		cv::split(blended_image, rgb);
 		rgb[0] = rgb[0] + f * mask;
 		rgb[1] = rgb[1] + f * mask;
 		rgb[2] = rgb[2] + f * mask;
-		cv::merge(rgb, blended_img_);
+		cv::merge(rgb, blended_image);
 	}
 }
 
-void ipa_dirt_detection_dataset_tools::ImageBlender::resize_dirt()
-{
-	std::cout << artificial_dirt_.cols << ' ' << artificial_dirt_.rows << std::endl;
-	std::cout << artificial_dirt_mask_.cols << ' ' << artificial_dirt_mask_.rows << std::endl;
-	resize_ratio_ = (rand() % 4 + 8) / 10.0;        // resize ratio in range 0.8 to 1.2
-	std::cout << "resize ratio: " << resize_ratio_ << std::endl;
-
-	cv::resize(artificial_dirt_, artificial_dirt_, cv::Size(0, 0), resize_ratio_, resize_ratio_, CV_INTER_NN);
-	cv::resize(artificial_dirt_mask_, artificial_dirt_mask_, cv::Size(0, 0), resize_ratio_, resize_ratio_, CV_INTER_NN);
-}
-
-void ipa_dirt_detection_dataset_tools::ImageBlender::shadow_and_illuminance_new(bool shadow_or_illuminance)
+void ipa_dirt_detection_dataset_tools::ImageBlender::shadow_and_illuminance_new(cv::Mat& blended_image, const bool shadow_or_illuminance)
 {
 	int num_masks = brightness_shadow_mask_filenames_.size();
 	int mask_index = rand() % num_masks;
@@ -620,26 +568,40 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::shadow_and_illuminance_new(
 
 	if (shadow_or_illuminance)      // 1 for shadow
 	{
-		mask.convertTo(mask, blended_img_.type());
+		mask.convertTo(mask, blended_image.type());
 		cv::GaussianBlur(mask, mask, cv::Size(31, 31), 50, 50);
 
 		std::vector<cv::Mat> rgb;
-		cv::split(blended_img_, rgb);
+		cv::split(blended_image, rgb);
 		rgb[0] = rgb[0] - f * mask;
 		rgb[1] = rgb[1] - f * mask;
 		rgb[2] = rgb[2] - f * mask;
-		cv::merge(rgb, blended_img_);
+		cv::merge(rgb, blended_image);
 	}
 	else
 	{
-		mask.convertTo(mask, blended_img_.type());
-		cv::GaussianBlur(mask, mask, cv::Size((img_cols_ / 3 / 2) * 2 + 1, (img_cols_ / 3 / 2) * 2 + 1), 50, 50);
+		mask.convertTo(mask, blended_image.type());
+		cv::GaussianBlur(mask, mask, cv::Size((blended_image.cols / 3 / 2) * 2 + 1, (blended_image.cols / 3 / 2) * 2 + 1), 50, 50);
 		std::vector<cv::Mat> rgb;
 
-		cv::split(blended_img_, rgb);
+		cv::split(blended_image, rgb);
 		rgb[0] = rgb[0] + f * mask;
 		rgb[1] = rgb[1] + f * mask;
 		rgb[2] = rgb[2] + f * mask;
-		cv::merge(rgb, blended_img_);
+		cv::merge(rgb, blended_image);
 	}
+}
+
+
+void ipa_dirt_detection_dataset_tools::ImageBlender::resizeDirt(cv::Mat& dirt_image, cv::Mat& dirt_mask)
+{
+//	std::cout << dirt_image.cols << ' ' << dirt_image.rows << std::endl;
+//	std::cout << dirt_mask.cols << ' ' << dirt_mask.rows << std::endl;
+	double resize_ratio = (rand() % 4 + 8) / 10.0;		// resize ratio in range 0.8 to 1.2
+	std::cout << "resize ratio: " << resize_ratio << std::endl;
+	int interpolation_mode = CV_INTER_AREA;		// best for shrinking images
+	if (resize_ratio > 1.)
+		interpolation_mode = CV_INTER_CUBIC;	// best for enlarging images
+	cv::resize(dirt_image, dirt_image, cv::Size(0, 0), resize_ratio, resize_ratio, interpolation_mode);
+	cv::resize(dirt_mask, dirt_mask, cv::Size(0, 0), resize_ratio, resize_ratio, interpolation_mode);
 }
