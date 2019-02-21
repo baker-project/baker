@@ -28,8 +28,9 @@ class ImageBlender
 public:
 	ImageBlender(const std::string& clean_ground_path, const std::string& segmented_dirt_path, const std::string& segmented_dirt_mask_path,
 			const std::string& segmented_objects_path, const std::string& segmented_objects_mask_path, const std::string& brightness_shadow_mask_path,
-			const std::string& blended_img_folder, const std::string& blended_mask_folder, const std::string& blended_img_bbox_filename, const int max_num_dirt,
-			const int min_num_dirt, const int max_num_objects, const int min_num_objects, const bool flip_clean_ground, const int ground_image_reuse_times);
+			const std::string& illumination_mask_path, const std::string& blended_img_folder, const std::string& blended_mask_folder,
+			const std::string& blended_img_bbox_filename, const int max_num_dirt, const int min_num_dirt, const int max_num_objects, const int min_num_objects,
+			const bool flip_clean_ground, const int ground_image_reuse_times);
 	~ImageBlender();
 
 	void run();
@@ -65,11 +66,13 @@ private:
 	std::vector<std::string> segmented_objects_filenames_;
 	std::vector<std::string> segmented_objects_mask_filenames_;
 	std::vector<std::string> brightness_shadow_mask_filenames_;
+	std::vector<std::string> illumination_mask_filenames_;
 
 	int num_clean_ground_images_;
 	int num_segmented_dirt_images_;
 	int num_segmented_object_images_;
 	int num_brightness_shadow_mask_images_;
+	int num_illumination_mask_images_;
 
 
 	// parameters
@@ -78,7 +81,8 @@ private:
 	std::string segmented_dirt_mask_path_;		// path to the segmented dirt masks
 	std::string segmented_objects_path_;		// path to the segmented object samples
 	std::string segmented_objects_mask_path_;	// path to the segmented object masks
-	std::string brightness_shadow_mask_path_;	// path to brightness and shadow masks, source folder for illumination and shadow masks
+	std::string brightness_shadow_mask_path_;	// path to brightness and shadow masks, source folder for brightness and shadow masks
+	std::string illumination_mask_path_;		// path to illumination masks, source folder for illumination masks
 
 	std::string blended_img_folder_;			// path to save the blended images
 	std::string blended_mask_folder_;			// path to save the blended image masks

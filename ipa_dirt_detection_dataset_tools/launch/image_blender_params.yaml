@@ -16,8 +16,11 @@ segmented_objects_path: "objects_segmented"
 # path to the segmented object masks
 segmented_objects_mask_path: "objects_segmented"
 
-# path to brightness and shadow masks, source folder for illumination and shadow masks
+# path to brightness and shadow masks, source folder for brightness and shadow masks
 brightness_shadow_mask_path: "brightness_shadow_masks"
+
+# path to illumination masks, source folder for illumination masks
+illumination_mask_path: "illumination_masks"
 
 # path to save the blended images
 blended_ground_image_path: "blended_floor_images"

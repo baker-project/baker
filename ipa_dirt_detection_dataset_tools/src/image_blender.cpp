@@ -6,9 +6,9 @@
 
 ipa_dirt_detection_dataset_tools::ImageBlender::ImageBlender(const std::string& clean_ground_path, const std::string& segmented_dirt_path,
 		const std::string& segmented_dirt_mask_path, const std::string& segmented_objects_path, const std::string& segmented_objects_mask_path,
-		const std::string& brightness_shadow_mask_path, const std::string& blended_img_folder, const std::string& blended_mask_folder,
-		const std::string& blended_img_bbox_filename, const int max_num_dirt, const int min_num_dirt, const int max_num_objects, const int min_num_objects,
-		const bool flip_clean_ground, const int ground_image_reuse_times)
+		const std::string& brightness_shadow_mask_path, const std::string& illumination_mask_path, const std::string& blended_img_folder,
+		const std::string& blended_mask_folder, const std::string& blended_img_bbox_filename, const int max_num_dirt, const int min_num_dirt, const int max_num_objects,
+		const int min_num_objects, const bool flip_clean_ground, const int ground_image_reuse_times)
 {
 	clean_ground_path_ = clean_ground_path;
 
@@ -17,6 +17,7 @@ ipa_dirt_detection_dataset_tools::ImageBlender::ImageBlender(const std::string& 
 	segmented_objects_path_ = segmented_objects_path;
 	segmented_objects_mask_path_ = segmented_objects_mask_path;
 	brightness_shadow_mask_path_ = brightness_shadow_mask_path;
+	illumination_mask_path_ = illumination_mask_path;
 
 	blended_img_folder_ = blended_img_folder;
 	blended_mask_folder_ = blended_mask_folder;
@@ -169,9 +170,18 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::collectImageFiles()
 	for (boost::filesystem::directory_iterator itr6(brightness_shadow_mask_path_); itr6 != end_itr; ++itr6)
 		brightness_shadow_mask_filenames_.push_back(itr6->path().string());
 	num_brightness_shadow_mask_images_ = brightness_shadow_mask_filenames_.size();
-	std::cout << "\nThe number of illumination and shadow masks is " << num_brightness_shadow_mask_images_ << std::endl;
+	std::cout << "\nThe number of brightness and shadow masks is " << num_brightness_shadow_mask_images_ << std::endl;
 	std::sort(brightness_shadow_mask_filenames_.begin(), brightness_shadow_mask_filenames_.end());
 	for (std::vector<std::string>::iterator it = brightness_shadow_mask_filenames_.begin(); it != brightness_shadow_mask_filenames_.end(); ++it)
+		std::cout << "   - " << *it << std::endl;
+
+	// to list the illumination masks
+	for (boost::filesystem::directory_iterator itr7(illumination_mask_path_); itr7 != end_itr; ++itr7)
+		illumination_mask_filenames_.push_back(itr7->path().string());
+	num_illumination_mask_images_ = illumination_mask_filenames_.size();
+	std::cout << "\nThe number of illumination masks is " << num_illumination_mask_images_ << std::endl;
+	std::sort(illumination_mask_filenames_.begin(), illumination_mask_filenames_.end());
+	for (std::vector<std::string>::iterator it = illumination_mask_filenames_.begin(); it != illumination_mask_filenames_.end(); ++it)
 		std::cout << "   - " << *it << std::endl;
 }
 
@@ -223,7 +233,16 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::blendImageDirt(cv::Mat& ble
 
 		// write the arguments of the bounding box in file
 		bbox_labels_file << base_filename << " " << anchor_col - anchor_offset << " " << anchor_row - anchor_offset << " "
-				<< anchor_col + dirt_cols + anchor_offset << " " << anchor_row + dirt_rows + anchor_offset << " " << "Dirt\n";
+				<< anchor_col + dirt_cols + anchor_offset << " " << anchor_row + dirt_rows + anchor_offset << " " << "dirt\n";
+
+		// modify borders of the mask for smooth transition to background
+		cv::Mat dirt_mask_eroded;
+		cv::erode(dirt_mask, dirt_mask_eroded, cv::Mat());
+		dirt_mask_eroded = dirt_mask - dirt_mask_eroded;
+		for (int v=0; v<dirt_mask.rows; ++v)
+			for (int u=0; u<dirt_mask.cols; ++u)
+				if (dirt_mask_eroded.at<uchar>(v,u) != 0)
+					dirt_mask.at<uchar>(v,u) = 0.5*dirt_mask.at<uchar>(v,u);
 
 		// blend patch into the image		// todo: identify larger/non-tiny object masks and implement smooth 2 pixel blend at border
 		for (int i = anchor_row; i < anchor_row + dirt_rows; ++i)
@@ -286,6 +305,15 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::blendImageObjects(cv::Mat& 
 		// write the arguments of the bounding box in file
 		bbox_labels_file << base_filename << " " << anchor_col << " " << anchor_row << " " << anchor_col + object_cols << " "
 				<< anchor_row + object_rows << " " << class_name << "\n";
+
+		// modify borders of the mask for smooth transition to background
+		cv::Mat object_mask_eroded;
+		cv::erode(object_mask, object_mask_eroded, cv::Mat());
+		object_mask_eroded = object_mask - object_mask_eroded;
+		for (int v=0; v<object_mask.rows; ++v)
+			for (int u=0; u<object_mask.cols; ++u)
+				if (object_mask_eroded.at<uchar>(v,u) != 0)
+					object_mask.at<uchar>(v,u) = 0.5*object_mask.at<uchar>(v,u);
 
 		// blend patch into the image		// todo: merge with above code?
 		for (int i = anchor_row; i < anchor_row + object_rows; ++i)

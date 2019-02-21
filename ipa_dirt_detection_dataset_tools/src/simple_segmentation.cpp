@@ -275,7 +275,8 @@ void ipa_dirt_detection_dataset_tools::SimpleSegmentation::segment(const cv::Mat
 		for (int w = 0; w < image_preprocessed.cols; w++)
 		{
 			const cv::Vec3b& intensity = image_preprocessed.at<cv::Vec3b>(h, w);
-			if (fabs((double)intensity[1] - mean_colors[1]) > segmentation_threshold_ab_ || fabs((double)intensity[2] - mean_colors[2]) > segmentation_threshold_ab_)
+			if (fabs((double)intensity[1] - mean_colors[1]) > segmentation_threshold_ab_ || fabs((double)intensity[2] - mean_colors[2]) > segmentation_threshold_ab_ ||
+					(fabs((double)intensity[1] - mean_colors[1]) + fabs((double)intensity[2] - mean_colors[2])) > segmentation_threshold_ab_)
 			{	// always take the pixel if above ab threshold
 				mask_frame.at<uchar>(h, w) = 255;
 			}
