@@ -55,7 +55,8 @@ public:
 
 	void edge_smoothing(cv::Mat& blended_image, cv::Mat& blended_mask, const int half_kernel_size);
 	void shadow_and_illuminance(cv::Mat& blended_image, const bool shadow_or_illuminance);
-	void shadow_and_illuminance_new(cv::Mat& blended_image, const bool shadow_or_illuminance);
+	void addBrightnessOrShadowFromTemplate(cv::Mat& blended_image, const bool add_brightness);
+	void addIlluminationFromTemplate(cv::Mat& blended_image);
 
 	void resizeDirt(cv::Mat& dirt_image, cv::Mat& dirt_mask);
 

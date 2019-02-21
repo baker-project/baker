@@ -95,6 +95,16 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::run()
 				blendImageDirt(blended_image, blended_mask, dirt_num, bbox_labels_file, base_filename);			// first add artificial dirt,
 				blendImageObjects(blended_image, blended_mask, objects_num, bbox_labels_file, base_filename);	// then add the objects for classification
 
+				// add illumination for 25% of the images
+				if (rand()%4 == 0)
+					addIlluminationFromTemplate(blended_image);
+
+				// add brightness and shadows for 25% of the images
+				if (rand()%10 == 0)
+					addBrightnessOrShadowFromTemplate(blended_image, false);	// shadows
+				if (rand()%7 == 0)
+					addBrightnessOrShadowFromTemplate(blended_image, true);		// brightness
+
 				//edge_smoothing(3);
 				// if (m % 5 == 1)    // 20% add shadow
 				//   shadow_and_illuminance(1);
@@ -585,20 +595,21 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::shadow_and_illuminance(cv::
 	}
 }
 
-void ipa_dirt_detection_dataset_tools::ImageBlender::shadow_and_illuminance_new(cv::Mat& blended_image, const bool shadow_or_illuminance)
+void ipa_dirt_detection_dataset_tools::ImageBlender::addBrightnessOrShadowFromTemplate(cv::Mat& blended_image, const bool add_brightness)
 {
-	int num_masks = brightness_shadow_mask_filenames_.size();
-	int mask_index = rand() % num_masks;
-	std::string mask_filename = brightness_shadow_mask_filenames_[mask_index];
+	const int mask_index = rand() % num_brightness_shadow_mask_images_;
+	const std::string mask_filename = brightness_shadow_mask_filenames_[mask_index];
 	cv::Mat mask = cv::imread(mask_filename, CV_LOAD_IMAGE_GRAYSCALE);
 
-	float f = (rand() % 5) / 10;           //  opacity factor as in Gimp
+	const float f = (rand() % 40) *0.01;		//  opacity factor as in Gimp		// todo: param
 
-	if (shadow_or_illuminance)      // 1 for shadow
+	if (add_brightness == false)		// false for shadow
 	{
+		// add as shadow
 		mask.convertTo(mask, blended_image.type());
-		cv::GaussianBlur(mask, mask, cv::Size(31, 31), 50, 50);
+		//cv::GaussianBlur(mask, mask, cv::Size(31, 31), 50, 50);		// masks are already pre-blurred
 
+		//blended_image = blended_image - f*mask;
 		std::vector<cv::Mat> rgb;
 		cv::split(blended_image, rgb);
 		rgb[0] = rgb[0] - f * mask;
@@ -608,16 +619,40 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::shadow_and_illuminance_new(
 	}
 	else
 	{
+		// add as brightness
 		mask.convertTo(mask, blended_image.type());
-		cv::GaussianBlur(mask, mask, cv::Size((blended_image.cols / 3 / 2) * 2 + 1, (blended_image.cols / 3 / 2) * 2 + 1), 50, 50);
-		std::vector<cv::Mat> rgb;
+		//cv::GaussianBlur(mask, mask, cv::Size((blended_image.cols / 3 / 2) * 2 + 1, (blended_image.cols / 3 / 2) * 2 + 1), 50, 50);			// masks are already pre-blurred
 
+		//blended_image = (1-f)*blended_image + f*mask;
+		std::vector<cv::Mat> rgb;
 		cv::split(blended_image, rgb);
-		rgb[0] = rgb[0] + f * mask;
-		rgb[1] = rgb[1] + f * mask;
-		rgb[2] = rgb[2] + f * mask;
+		rgb[0] = (1-f) * rgb[0] + f * mask;
+		rgb[1] = (1-f) * rgb[1] + f * mask;
+		rgb[2] = (1-f) * rgb[2] + f * mask;
 		cv::merge(rgb, blended_image);
 	}
+}
+
+
+void ipa_dirt_detection_dataset_tools::ImageBlender::addIlluminationFromTemplate(cv::Mat& blended_image)
+{
+	const int mask_index = rand() % num_illumination_mask_images_;
+	const std::string mask_filename = illumination_mask_filenames_[mask_index];
+	cv::Mat mask = cv::imread(mask_filename, CV_LOAD_IMAGE_GRAYSCALE);
+
+	const float f = (rand() % 30) *0.01;		//  opacity factor as in Gimp		// todo: param
+
+	// add illumination
+	mask.convertTo(mask, blended_image.type());
+	//cv::GaussianBlur(mask, mask, cv::Size((blended_image.cols / 3 / 2) * 2 + 1, (blended_image.cols / 3 / 2) * 2 + 1), 50, 50);			// masks are already pre-blurred
+
+	//blended_image = (1-f)*blended_image + f*mask;
+	std::vector<cv::Mat> rgb;
+	cv::split(blended_image, rgb);
+	rgb[0] = (1-f) * rgb[0] + f * mask;
+	rgb[1] = (1-f) * rgb[1] + f * mask;
+	rgb[2] = (1-f) * rgb[2] + f * mask;
+	cv::merge(rgb, blended_image);
 }
 
 
