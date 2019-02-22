@@ -58,6 +58,12 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::run()
 		// load clean floor image
 		const cv::Mat clean_ground_image = cv::imread(clean_ground_filenames_[m], CV_LOAD_IMAGE_COLOR);
 
+		const cv::Scalar image_avg = cv::mean(clean_ground_image);
+		const double clean_ground_image_mean = (image_avg[0]+image_avg[1]+image_avg[2])/3.;
+		std::cout << "image mean: " << (image_avg[0]+image_avg[1]+image_avg[2])/3. << std::endl;
+//		cv::imshow("clean_ground_image", clean_ground_image);
+//		cv::waitKey();
+
 		//-------------------------------------------------------------------------------------------------------
 		// create the file name of the blended ground
 		std::vector<std::string> strs, strs1;
@@ -92,8 +98,8 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::run()
 
 				// blend images
 				const std::string base_filename(ground_file_name + "_r" + ipa_dirt_detection_dataset_tools::to_string(r) + "_f" + ipa_dirt_detection_dataset_tools::to_string(flip_index));
-				blendImageDirt(blended_image, blended_mask, dirt_num, bbox_labels_file, base_filename);			// first add artificial dirt,
-				blendImageObjects(blended_image, blended_mask, objects_num, bbox_labels_file, base_filename);	// then add the objects for classification
+				blendImageDirt(blended_image, blended_mask, clean_ground_image_mean, dirt_num, bbox_labels_file, base_filename);			// first add artificial dirt,
+				blendImageObjects(blended_image, blended_mask, clean_ground_image_mean, objects_num, bbox_labels_file, base_filename);	// then add the objects for classification
 
 				// add illumination for 25% of the images
 				if (rand()%4 == 0)
@@ -196,7 +202,7 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::collectImageFiles()
 }
 
 
-void ipa_dirt_detection_dataset_tools::ImageBlender::blendImageDirt(cv::Mat& blended_image, cv::Mat& blended_mask, const int dirt_num, std::ofstream& bbox_labels_file, const std::string& base_filename)
+void ipa_dirt_detection_dataset_tools::ImageBlender::blendImageDirt(cv::Mat& blended_image, cv::Mat& blended_mask, const double clean_ground_image_mean, const int dirt_num, std::ofstream& bbox_labels_file, const std::string& base_filename)
 {
 	for (int n = 0; n < dirt_num; ++n)
 	{
@@ -206,6 +212,10 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::blendImageDirt(cv::Mat& ble
 		//std::cout << segmented_dirt_filenames_[dirt_image_index] << std::endl;
 		cv::Mat dirt_mask = cv::imread(segmented_dirt_mask_filenames_[dirt_image_index], CV_LOAD_IMAGE_GRAYSCALE);
 		//std::cout << segmented_dirt_mask_filenames_[dirt_image_index] << std::endl;
+
+		// adapt sample on dark images
+		if (clean_ground_image_mean < 64.)
+			dirt_image *= std::max(0.33, clean_ground_image_mean/64.);
 
 //		// remove some edges TODO
 //		cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), cv::Point(1, 1));
@@ -280,7 +290,7 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::blendImageDirt(cv::Mat& ble
 	//cv::waitKey();
 }
 
-void ipa_dirt_detection_dataset_tools::ImageBlender::blendImageObjects(cv::Mat& blended_image, cv::Mat& blended_mask, const int object_num, std::ofstream& bbox_labels_file, const std::string& base_filename)
+void ipa_dirt_detection_dataset_tools::ImageBlender::blendImageObjects(cv::Mat& blended_image, cv::Mat& blended_mask, const double clean_ground_image_mean, const int object_num, std::ofstream& bbox_labels_file, const std::string& base_filename)
 {
 	for (int n = 0; n < object_num; ++n)
 	{
@@ -290,6 +300,10 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::blendImageObjects(cv::Mat& 
 		//std::cout << segmented_objects_filenames_[object_image_index] << std::endl;
 		cv::Mat object_mask = cv::imread(segmented_objects_mask_filenames_[object_image_index], CV_LOAD_IMAGE_GRAYSCALE);
 		//std::cout << segmented_objects_mask_filenames_[object_image_index] << std::endl;
+
+		// adapt sample on dark images
+		if (clean_ground_image_mean < 64.)
+			object_image *= std::max(0.33, clean_ground_image_mean/64.);
 
 //		// remove some edges TODO
 //		cv::Mat element = cv::getStructuringElement( cv::MORPH_RECT, cv::Size(3 , 3), cv::Point(1, 1) );

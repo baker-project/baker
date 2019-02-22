@@ -39,10 +39,10 @@ public:
 	void collectImageFiles();
 
 	// blend dirt samples into the image
-	void blendImageDirt(cv::Mat& blended_image, cv::Mat& blended_mask, const int dirt_num, std::ofstream& bbox_labels_file, const std::string& base_filename);
+	void blendImageDirt(cv::Mat& blended_image, cv::Mat& blended_mask, const double clean_ground_image_mean, const int dirt_num, std::ofstream& bbox_labels_file, const std::string& base_filename);
 
 	// blend object samples into the image
-	void blendImageObjects(cv::Mat& blended_image, cv::Mat& blended_mask, const int object_num, std::ofstream& bbox_labels_file, const std::string& base_filename);
+	void blendImageObjects(cv::Mat& blended_image, cv::Mat& blended_mask, const double clean_ground_image_mean, const int object_num, std::ofstream& bbox_labels_file, const std::string& base_filename);
 
 	// rotates the image and mask
 	// @param rotation_angle in [deg]
