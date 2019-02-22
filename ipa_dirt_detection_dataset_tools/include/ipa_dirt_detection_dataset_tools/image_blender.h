@@ -44,8 +44,13 @@ public:
 	// blend object samples into the image
 	void blendImageObjects(cv::Mat& blended_image, cv::Mat& blended_mask, const int object_num, std::ofstream& bbox_labels_file, const std::string& base_filename);
 
-	// rotates the image and mask with random rotation
-	void rotateImage(cv::Mat& image, cv::Mat& image_mask, const double scale_factor=1., const int interpolation_mode=CV_INTER_LINEAR);
+	// rotates the image and mask
+	// @param rotation_angle in [deg]
+	void rotateImage(cv::Mat& image, cv::Mat& image_mask, const double rotation_angle, const double scale_factor=1., const int interpolation_mode=CV_INTER_LINEAR);
+
+	// rotates an illumination or shadow mask
+	void rotateIlluminationMask(cv::Mat& image, const double rotation_angle, const double scale_factor = 1., const cv::Point translation_offset = cv::Point(0, 0),
+			const int interpolation_mode = CV_INTER_LINEAR);
 
 	// reduces an image's bounding box to the area of the mask
 	void shrinkBoundingBox(cv::Mat& image, cv::Mat& image_mask);

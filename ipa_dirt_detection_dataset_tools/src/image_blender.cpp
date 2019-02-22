@@ -203,9 +203,9 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::blendImageDirt(cv::Mat& ble
 		// select and load dirt image and mask
 		const int dirt_image_index = rand() % num_segmented_dirt_images_;
 		cv::Mat dirt_image = cv::imread(segmented_dirt_filenames_[dirt_image_index], CV_LOAD_IMAGE_COLOR);
-		std::cout << segmented_dirt_filenames_[dirt_image_index] << std::endl;
+		//std::cout << segmented_dirt_filenames_[dirt_image_index] << std::endl;
 		cv::Mat dirt_mask = cv::imread(segmented_dirt_mask_filenames_[dirt_image_index], CV_LOAD_IMAGE_GRAYSCALE);
-		std::cout << segmented_dirt_mask_filenames_[dirt_image_index] << std::endl;
+		//std::cout << segmented_dirt_mask_filenames_[dirt_image_index] << std::endl;
 
 //		// remove some edges TODO
 //		cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), cv::Point(1, 1));
@@ -217,7 +217,7 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::blendImageDirt(cv::Mat& ble
 		if (rand()%5 == 0)
 		{
 			scale_factor = (rand() % 41 + 80) * 0.01;		// resize ratio in range 0.8 to 1.2
-			std::cout << "resize scale_factor: " << scale_factor << std::endl;
+			//std::cout << "resize scale_factor: " << scale_factor << std::endl;
 			if (scale_factor < 1.)
 				interpolation_mode = CV_INTER_AREA;		// best for shrinking images
 			if (scale_factor > 1.)
@@ -226,7 +226,9 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::blendImageDirt(cv::Mat& ble
 		}
 
 		// rotate the dirt sample
-		rotateImage(dirt_image, dirt_mask, scale_factor, interpolation_mode);
+		const double rotation_angle = rand() % 180;		// in [deg] !
+		//std::cout << "The rotation angle is " << rotation_angle << std::endl;
+		rotateImage(dirt_image, dirt_mask, rotation_angle, scale_factor, interpolation_mode);
 		shrinkBoundingBox(dirt_image, dirt_mask);
 
 		// place dirt at random location
@@ -272,7 +274,7 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::blendImageDirt(cv::Mat& ble
 				}
 			}
 		}
-		std::cout << "------- one dirt finished" << std::endl;
+		//std::cout << "------- one dirt finished" << std::endl;
 	}
 	//cv::imshow("test", blended_image);
 	//cv::waitKey();
@@ -285,16 +287,18 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::blendImageObjects(cv::Mat& 
 		// select and load object image and mask
 		const int object_image_index = rand() % num_segmented_object_images_;
 		cv::Mat object_image = cv::imread(segmented_objects_filenames_[object_image_index], CV_LOAD_IMAGE_COLOR);
-		std::cout << segmented_objects_filenames_[object_image_index] << std::endl;
+		//std::cout << segmented_objects_filenames_[object_image_index] << std::endl;
 		cv::Mat object_mask = cv::imread(segmented_objects_mask_filenames_[object_image_index], CV_LOAD_IMAGE_GRAYSCALE);
-		std::cout << segmented_objects_mask_filenames_[object_image_index] << std::endl;
+		//std::cout << segmented_objects_mask_filenames_[object_image_index] << std::endl;
 
 //		// remove some edges TODO
 //		cv::Mat element = cv::getStructuringElement( cv::MORPH_RECT, cv::Size(3 , 3), cv::Point(1, 1) );
 //		cv::morphologyEx(object_mask, object_mask, cv::MORPH_ERODE, element);
 
 		// rotate the object sample
-		rotateImage(object_image, object_mask);
+		const double rotation_angle = rand() % 180;		// in [deg] !
+		//std::cout << "The rotation angle is " << rotation_angle << std::endl;
+		rotateImage(object_image, object_mask, rotation_angle);
 		shrinkBoundingBox(object_image, object_mask);
 
 		// place object at random location
@@ -343,16 +347,13 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::blendImageObjects(cv::Mat& 
 				}
 			}
 		}
-		std::cout << "------- one object finished" << std::endl;
+		//std::cout << "------- one object finished" << std::endl;
 	}
 }
 
 // reference: https://www.pyimagesearch.com/2017/01/02/rotate-images-correctly-with-opencv-and-python/
-void ipa_dirt_detection_dataset_tools::ImageBlender::rotateImage(cv::Mat& image, cv::Mat& mask, const double scale_factor, const int interpolation_mode)
+void ipa_dirt_detection_dataset_tools::ImageBlender::rotateImage(cv::Mat& image, cv::Mat& mask, const double rotation_angle, const double scale_factor, const int interpolation_mode)
 {
-	double rotation_angle = rand() % 180;
-	std::cout << "The rotation angle is " << rotation_angle << std::endl;
-
 	cv::Point2f rotation_center = cv::Point(ceil(image.cols / 2), ceil(image.rows / 2));
 	cv::Mat rotation_matrix = cv::getRotationMatrix2D(rotation_center, rotation_angle, scale_factor);
 //	std::cout << rotation_matrix.at<double>(0, 0) << rotation_matrix.at<double>(0, 1) << std::endl;
@@ -383,6 +384,26 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::rotateImage(cv::Mat& image,
 //	cv::imshow("rot_mask", mask);
 //	cv::waitKey();
 }
+
+void ipa_dirt_detection_dataset_tools::ImageBlender::rotateIlluminationMask(cv::Mat& image, const double rotation_angle, const double scale_factor, const cv::Point translation_offset,
+		const int interpolation_mode)
+{
+	cv::Point2f rotation_center = cv::Point(ceil(image.cols / 2), ceil(image.rows / 2));
+	cv::Mat rotation_matrix = cv::getRotationMatrix2D(rotation_center, rotation_angle, scale_factor);
+	rotation_matrix.at<double>(0, 2) += translation_offset.x;
+	rotation_matrix.at<double>(1, 2) += translation_offset.y;
+
+//	std::cout << "rotation_angle=" << rotation_angle << "    scale_factor=" << scale_factor << "   translation_offset=(" << translation_offset.x << "," << translation_offset.y << ")" << std::endl;
+//	cv::imshow("orig", image);
+
+	cv::Mat temp, temp2;
+	cv::warpAffine(image, temp, rotation_matrix, cv::Size(image.cols, image.rows), interpolation_mode);
+	image = temp;
+
+//	cv::imshow("rot", image);
+//	cv::waitKey();
+}
+
 
 void ipa_dirt_detection_dataset_tools::ImageBlender::shrinkBoundingBox(cv::Mat& image, cv::Mat& image_mask)
 {
@@ -450,7 +471,7 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::getPatchClassname(const std
 	std::vector<std::string> splits;
 	boost::split(splits, image_name, boost::is_any_of("\t,_"));
 	class_name = splits[0];
-	std::cout << "class of the object is: " << class_name << std::endl;
+	//std::cout << "class of the object is: " << class_name << std::endl;
 }
 
 void ipa_dirt_detection_dataset_tools::ImageBlender::edge_smoothing(cv::Mat& blended_image, cv::Mat& blended_mask, const int half_kernel_size)
@@ -601,8 +622,17 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::addBrightnessOrShadowFromTe
 	const std::string mask_filename = brightness_shadow_mask_filenames_[mask_index];
 	cv::Mat mask = cv::imread(mask_filename, CV_LOAD_IMAGE_GRAYSCALE);
 
-	const float f = (rand() % 40) *0.01;		//  opacity factor as in Gimp		// todo: param
+	// rotate, scale, and shift the mask randomly
+	const double rotation_angle = rand() % 180;		// in [deg] !
+	const double scale_factor = (rand() % 41 + 80) * 0.01;		// resize ratio in range 0.8 to 1.2
+	const int interpolation_mode = (scale_factor < 1. ? CV_INTER_AREA : (scale_factor > 1. ? CV_INTER_CUBIC : CV_INTER_LINEAR));	// scale_factor=1.0: CV_INTER_LINEAR,  scale_factor<1.0: CV_INTER_AREA,  scale_factor>1.0: CV_INTER_CUBIC
+	const double translation_factor_x = (rand() % 100 - 50) * 0.01;		// in [-0.5, 0.5]
+	const double translation_factor_y = (rand() % 100 - 50) * 0.01;		// in [-0.5, 0.5]
+	const cv::Point translation_offset(translation_factor_x*mask.cols, translation_factor_y*mask.rows);
+	rotateIlluminationMask(mask, rotation_angle, scale_factor, translation_offset, interpolation_mode);
 
+	// add mask to image
+	const float f = (rand() % 40) *0.01;		//  opacity factor as in Gimp		// todo: param
 	if (add_brightness == false)		// false for shadow
 	{
 		// add as shadow
@@ -640,9 +670,17 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::addIlluminationFromTemplate
 	const std::string mask_filename = illumination_mask_filenames_[mask_index];
 	cv::Mat mask = cv::imread(mask_filename, CV_LOAD_IMAGE_GRAYSCALE);
 
-	const float f = (rand() % 30) *0.01;		//  opacity factor as in Gimp		// todo: param
+	// rotate, scale, and shift the mask randomly
+	const double rotation_angle = rand() % 180;		// in [deg] !
+	const double scale_factor = (rand() % 41 + 80) * 0.01;		// resize ratio in range 0.8 to 1.2
+	const int interpolation_mode = (scale_factor < 1. ? CV_INTER_AREA : (scale_factor > 1. ? CV_INTER_CUBIC : CV_INTER_LINEAR));	// scale_factor=1.0: CV_INTER_LINEAR,  scale_factor<1.0: CV_INTER_AREA,  scale_factor>1.0: CV_INTER_CUBIC
+	const double translation_factor_x = (rand() % 100 - 50) * 0.01;		// in [-0.5, 0.5]
+	const double translation_factor_y = (rand() % 100 - 50) * 0.01;		// in [-0.5, 0.5]
+	const cv::Point translation_offset(translation_factor_x*mask.cols, translation_factor_y*mask.rows);
+	rotateIlluminationMask(mask, rotation_angle, scale_factor, translation_offset, interpolation_mode);
 
 	// add illumination
+	const float f = (rand() % 30) *0.01;		//  opacity factor as in Gimp		// todo: param
 	mask.convertTo(mask, blended_image.type());
 	//cv::GaussianBlur(mask, mask, cv::Size((blended_image.cols / 3 / 2) * 2 + 1, (blended_image.cols / 3 / 2) * 2 + 1), 50, 50);			// masks are already pre-blurred
 
@@ -661,7 +699,7 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::resizeDirt(cv::Mat& dirt_im
 //	std::cout << dirt_image.cols << ' ' << dirt_image.rows << std::endl;
 //	std::cout << dirt_mask.cols << ' ' << dirt_mask.rows << std::endl;
 	double resize_ratio = (rand() % 4 + 8) / 10.0;		// resize ratio in range 0.8 to 1.2
-	std::cout << "resize ratio: " << resize_ratio << std::endl;
+	//std::cout << "resize ratio: " << resize_ratio << std::endl;
 	int interpolation_mode = CV_INTER_AREA;		// best for shrinking images
 	if (resize_ratio > 1.)
 		interpolation_mode = CV_INTER_CUBIC;	// best for enlarging images
