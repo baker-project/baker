@@ -44,6 +44,10 @@ public:
 	// blend object samples into the image
 	void blendImageObjects(cv::Mat& blended_image, cv::Mat& blended_mask, const double clean_ground_image_mean, const int object_num, std::ofstream& bbox_labels_file, const std::string& base_filename);
 
+	// helper function for actually blending the patch into the image with random rotation, scaling, and placement
+	void blendImagePatch(cv::Mat& blended_image, cv::Mat& blended_mask, cv::Mat& patch_image, cv::Mat& patch_mask, const double clean_ground_image_mean,
+			std::ofstream& bbox_labels_file, const std::string& base_filename, const std::string& class_name, const int anchor_offset=0);
+
 	// rotates the image and mask
 	// @param rotation_angle in [deg]
 	void rotateImage(cv::Mat& image, cv::Mat& image_mask, const double rotation_angle, const double scale_factor=1., const int interpolation_mode=CV_INTER_LINEAR);
@@ -56,7 +60,7 @@ public:
 	void shrinkBoundingBox(cv::Mat& image, cv::Mat& image_mask);
 
 	// the function is used for extracting the class name from the file name of the segmented patches
-	void getPatchClassname(const std::string& patch_name, std::string& class_name);
+	std::string getPatchClassname(const std::string& patch_name);
 
 	void edge_smoothing(cv::Mat& blended_image, cv::Mat& blended_mask, const int half_kernel_size);
 	void shadow_and_illuminance(cv::Mat& blended_image, const bool shadow_or_illuminance);
