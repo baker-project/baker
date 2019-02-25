@@ -61,7 +61,7 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::run()
 		// compute average brightness of clean ground image
 		const cv::Scalar image_avg = cv::mean(clean_ground_image);
 		const double clean_ground_image_mean = (image_avg[0]+image_avg[1]+image_avg[2])/3.;
-		std::cout << "image mean: " << clean_ground_image_mean << std::endl;
+//		std::cout << "image mean: " << clean_ground_image_mean << std::endl;
 //		cv::imshow("clean_ground_image", clean_ground_image);
 //		cv::waitKey();
 
@@ -303,9 +303,10 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::blendImagePatch(cv::Mat& bl
 			<< anchor_col + patch_cols + anchor_offset << " " << anchor_row + patch_rows + anchor_offset << " " << class_name << "\n";
 
 	// modify borders of the mask for smooth transition to background
-	cv::Mat patch_mask_eroded;
-	cv::erode(patch_mask, patch_mask_eroded, cv::Mat());
-	patch_mask_eroded = patch_mask - patch_mask_eroded;
+	cv::Mat patch_mask_thresholded, patch_mask_eroded;
+	cv::threshold(patch_mask, patch_mask_thresholded, 0, 255, cv::THRESH_BINARY);
+	cv::erode(patch_mask_thresholded, patch_mask_eroded, cv::Mat());
+	patch_mask_eroded = patch_mask_thresholded - patch_mask_eroded;
 	for (int v=0; v<patch_mask.rows; ++v)
 		for (int u=0; u<patch_mask.cols; ++u)
 			if (patch_mask_eroded.at<uchar>(v,u) != 0)
