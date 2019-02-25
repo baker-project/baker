@@ -8,6 +8,7 @@ project(ipa_dirt_detection_dataset_tools)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+	cv_bridge
 	roscpp
 	rospy
 )
@@ -48,6 +49,18 @@ include_directories(
 	${catkin_INCLUDE_DIRS}
 	${Boost_INCLUDE_DIRS}
 	${OpenCV_INCLUDE_DIRS}
+)
+
+
+## RGB image recording tool with support for different folders for different classes
+add_executable(record_dataset_rgb
+	src/record_dataset_rgb.cpp
+)
+add_dependencies(record_dataset_rgb ${catkin_EXPORTED_TARGETS})
+target_link_libraries(record_dataset_rgb
+	${catkin_LIBRARIES}
+	${OpenCV_LIBRARIES}
+	${Boost_LIBRARIES}
 )
 
 
@@ -118,7 +131,7 @@ target_link_libraries(bounding_box_labeler
 # )
 
 ## Mark executables and/or libraries for installation
-install(TARGETS simple_segmentation image_blender bounding_box_labeler
+install(TARGETS record_dataset_rgb simple_segmentation image_blender bounding_box_labeler
 	ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 	LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 	RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

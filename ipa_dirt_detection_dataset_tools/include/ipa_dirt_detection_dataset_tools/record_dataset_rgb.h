@@ -1,37 +1,18 @@
 #ifndef DATASET_CREATE_H_
 #define DATASET_CREATE_H_
 
-#include <set>
 #include <iostream>
 #include <string>
-#include <functional>
-#include <fstream>
-#include <vector>
-#include <deque>
-#include <math.h>
 #include <sstream>
 
 #include <ros/ros.h>
-#include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/Image.h>
-#include <tf/transform_listener.h>
-#include <tf/transform_broadcaster.h>
-
-#include <pcl/conversions.h>
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
-#include <pcl/filters/voxel_grid.h>
-#include <pcl_ros/point_cloud.h>
-
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
-#include <opencv2/ml/ml.hpp>
-#include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
-#include <image_transport/image_transport.h>
+
+#include <opencv2/opencv.hpp>
 
 //boost
-#include <boost/foreach.hpp>
+#include <boost/filesystem.hpp>
 
 namespace ipa_DatasetCreate
 {

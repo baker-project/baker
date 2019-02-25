@@ -1,9 +1,7 @@
-#include <ros/ros.h>
-#include <image_transport/image_transport.h>
 #include <opencv2/highgui/highgui.hpp>
 #include <cv_bridge/cv_bridge.h>
 
-#include <ipa_dirt_detection/record_dataset_rgb.h>
+#include <ipa_dirt_detection_dataset_tools/record_dataset_rgb.h>
 
 using namespace ipa_DatasetCreate;
 

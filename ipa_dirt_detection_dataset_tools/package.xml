@@ -15,6 +15,7 @@
 	<buildtool_depend>catkin</buildtool_depend>
 
 	<depend>boost</depend>
+	<depend>cv_bridge</depend>
 	<depend>libopencv-dev</depend>
 	<depend>roscpp</depend>
 	<depend>rospy</depend>
