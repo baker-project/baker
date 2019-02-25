@@ -621,9 +621,6 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::addBrightnessOrShadowFromTe
 		mask.convertTo(mask, blended_image.type());
 		cv::GaussianBlur(mask, mask, cv::Size(blur_kernel_size, blur_kernel_size), blur_sigma, blur_sigma, cv::BORDER_CONSTANT);
 
-		cv::imshow("shadow_mask", mask);
-		cv::waitKey();
-
 		// blended_image = blended_image - f*mask;
 		std::vector<cv::Mat> rgb;
 		cv::split(blended_image, rgb);
@@ -637,9 +634,6 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::addBrightnessOrShadowFromTe
 		// add as brightness
 		mask.convertTo(mask, blended_image.type());
 		cv::GaussianBlur(mask, mask, cv::Size(blur_kernel_size, blur_kernel_size), blur_sigma, blur_sigma, cv::BORDER_CONSTANT);
-
-		cv::imshow("brightness_mask", mask);
-		cv::waitKey();
 
 		// blended_image = (1-f)*blended_image + f*mask;
 		std::vector<cv::Mat> rgb;
@@ -673,9 +667,6 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::addIlluminationFromTemplate
 	const int blur_kernel_size = 2*static_cast<int>((double)(75 + rand()%(501-75)) * 0.5 * (double)blended_image.cols/1280.) + 1;	// use blur in range of kernel size [75, 501] for image width 1280
 	const double blur_sigma = 0.3*((blur_kernel_size-1.)*0.5 - 1.) + 0.8;
 	cv::GaussianBlur(mask, mask, cv::Size(blur_kernel_size, blur_kernel_size), blur_sigma, blur_sigma, cv::BORDER_CONSTANT);
-
-	cv::imshow("illumination_mask", mask);
-	cv::waitKey();
 
 	// blended_image = (1-f)*blended_image + f*mask;
 	std::vector<cv::Mat> rgb;
