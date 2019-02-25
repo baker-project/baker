@@ -77,6 +77,19 @@ target_link_libraries(image_blender
 )
 
 
+## labeling tool for tagging bounding boxes with text in images
+add_executable(bounding_box_labeler
+	src/bounding_box_labeler.cpp
+)
+add_dependencies(bounding_box_labeler ${catkin_EXPORTED_TARGETS})
+target_link_libraries(bounding_box_labeler
+	${catkin_LIBRARIES}
+	${Boost_LIBRARIES}
+	${OpenCV_LIBS}
+)
+
+
+
 ### dataset_create
 #add_executable(dataset_create
 #	src/obsolete/dataset_create.cpp
@@ -105,7 +118,7 @@ target_link_libraries(image_blender
 # )
 
 ## Mark executables and/or libraries for installation
-install(TARGETS simple_segmentation image_blender
+install(TARGETS simple_segmentation image_blender bounding_box_labeler
 	ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 	LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 	RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

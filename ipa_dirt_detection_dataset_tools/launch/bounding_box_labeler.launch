@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+
+	<node pkg="ipa_dirt_detection_dataset_tools" type="bounding_box_labeler" name="bounding_box_labeler" args="$(env HOME)/.ros/dirt_detection_data/new_database/test_data/test_data_0/" output="screen">
+	</node>
+
+</launch>
