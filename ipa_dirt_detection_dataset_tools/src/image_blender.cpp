@@ -457,6 +457,22 @@ std::string ipa_dirt_detection_dataset_tools::ImageBlender::getPatchClassname(co
 
 void ipa_dirt_detection_dataset_tools::ImageBlender::edge_smoothing(cv::Mat& blended_image, cv::Mat& blended_mask, const int half_kernel_size)
 {
+	// modify borders of the mask for smooth transition to background   --->   the effect is not so great
+	cv::Mat blended_mask_eroded, blended_mask_dilated, blended_image_blurred, mask_temp;
+	mask_temp = blended_mask*255;
+	cv::erode(mask_temp, blended_mask_eroded, cv::Mat());
+	cv::dilate(mask_temp, blended_mask_dilated, cv::Mat());
+	blended_mask_dilated = blended_mask_dilated - blended_mask_eroded;
+	cv::GaussianBlur(blended_image, blended_image_blurred, cv::Size(3,3), 0);
+	for (int v=0; v<blended_image.rows; ++v)
+		for (int u=0; u<blended_image.cols; ++u)
+			if (blended_mask_dilated.at<uchar>(v,u) != 0)
+				blended_image.at<cv::Vec3b>(v,u) = blended_image_blurred.at<cv::Vec3b>(v,u);
+
+	return;
+
+	// old code from here:
+
 	blended_image.convertTo(blended_image, CV_32F);
 
 	std::vector<std::vector<cv::Point> > contours;
