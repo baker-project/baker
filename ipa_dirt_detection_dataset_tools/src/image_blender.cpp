@@ -98,9 +98,10 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::run()
 				const int objects_num = min_num_objects_ + rand() % (max_num_objects_ - min_num_objects_);		// generate number of objects in range max_num_objects and min_num_objects
 
 				// blend images
+				std::vector<cv::Rect> patch_roi_list;		// keeps track of utilized ROIs for placing patches
 				const std::string base_filename(ground_file_name + "_r" + ipa_dirt_detection_dataset_tools::to_string(r) + "_f" + ipa_dirt_detection_dataset_tools::to_string(flip_index));
-				blendImageDirt(blended_image, blended_mask, clean_ground_image_mean, dirt_num, bbox_labels_file, base_filename);			// first add artificial dirt,
-				blendImageObjects(blended_image, blended_mask, clean_ground_image_mean, objects_num, bbox_labels_file, base_filename);	// then add the objects for classification
+				blendImageDirt(blended_image, blended_mask, clean_ground_image_mean, dirt_num, patch_roi_list, bbox_labels_file, base_filename);			// first add artificial dirt,
+				blendImageObjects(blended_image, blended_mask, clean_ground_image_mean, objects_num, patch_roi_list, bbox_labels_file, base_filename);	// then add the objects for classification
 
 				// add illumination for 25% of the images
 				if (rand()%4 == 0)
@@ -199,7 +200,8 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::collectImageFiles()
 }
 
 
-void ipa_dirt_detection_dataset_tools::ImageBlender::blendImageDirt(cv::Mat& blended_image, cv::Mat& blended_mask, const double clean_ground_image_mean, const int dirt_num, std::ofstream& bbox_labels_file, const std::string& base_filename)
+void ipa_dirt_detection_dataset_tools::ImageBlender::blendImageDirt(cv::Mat& blended_image, cv::Mat& blended_mask, const double clean_ground_image_mean, const int dirt_num,
+		std::vector<cv::Rect>& patch_roi_list, std::ofstream& bbox_labels_file, const std::string& base_filename)
 {
 	for (int n = 0; n < dirt_num; ++n)
 	{
@@ -210,84 +212,13 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::blendImageDirt(cv::Mat& ble
 		cv::Mat dirt_mask = cv::imread(segmented_dirt_mask_filenames_[dirt_image_index], CV_LOAD_IMAGE_GRAYSCALE);
 		//std::cout << segmented_dirt_mask_filenames_[dirt_image_index] << std::endl;
 
-		blendImagePatch(blended_image, blended_mask, dirt_image, dirt_mask, clean_ground_image_mean, bbox_labels_file, base_filename, "dirt", 2);
-
-//		// adapt sample on dark images
-//		if (clean_ground_image_mean < 64.)
-//			dirt_image *= std::max(0.33, clean_ground_image_mean/64.);
-//
-////		// remove some edges
-////		cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), cv::Point(1, 1));
-////		cv::morphologyEx(dirt_mask, dirt_mask, cv::MORPH_ERODE, element);
-//
-//		// 20% of the dirt will be resized
-//		double scale_factor = 1.;
-//		int interpolation_mode = CV_INTER_LINEAR;
-//		if (rand()%5 == 0)
-//		{
-//			scale_factor = (rand() % 41 + 80) * 0.01;		// resize ratio in range 0.8 to 1.2
-//			//std::cout << "resize scale_factor: " << scale_factor << std::endl;
-//			if (scale_factor < 1.)
-//				interpolation_mode = CV_INTER_AREA;		// best for shrinking images
-//			if (scale_factor > 1.)
-//				interpolation_mode = CV_INTER_CUBIC;	// best for enlarging images
-////			resizeDirt(artificial_dirt_, dirt_mask);	--> this is done with the rotation
-//		}
-//
-//		// rotate the dirt sample
-//		const double rotation_angle = rand() % 360;		// in [deg] !
-//		//std::cout << "The rotation angle is " << rotation_angle << std::endl;
-//		rotateImage(dirt_image, dirt_mask, rotation_angle, scale_factor, interpolation_mode);
-//		shrinkBoundingBox(dirt_image, dirt_mask);
-//
-//		// place dirt at random location
-//		dirt_image.convertTo(dirt_image, blended_image.type());
-//		const int dirt_cols = dirt_image.cols;
-//		const int dirt_rows = dirt_image.rows;
-//		const int anchor_offset = 2;			// add 2 free space
-//		int anchor_col = anchor_offset + rand() % blended_image.cols;		// top left point of the blending position
-//		int anchor_row = anchor_offset + rand() % blended_image.rows;
-//		if ((anchor_col + dirt_cols + anchor_offset) >= blended_image.cols)
-//			anchor_col = blended_image.cols - 1 - (dirt_cols + anchor_offset);
-//		if ((anchor_row + dirt_rows + anchor_offset) >= blended_image.rows)
-//			anchor_row = blended_image.rows - 1 - (dirt_rows + anchor_offset);
-//
-//		// write the arguments of the bounding box in file
-//		bbox_labels_file << base_filename << " " << anchor_col - anchor_offset << " " << anchor_row - anchor_offset << " "
-//				<< anchor_col + dirt_cols + anchor_offset << " " << anchor_row + dirt_rows + anchor_offset << " " << "dirt\n";
-//
-//		// modify borders of the mask for smooth transition to background
-//		cv::Mat dirt_mask_eroded;
-//		cv::erode(dirt_mask, dirt_mask_eroded, cv::Mat());
-//		dirt_mask_eroded = dirt_mask - dirt_mask_eroded;
-//		for (int v=0; v<dirt_mask.rows; ++v)
-//			for (int u=0; u<dirt_mask.cols; ++u)
-//				if (dirt_mask_eroded.at<uchar>(v,u) != 0)
-//					dirt_mask.at<uchar>(v,u) = 0.5*dirt_mask.at<uchar>(v,u);
-//
-//		// blend patch into the image
-//		for (int i = anchor_row; i < anchor_row + dirt_rows; ++i)
-//		{
-//			for (int j = anchor_col; j < anchor_col + dirt_cols; ++j)
-//			{
-//				const int mask_row = i - anchor_row;
-//				const int mask_col = j - anchor_col;
-//				const double opacity_factor = (double)dirt_mask.at<uchar>(mask_row, mask_col) * 1./255.;
-//				if (opacity_factor > 0.)
-//				{
-//					if (opacity_factor > 0.999)
-//						blended_image.at<cv::Vec3b>(i, j) = dirt_image.at<cv::Vec3b>(mask_row, mask_col);
-//					else
-//						blended_image.at<cv::Vec3b>(i, j) += opacity_factor * (dirt_image.at<cv::Vec3b>(mask_row, mask_col)-blended_image.at<cv::Vec3b>(i, j));
-//					blended_mask.at<uchar>(i, j) = 1;
-//				}
-//			}
-//		}
+		blendImagePatch(blended_image, blended_mask, dirt_image, dirt_mask, clean_ground_image_mean, patch_roi_list, bbox_labels_file, base_filename, "dirt", 2);
 		//std::cout << "------- one dirt finished" << std::endl;
 	}
 }
 
-void ipa_dirt_detection_dataset_tools::ImageBlender::blendImageObjects(cv::Mat& blended_image, cv::Mat& blended_mask, const double clean_ground_image_mean, const int object_num, std::ofstream& bbox_labels_file, const std::string& base_filename)
+void ipa_dirt_detection_dataset_tools::ImageBlender::blendImageObjects(cv::Mat& blended_image, cv::Mat& blended_mask, const double clean_ground_image_mean,
+		const int object_num, std::vector<cv::Rect>& patch_roi_list, std::ofstream& bbox_labels_file, const std::string& base_filename)
 {
 	for (int n = 0; n < object_num; ++n)
 	{
@@ -298,70 +229,14 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::blendImageObjects(cv::Mat& 
 		cv::Mat object_mask = cv::imread(segmented_objects_mask_filenames_[object_image_index], CV_LOAD_IMAGE_GRAYSCALE);
 		//std::cout << segmented_objects_mask_filenames_[object_image_index] << std::endl;
 
-		blendImagePatch(blended_image, blended_mask, object_image, object_mask, clean_ground_image_mean, bbox_labels_file, base_filename, getPatchClassname(segmented_objects_filenames_[object_image_index]), 0);
-
-//		// adapt sample on dark images
-//		if (clean_ground_image_mean < 64.)
-//			object_image *= std::max(0.33, clean_ground_image_mean/64.);
-//
-////		// remove some edges
-////		cv::Mat element = cv::getStructuringElement( cv::MORPH_RECT, cv::Size(3 , 3), cv::Point(1, 1) );
-////		cv::morphologyEx(object_mask, object_mask, cv::MORPH_ERODE, element);
-//
-//		// rotate the object sample
-//		const double rotation_angle = rand() % 360;		// in [deg] !
-//		//std::cout << "The rotation angle is " << rotation_angle << std::endl;
-//		rotateImage(object_image, object_mask, rotation_angle);
-//		shrinkBoundingBox(object_image, object_mask);
-//
-//		// place object at random location
-//		object_image.convertTo(object_image, blended_image.type());
-//		const int object_cols = object_image.cols;
-//		const int object_rows = object_image.rows;
-//		int anchor_col = rand() % blended_image.cols;		// top left point of the blending position
-//		int anchor_row = rand() % blended_image.rows;
-//		if ((anchor_col + object_cols) >= blended_image.cols)
-//			anchor_col = blended_image.cols - 1 - object_cols;
-//		if ((anchor_row + object_rows) >= blended_image.rows)
-//			anchor_row = blended_image.rows - 1 - object_rows;
-//
-//		// write the arguments of the bounding box in file
-//		bbox_labels_file << base_filename << " " << anchor_col << " " << anchor_row << " " << anchor_col + object_cols << " "
-//				<< anchor_row + object_rows << " " << getPatchClassname(segmented_objects_filenames_[object_image_index]) << "\n";
-//
-//		// modify borders of the mask for smooth transition to background
-//		cv::Mat object_mask_eroded;
-//		cv::erode(object_mask, object_mask_eroded, cv::Mat());
-//		object_mask_eroded = object_mask - object_mask_eroded;
-//		for (int v=0; v<object_mask.rows; ++v)
-//			for (int u=0; u<object_mask.cols; ++u)
-//				if (object_mask_eroded.at<uchar>(v,u) != 0)
-//					object_mask.at<uchar>(v,u) = 0.5*object_mask.at<uchar>(v,u);
-//
-//		// blend patch into the image		// todo: merge with above code?
-//		for (int i = anchor_row; i < anchor_row + object_rows; ++i)
-//		{
-//			for (int j = anchor_col; j < anchor_col + object_cols; ++j)
-//			{
-//				const int mask_row = i - anchor_row;
-//				const int mask_col = j - anchor_col;
-//				const double opacity_factor = (double)object_mask.at<uchar>(mask_row, mask_col) * 1./255.;
-//				if (opacity_factor > 0)
-//				{
-//					if (opacity_factor > 0.999)
-//						blended_image.at<cv::Vec3b>(i, j) = object_image.at<cv::Vec3b>(mask_row, mask_col);
-//					else
-//						blended_image.at<cv::Vec3b>(i, j) += opacity_factor * (object_image.at<cv::Vec3b>(mask_row, mask_col)-blended_image.at<cv::Vec3b>(i, j));
-//					blended_mask.at<uchar>(i, j) = 1;
-//				}
-//			}
-//		}
+		blendImagePatch(blended_image, blended_mask, object_image, object_mask, clean_ground_image_mean, patch_roi_list, bbox_labels_file, base_filename, getPatchClassname(segmented_objects_filenames_[object_image_index]), 0);
 		//std::cout << "------- one object finished" << std::endl;
 	}
 }
 
 void ipa_dirt_detection_dataset_tools::ImageBlender::blendImagePatch(cv::Mat& blended_image, cv::Mat& blended_mask, cv::Mat& patch_image, cv::Mat& patch_mask,
-		const double clean_ground_image_mean, std::ofstream& bbox_labels_file, const std::string& base_filename, const std::string& class_name, const int anchor_offset)
+		const double clean_ground_image_mean, std::vector<cv::Rect>& patch_roi_list, std::ofstream& bbox_labels_file, const std::string& base_filename,
+		const std::string& class_name, const int anchor_offset)
 {
 	// adapt sample on dark images
 	if (clean_ground_image_mean < 64.)
@@ -404,9 +279,23 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::blendImagePatch(cv::Mat& bl
 		if ((anchor_row + patch_rows + anchor_offset) >= blended_image.rows)
 			anchor_row = blended_image.rows - 1 - (patch_rows + anchor_offset);
 
-		cv::Rect roi(anchor_col, anchor_row, patch_cols, patch_rows);		// todo: does not solve overlap of bigger items over smaller --> compare against list of ROIs
-		if (cv::sum(blended_mask(roi))[0] < 0.25*patch_cols*patch_rows)		// todo: param
+		const cv::Rect roi(anchor_col-anchor_offset, anchor_row-anchor_offset, patch_cols+2*anchor_offset, patch_rows+2*anchor_offset);		// todo: does not solve overlap of bigger items over smaller --> compare against list of ROIs
+		bool has_significant_overlap = false;
+		for (size_t l=0; l<patch_roi_list.size(); ++l)
+		{
+			const double area_overlap = (patch_roi_list[l] & roi).area();
+			if (area_overlap > 0.25*patch_roi_list[l].area() || area_overlap > 0.25*roi.area())		// todo: param for 0.25
+			{
+				has_significant_overlap = true;
+				break;
+			}
+		}
+
+		if (has_significant_overlap == false)
+		{
+			patch_roi_list.push_back(roi);
 			break;
+		}
 	}
 
 	// write the arguments of the bounding box in file
@@ -723,14 +612,19 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::addBrightnessOrShadowFromTe
 	rotateIlluminationMask(mask, rotation_angle, scale_factor, translation_offset, interpolation_mode);
 
 	// add mask to image
-	const float f = (rand() % 33) *0.01;		//  opacity factor as in Gimp		// todo: param
+	const float f = (15 + rand() % 18) *0.01;		//  opacity factor as in Gimp, in [0.15, 0.33]		// todo: param
+	const int blur_kernel_size = 2*static_cast<int>((double)(31 + rand()%(71-31)) * 0.5 * (double)blended_image.cols/1280.) + 1;	// use blur in range of kernel size [31, 71] for image width 1280
+	const double blur_sigma = 0.3*((blur_kernel_size-1.)*0.5 - 1.) + 0.8;
 	if (add_brightness == false)		// false for shadow
 	{
 		// add as shadow
 		mask.convertTo(mask, blended_image.type());
-		//cv::GaussianBlur(mask, mask, cv::Size(31, 31), 50, 50);		// masks are already pre-blurred
+		cv::GaussianBlur(mask, mask, cv::Size(blur_kernel_size, blur_kernel_size), blur_sigma, blur_sigma, cv::BORDER_CONSTANT);
 
-		//blended_image = blended_image - f*mask;
+		cv::imshow("shadow_mask", mask);
+		cv::waitKey();
+
+		// blended_image = blended_image - f*mask;
 		std::vector<cv::Mat> rgb;
 		cv::split(blended_image, rgb);
 		rgb[0] = rgb[0] - f * mask;
@@ -742,9 +636,12 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::addBrightnessOrShadowFromTe
 	{
 		// add as brightness
 		mask.convertTo(mask, blended_image.type());
-		//cv::GaussianBlur(mask, mask, cv::Size((blended_image.cols / 3 / 2) * 2 + 1, (blended_image.cols / 3 / 2) * 2 + 1), 50, 50);			// masks are already pre-blurred
+		cv::GaussianBlur(mask, mask, cv::Size(blur_kernel_size, blur_kernel_size), blur_sigma, blur_sigma, cv::BORDER_CONSTANT);
 
-		//blended_image = (1-f)*blended_image + f*mask;
+		cv::imshow("brightness_mask", mask);
+		cv::waitKey();
+
+		// blended_image = (1-f)*blended_image + f*mask;
 		std::vector<cv::Mat> rgb;
 		cv::split(blended_image, rgb);
 		rgb[0] = (1-f) * rgb[0] + f * mask;
@@ -771,11 +668,16 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::addIlluminationFromTemplate
 	rotateIlluminationMask(mask, rotation_angle, scale_factor, translation_offset, interpolation_mode);
 
 	// add illumination
-	const float f = (rand() % 33) *0.01;		//  opacity factor as in Gimp		// todo: param
+	const float f = (15 + rand() % 18) *0.01;		//  opacity factor as in Gimp, in [0.15, 0.33]		// todo: param
 	mask.convertTo(mask, blended_image.type());
-	//cv::GaussianBlur(mask, mask, cv::Size((blended_image.cols / 3 / 2) * 2 + 1, (blended_image.cols / 3 / 2) * 2 + 1), 50, 50);			// masks are already pre-blurred
+	const int blur_kernel_size = 2*static_cast<int>((double)(75 + rand()%(501-75)) * 0.5 * (double)blended_image.cols/1280.) + 1;	// use blur in range of kernel size [75, 501] for image width 1280
+	const double blur_sigma = 0.3*((blur_kernel_size-1.)*0.5 - 1.) + 0.8;
+	cv::GaussianBlur(mask, mask, cv::Size(blur_kernel_size, blur_kernel_size), blur_sigma, blur_sigma, cv::BORDER_CONSTANT);
 
-	//blended_image = (1-f)*blended_image + f*mask;
+	cv::imshow("illumination_mask", mask);
+	cv::waitKey();
+
+	// blended_image = (1-f)*blended_image + f*mask;
 	std::vector<cv::Mat> rgb;
 	cv::split(blended_image, rgb);
 	rgb[0] = (1-f) * rgb[0] + f * mask;
