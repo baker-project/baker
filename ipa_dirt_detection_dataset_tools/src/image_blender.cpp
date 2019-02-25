@@ -445,14 +445,19 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::shrinkBoundingBox(cv::Mat& 
 // the function is used for extracting the class name from the file name of the segmented patches
 std::string ipa_dirt_detection_dataset_tools::ImageBlender::getPatchClassname(const std::string& patch_name)
 {
+	// single out image file name
 	std::vector<std::string> strs;
 	boost::split(strs, patch_name, boost::is_any_of("\t,/"));
 	std::string image_name = strs[strs.size() - 1];
 
+	// removed digits after last underscore _
 	std::vector<std::string> splits;
 	boost::split(splits, image_name, boost::is_any_of("\t,_"));
+	std::string object_class = splits[0];
+	for (size_t k=1; k<splits.size()-1; ++k)
+		object_class += "_" + splits[k];
 	//std::cout << "class of the object is: " << splits[0] << std::endl;
-	return splits[0];
+	return object_class;
 }
 
 void ipa_dirt_detection_dataset_tools::ImageBlender::edge_smoothing(cv::Mat& blended_image, cv::Mat& blended_mask, const int half_kernel_size)

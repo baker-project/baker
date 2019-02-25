@@ -109,9 +109,8 @@ bool BoundingBoxLabeler::checkPointInsideRect(cv::RotatedRect rect, cv::Point2f 
 
 void BoundingBoxLabeler::writeTxt(const std::vector<BoundingBoxLabeler>& all, const std::string& path, const std::string& filename)
 {
-	std::cout << "path: " << path << std::endl;
-
 	const std::string stamped_file_name = path + "/labels_" + filename + ".txt";
+	std::cout << "saving data to file: " << stamped_file_name << std::endl;
 
 	std::ofstream file(stamped_file_name.c_str(), std::ios::out);
 	for (size_t j = 0; j < all.size(); j++)
@@ -683,16 +682,17 @@ int main(int argc, char* argv[])
 						s.append("/");
 					s.append(entry->d_name);
 					all_image_names.push_back(s);
-					std::cout << "imagename: " << s << std::endl;
 				}
 			}
 		}
 		std::sort(all_image_names.begin(), all_image_names.end());
+		for (size_t i=0; i<all_image_names.size(); ++i)
+			std::cout << "  image: " << all_image_names[i] << std::endl;
 	}
 	else
 		all_image_names.push_back(argv[1]); //single image to be processed
 
-	std::cout << "Images to be processed: " << all_image_names.size() << std::endl;
+	std::cout << "--> images to be processed: " << all_image_names.size() << std::endl;
 
 	std::vector<BoundingBoxLabeler> all_images;
 
@@ -714,7 +714,6 @@ int main(int argc, char* argv[])
 		all_images.push_back(label_img);
 
 		// save all data after each cycle --> creates many copies of the label file
-		std::cout << "Saving Data." << std::endl;
 		time_t t;
 		t = time(NULL);
 		std::stringstream ss;
