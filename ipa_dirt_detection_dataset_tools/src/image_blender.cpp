@@ -279,7 +279,7 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::blendImagePatch(cv::Mat& bl
 		if ((anchor_row + patch_rows + anchor_offset) >= blended_image.rows)
 			anchor_row = blended_image.rows - 1 - (patch_rows + anchor_offset);
 
-		const cv::Rect roi(anchor_col-anchor_offset, anchor_row-anchor_offset, patch_cols+2*anchor_offset, patch_rows+2*anchor_offset);		// todo: does not solve overlap of bigger items over smaller --> compare against list of ROIs
+		const cv::Rect roi(anchor_col-anchor_offset, anchor_row-anchor_offset, patch_cols+2*anchor_offset, patch_rows+2*anchor_offset);
 		bool has_significant_overlap = false;
 		for (size_t l=0; l<patch_roi_list.size(); ++l)
 		{
