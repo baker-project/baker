@@ -64,8 +64,9 @@ int main(int argc, char** argv)
 	// run image blender
 	ipa_dirt_detection_dataset_tools::ImageBlender image_blend(base_path + ground_image_path, base_path + segmented_dirt_path, base_path + segmented_dirt_mask_path,
 			base_path + segmented_objects_path, base_path + segmented_objects_mask_path, base_path + brightness_shadow_mask_path, base_path + illumination_mask_path,
-			base_path + blended_ground_image_path, base_path + blended_ground_image_mask_path, base_path + blended_ground_image_path + blended_ground_image_bbox_filename,
-			max_num_dirts, min_num_dirts, max_num_objects, min_num_objects, flip_clean_ground, ground_image_reuse_times);
+			base_path + blended_ground_image_path, base_path + blended_ground_image_mask_path,
+			base_path + blended_ground_image_path + "/" + blended_ground_image_bbox_filename, max_num_dirts, min_num_dirts, max_num_objects, min_num_objects,
+			flip_clean_ground, ground_image_reuse_times);
 	image_blend.run();
 
 	return 0;
