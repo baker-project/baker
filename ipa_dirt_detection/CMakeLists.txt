@@ -33,7 +33,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(OpenCV REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem system)
-
+find_package(PCL 1.3 REQUIRED)
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -128,8 +128,8 @@ include_directories(
 	${catkin_INCLUDE_DIRS}
 	${OpenCV_INCLUDE_DIRS}
 	${Boost_INCLUDE_DIRS}
+	${PCL_INCLUDE_DIRS}
 )
-
 
 # dirt_detection
 add_executable(dirt_detection  ros/src/dirt_detection.cpp
@@ -139,6 +139,7 @@ target_link_libraries(dirt_detection
 	${catkin_LIBRARIES}
 	${OpenCV_LIBRARIES}
 	${Boost_LIBRARIES}
+	${PCL_INCLUDE_DIRS}
 )
 add_dependencies(dirt_detection ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
@@ -163,12 +164,42 @@ target_link_libraries(appearance_check
 )
 add_dependencies(appearance_check ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
+#dataset create
+add_executable(record_dataset  ros/src/record_dataset.cpp)                  
+target_link_libraries(record_dataset
+	${catkin_LIBRARIES}
+	${OpenCV_LIBRARIES}
+	${Boost_LIBRARIES}
+	${PCL_INCLUDE_DIRS}
+)
+add_dependencies(record_dataset ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
+
+#dataset create --> moved to ipa_dirt_detection_dataset_tools
+#add_executable(record_dataset_rgb  ros/src/record_dataset_rgb.cpp)                  
+#target_link_libraries(record_dataset_rgb
+#	${catkin_LIBRARIES}
+#	${OpenCV_LIBRARIES}
+#	${Boost_LIBRARIES}
+#)
+#add_dependencies(record_dataset_rgb ${catkin_EXPORTED_TARGETS})
+
+# filter bank create
+add_executable(filterbank_create  ros/src/filterbank_create.cpp
+                                  ros/src/feature_extract.cpp)           # ros/src/feature_extract.cpp
+target_link_libraries(filterbank_create
+	${catkin_LIBRARIES}
+	${OpenCV_LIBRARIES}
+	${Boost_LIBRARIES}
+	${PCL_INCLUDE_DIRS}
+)
+add_dependencies(filterbank_create ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
+
 
 #############
 ## Install ##
 #############
 ## Mark executables and/or libraries for installation
-install(TARGETS dirt_detection dirt_detection_client appearance_check
+install(TARGETS dirt_detection dirt_detection_client appearance_check record_dataset
 	ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 	LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 	RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
