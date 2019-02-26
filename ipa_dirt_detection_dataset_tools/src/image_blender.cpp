@@ -116,8 +116,8 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::run()
 				//edge_smoothing(3);
 
 				// store blended images and masks
-				cv::imwrite(blended_mask_folder_ + "/" + base_filename + "_mask.png", blended_mask);
-				cv::imwrite(blended_mask_folder_ + "/" + base_filename + "_mask_vis.png", blended_mask * 255);
+				//cv::imwrite(blended_mask_folder_ + "/" + base_filename + "_mask.png", blended_mask);
+				//cv::imwrite(blended_mask_folder_ + "/" + base_filename + "_mask_vis.png", blended_mask * 255);
 				cv::imwrite(blended_img_folder_ + "/" + base_filename + ".png", blended_image);
 			}
 		}
