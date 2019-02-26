@@ -17,6 +17,7 @@
 	<exec_depend>baker_msgs</exec_depend>
 	<exec_depend>baker_office_cleaning_application</exec_depend>
 	<exec_depend>ipa_dirt_detection</exec_depend>
+	<exec_depend>ipa_dirt_detection_dataset_tools</exec_depend>
 
 	<export>
 		<metapackage />

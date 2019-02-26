@@ -100,7 +100,7 @@ showOriginalImage: true #true
 showPlaneColorImage: false #true
 
 # shows the warped color image of the plane
-showWarpedOriginalImage: false
+showWarpedOriginalImage: true
 
 # displays the saliency image before rescaling
 showSaliencyBadScale: false
