@@ -300,7 +300,7 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::blendImagePatch(cv::Mat& bl
 
 	// write the arguments of the bounding box in file
 	bbox_labels_file << base_filename << " " << anchor_col - anchor_offset << " " << anchor_row - anchor_offset << " "
-			<< anchor_col + patch_cols + anchor_offset << " " << anchor_row + patch_rows + anchor_offset << " " << class_name << "\n";
+			<< anchor_col + patch_cols + anchor_offset << " " << anchor_row + patch_rows + anchor_offset << " " << class_name << " \n";
 
 	// modify borders of the mask for smooth transition to background
 	cv::Mat patch_mask_thresholded, patch_mask_eroded;
@@ -626,7 +626,7 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::addBrightnessOrShadowFromTe
 
 	// rotate, scale, and shift the mask randomly
 	const double rotation_angle = rand() % 360;		// in [deg] !
-	const double scale_factor = (rand() % 41 + 80) * 0.01;		// resize ratio in range 0.8 to 1.2
+	const double scale_factor = (rand() % 71 + 80) * 0.01;		// resize ratio in range 0.8 to 1.5
 	const int interpolation_mode = (scale_factor < 1. ? CV_INTER_AREA : (scale_factor > 1. ? CV_INTER_CUBIC : CV_INTER_LINEAR));	// scale_factor=1.0: CV_INTER_LINEAR,  scale_factor<1.0: CV_INTER_AREA,  scale_factor>1.0: CV_INTER_CUBIC
 	const double translation_factor_x = (rand() % 100 - 50) * 0.01;		// in [-0.5, 0.5]
 	const double translation_factor_y = (rand() % 100 - 50) * 0.01;		// in [-0.5, 0.5]
@@ -676,7 +676,7 @@ void ipa_dirt_detection_dataset_tools::ImageBlender::addIlluminationFromTemplate
 
 	// rotate, scale, and shift the mask randomly
 	const double rotation_angle = rand() % 360;		// in [deg] !
-	const double scale_factor = (rand() % 41 + 80) * 0.01;		// resize ratio in range 0.8 to 1.2
+	const double scale_factor = (rand() % 71 + 80) * 0.01;		// resize ratio in range 0.8 to 1.5
 	const int interpolation_mode = (scale_factor < 1. ? CV_INTER_AREA : (scale_factor > 1. ? CV_INTER_CUBIC : CV_INTER_LINEAR));	// scale_factor=1.0: CV_INTER_LINEAR,  scale_factor<1.0: CV_INTER_AREA,  scale_factor>1.0: CV_INTER_CUBIC
 	const double translation_factor_x = (rand() % 100 - 50) * 0.01;		// in [-0.5, 0.5]
 	const double translation_factor_y = (rand() % 100 - 50) * 0.01;		// in [-0.5, 0.5]

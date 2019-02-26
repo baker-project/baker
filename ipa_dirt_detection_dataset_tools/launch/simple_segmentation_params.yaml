@@ -1,5 +1,5 @@
 # base path to all further folders
-base_path: "/home/rmb/.ros/dirt_detection_data/new_database/"
+base_path: "/home/rmb/.ros/dirt_detection_data/dataset_2019/"
 
 # path of dirt or object images to be segmented from background - this is the source folder for cropping objects or dirt from images
 source_image_path: "objects/usb_sticks"

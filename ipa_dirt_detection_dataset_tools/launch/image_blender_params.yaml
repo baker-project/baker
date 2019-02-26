@@ -1,5 +1,5 @@
 # base path to all further folders
-base_path: "/home/rmb/.ros/dirt_detection_data/new_database/"
+base_path: "/home/rmb/.ros/dirt_detection_data/dataset_2019/"
 
 # clean ground images path
 ground_image_path: "floors"
