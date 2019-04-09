@@ -85,6 +85,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 				self.robot_radius_,
 				self.coverage_radius_,
 				self.field_of_view_,
+				self.field_of_view_origin_,
 				self.use_cleaning_device_	# todo: hack: cleaning device can be turned off for trade fair show
 			)
 			self.wet_cleaner_.executeBehavior()
@@ -132,6 +133,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		#self.coverage_radius_ = 0.233655  #0.25	# todo: read from MIRA
 		self.field_of_view_ = [Point32(x=0.04035, y=0.136), Point32(x=0.04035, y=-0.364),
 							   Point32(x=0.54035, y=-0.364), Point32(x=0.54035, y=0.136)]	# todo: read from MIRA
+		self.field_of_view_origin_ = Point32(x=0.0, y=0.0)	# todo: read from MIRA
 
 		# todo: hack: cleaning device can be turned off for trade fair show
 		self.use_cleaning_device_ = False

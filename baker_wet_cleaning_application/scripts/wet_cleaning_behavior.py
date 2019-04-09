@@ -31,7 +31,7 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 
 		
 	# Method for setting parameters for the behavior
-	def setParameters(self, database_handler, room_information_in_meter, sequence_data, mapping, robot_frame_id, robot_radius, coverage_radius, field_of_view, use_cleaning_device):
+	def setParameters(self, database_handler, room_information_in_meter, sequence_data, mapping, robot_frame_id, robot_radius, coverage_radius, field_of_view, field_of_view_origin, use_cleaning_device):
 		# Parameters set from the outside
 		self.database_handler_= database_handler
 		self.room_information_in_meter_ = room_information_in_meter
@@ -41,6 +41,7 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 		self.robot_radius_ = robot_radius
 		self.coverage_radius_ = coverage_radius
 		self.field_of_view_ = field_of_view
+		self.field_of_view_origin_ = field_of_view_origin
 		self.use_cleaning_device_ = use_cleaning_device	# todo: hack: cleaning device can be turned off for trade fair show
 		# Parameters set autonomously
 		self.room_exploration_service_str_ = '/room_exploration/room_exploration_server'
@@ -85,6 +86,7 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 			self.robot_radius_, 
 			self.coverage_radius_, 
 			self.field_of_view_,
+			self.field_of_view_origin_,
 			self.use_cleaning_device_	# todo: hack: cleaning device can be turned off for trade fair show
 		)
 		self.room_wet_floor_cleaner_.executeBehavior()
