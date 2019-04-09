@@ -32,7 +32,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 
 		
 	# Method for setting parameters for the behavior
-	def setParameters(self, map_data, segmentation_data, sequence_data, robot_frame_id, robot_radius, coverage_radius, field_of_view, use_cleaning_device):
+	def setParameters(self, map_data, segmentation_data, sequence_data, robot_frame_id, robot_radius, coverage_radius, field_of_view, field_of_view_origin, use_cleaning_device):
 		# Service strings
 		self.room_exploration_service_str_ = '/room_exploration/room_exploration_server'
 		self.move_base_path_service_str_ = '/move_base_path'
@@ -50,6 +50,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 		self.robot_radius_ = robot_radius
 		self.coverage_radius_ = coverage_radius
 		self.field_of_view_ = field_of_view
+		self.field_of_view_origin_ = field_of_view_origin
 		self.use_cleaning_device_ = use_cleaning_device	# todo: hack: cleaning device can be turned off for trade fair show
 		# Get a opencv representation of the segmented image
 		self.bridge_ = CvBridge()
@@ -109,6 +110,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					robot_radius = self.robot_radius_,
 					coverage_radius = self.coverage_radius_,
 					field_of_view = self.field_of_view_,		# this field of view represents the off-center iMop floor wiping device
+					field_of_view_origin = self.field_of_view_origin_,
 					starting_position = Pose2D(x=current_room_center.x, y=current_room_center.y, theta=0.),	# todo: determine current robot position
 					planning_mode = 2
 				)
@@ -211,6 +213,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					req.map_resolution = self.map_data_.map_resolution
 					req.map_origin = self.map_data_.map_origin
 					req.field_of_view = self.field_of_view_
+					req.field_of_view_origin = self.field_of_view_origin_
 					req.coverage_radius = self.coverage_radius_
 					req.check_for_footprint = False
 					req.check_number_of_coverages = False
