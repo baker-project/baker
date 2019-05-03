@@ -16,9 +16,11 @@
 
 #include <ipa_dirt_detection/record_dataset.h>
 
+#include <opencv2/highgui.hpp>
+
 using namespace ipa_DatasetCreate;
 using namespace std;
-using namespace cv;
+
 
 struct lessPoint2i : public std::binary_function<cv::Point2i, cv::Point2i, bool>
 {
