@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string.h>
+#include <map>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
