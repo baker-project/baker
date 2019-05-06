@@ -231,7 +231,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					0.5,
 					1.57,
 					0.1,
-					1.0
+					0.5
 				)
 				self.wall_follower_.executeBehavior()
 				

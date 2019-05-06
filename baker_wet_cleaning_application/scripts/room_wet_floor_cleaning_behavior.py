@@ -220,10 +220,10 @@ class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 				self.map_resolution_,
 				self.map_origin_,
 				0.2,
-				0.5,
+				0.3,
 				1.57,
 				0.1,
-				1.0
+				0.8
 			)
 			self.wall_follower_.executeBehavior()
 			
