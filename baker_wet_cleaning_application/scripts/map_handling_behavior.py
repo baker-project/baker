@@ -7,7 +7,6 @@ import behavior_container
 import map_receiving_behavior
 import map_segmentation_behavior
 import room_sequencing_behavior
-import map_segment_extracting_behavior
 
 class MapHandlingBehavior(behavior_container.BehaviorContainer):
 
