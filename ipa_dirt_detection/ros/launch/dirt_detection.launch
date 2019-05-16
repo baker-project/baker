@@ -10,7 +10,7 @@
 	<!--launch-prefix="/usr/bin/gdb"-->
 	<!--remap from="image_color" to="/camera/rgb/image"/-->
 	<remap from="colored_point_cloud" to="/camera/depth_registered/points"/>
-	<remap from="image_color" to="/camera/rgb/image_rect_color"/>
+	<remap from="image_color" to="/camera/rgb/image_raw"/>
 	<!--remap from="colored_point_cloud" to="/cam3d/depth_registered/points"/-->
 	<!--remap from="colored_point_cloud" to="/cam3d/rgb/points"/-->
 	<!--remap from="colored_point_cloud" to="/camera/rgb/points"/-->

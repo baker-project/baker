@@ -1,0 +1,55 @@
+# base path to all further folders
+base_path: "/home/rmb/.ros/dirt_detection_data/dataset_2019/"
+
+# clean ground images path
+ground_image_path: "floors"
+
+# path to the segmented dirt samples
+segmented_dirt_path: "dirt_segmented"
+
+# path to the segmented dirt masks
+segmented_dirt_mask_path: "dirt_segmented"
+
+# path to the segmented object samples
+segmented_objects_path: "objects_segmented"
+
+# path to the segmented object masks
+segmented_objects_mask_path: "objects_segmented"
+
+# path to brightness and shadow masks, source folder for brightness and shadow masks
+brightness_shadow_mask_path: "brightness_shadow_masks"
+
+# path to illumination masks, source folder for illumination masks
+illumination_mask_path: "illumination_masks"
+
+# path to save the blended images
+blended_ground_image_path: "blended_floor_images"
+
+# path to save the blended image masks
+blended_ground_image_mask_path: "blended_floor_masks"
+
+# name to the output file which stores the parameters of the bounding boxes of the blended images
+blended_ground_image_bbox_filename: "bbox_labels.txt"
+
+# maximum number of dirt spots per frame
+# int
+max_num_dirts: 8
+
+# minimum number of dirt spots per frame
+# int
+min_num_dirts: 5
+
+# maximum number of objects per frame
+# int
+max_num_objects: 6
+
+# minimum number of objects per frame
+# int
+min_num_objects: 2
+
+# option, whether to flip the clean ground images horizontally and vertically or not (generates 4 images out of one ground image), false=off, true=on
+flip_clean_ground: true
+
+# number of reuses for the same ground pattern (i.e. how many times each image will be used for blending artificial images)
+# int
+ground_image_reuse_times: 2

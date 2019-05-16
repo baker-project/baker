@@ -8,6 +8,11 @@ import behavior_container
 
 class MapReceivingBehavior(behavior_container.BehaviorContainer):
 
+	#========================================================================
+	# Description:
+	# Class which contains the behavior receiving the map data from ROS.
+	#========================================================================
+
 	def __init__(self, behavior_name, interrupt_var, service_str, map_segmented_receiving_service_str=None):
 		self.behavior_name_ = behavior_name
 		self.interrupt_var_ = interrupt_var
