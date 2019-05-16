@@ -50,6 +50,7 @@ class SeqControl():
 		# ... or ...
 		#planning_mode = 1 # footprint planning
 		#fov_points = [Point32(x=-0.3, y=0.3), Point32(x=-0.3, y=-0.3), Point32(x=0.3, y=-0.3), Point32(x=0.3, y=0.3)] # this is the working area of a vacuum cleaner with 60 cm width
+		fov_origin = Point32(x=0., y=0.)
 		exploration_goal = RoomExplorationGoal()
 		exploration_goal.input_map = self.map_data.map
 		exploration_goal.map_resolution = self.map_data.map_resolution
@@ -57,6 +58,7 @@ class SeqControl():
 		exploration_goal.robot_radius = 0.3
 		exploration_goal.coverage_radius = 0.3
 		exploration_goal.field_of_view = fov_points
+		exploration_goal.field_of_view_origin = fov_origin
 		exploration_goal.starting_position = Pose2D(x=1., y=0., theta=0.)
 		exploration_goal.planning_mode = planning_mode
 		print "Waiting for action '/room_exploration/room_exploration_server' to become available ..."

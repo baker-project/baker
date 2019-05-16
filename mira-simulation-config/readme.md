@@ -1,6 +1,6 @@
 ##Start Miracenter:
-miracenter application.xml -p1234
 miracenter ~/git/care-o-bot-indigo/src/baker/mira-simulation-config/application.xml -p1234
+miracenter application.xml -p1234
 
 
 mirainspect channel echo /navigation/PilotEvent -k127.0.0.1:1234
@@ -9,14 +9,19 @@ in MiraCenter - Channels View -> show type of messages
 
 
 ## Run remaining software
+--> Simulation:
+roslaunch baker_wet_cleaning_application basic_application.launch scitos_node_args:="-k127.0.0.1:1234" brush_cleaning_module_interface_args:="-k127.0.0.1:1234"
+
+--> Roboter:
+roslaunch baker_wet_cleaning_application basic_application.launch scitos_node_args:="-k192.168.5.1:1234" brush_cleaning_module_interface_args:="-k192.168.5.1:1234" obstacle_map_channel:="/3d/MergedMap"
+
+--> old:
 roslaunch baker_office_cleaning_application office_cleaning_application.launch
 OR
 roslaunch scitos_mira scitos_mira.launch
 
 rosrun baker_office_cleaning_application test_room_exploration.py
 
-Alternativ:
-roslaunch baker_wet_cleaning_application basic_application.launch scitos_node_args:="-k192.168.5.1:1234" brush_cleaning_module_interface_args:="-k192.168.5.1:1234" obstacle_map_channel:="/3d/MergedMap"
 
 ## Install basic MIRA on a separate device
 ### Install dependencies
