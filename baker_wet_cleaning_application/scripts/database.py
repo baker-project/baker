@@ -504,13 +504,13 @@ class Database:
 		# Save current log as "_discarded_<old logfile name>.txt"
 		current_logfile_filename = self.getCurrentLogfileName()
 		current_file_name = str(self.log_filepath_) + str(current_logfile_filename)
-		if (os.path.isfile(current_file_name) == True):
+		if os.path.isfile(current_file_name):
 			current_discarded_logfile_name = str(self.log_filepath_) + "_discarded_" + str(current_logfile_filename)
 			copyfile(current_file_name, current_discarded_logfile_name)
 		# Remove temporal files from disk
-		if (os.path.isfile(self.tmp_rooms_filename_) == True):
+		if os.path.isfile(self.tmp_rooms_filename_):
 			os.remove(str(self.tmp_rooms_filename_))
-		if (os.path.isfile(self.tmp_application_data_filename_) == True):
+		if os.path.isfile(self.tmp_application_data_filename_):
 			os.remove(str(self.tmp_application_data_filename_))
 		# Reload database from original files
 		self.loadDatabase()
@@ -526,7 +526,7 @@ class Database:
 		temporal_appdata_exists = os.path.isfile(self.tmp_application_data_filename_)
 		temporal_exists = temporal_appdata_exists and temporal_room_exists
 		#try:
-		if (self.checkIntegrity(temporal_exists) == True):
+		if self.checkIntegrity(temporal_exists):
 			self.readFiles(temporal_exists)
 		else:
 			self.readFiles(not(temporal_exists))
@@ -539,7 +539,7 @@ class Database:
 		# Load current log file. If there is not a suiting log file, create one
 		current_logfile_filename = self.getCurrentLogfileName()
 		current_file_name = str(self.log_filepath_) + str(current_logfile_filename)
-		if (os.path.isfile(current_file_name) == True):
+		if os.path.isfile(current_file_name):
 			file = open(current_file_name, "r").read()
 			# Translate text to dict and dict to list of LogItem
 			log_item_dict = json.loads(file)
@@ -550,6 +550,7 @@ class Database:
 			file.write("{}")
 			file.close
 			log_item_list = []
+
 		# Append new LogItem instance to the LogItem list
 		log_item_list.append(log_element)
 		# Translate LogItem list to dict and dict to text
@@ -573,12 +574,12 @@ class Database:
 		self.saveRoomDatabase(temporal=temporal_file)
 		self.application_data_.last_database_save_successful_ = True
 		self.saveGlobalApplicationData(temporal=temporal_file)
+
 		if not temporal_file:
 			if os.path.isfile(self.tmp_rooms_filename_):
 				os.remove(str(self.tmp_rooms_filename_))
 			if os.path.isfile(self.tmp_application_data_filename_):
 				os.remove(str(self.tmp_application_data_filename_))
-
 
 
 	# Retrieve a room by providing a room_id

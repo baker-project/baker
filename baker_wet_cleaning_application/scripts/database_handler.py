@@ -64,7 +64,7 @@ class DatabaseHandler:
 
 	@staticmethod
 	def isTrashDay(cleaning_method):
-		return cleaning_method in [1, 2, 3]
+		return cleaning_method in [0, 1, 2]
 	# ===============================================================================
 	# OBJECT SPECIFIC METHODS
 	# ===============================================================================
@@ -185,6 +185,11 @@ class DatabaseHandler:
 	# CASE: Some cleaning subtasks were not completed in the past (i.e. a scheduled one was missed)
 	# USAGE: Run after all the due rooms are done
 	def getAllOverdueRooms(self):
+		self.getAllOverdueRoomsAmongRooms(self.database_.rooms_)
+		self.applyChangesToDatabase()
+
+	@staticmethod
+	def getAllOverdueRoomsAmongRooms(self, rooms):
 		today_index = 0		# todo: verify whether this is always correct: todo_index should be determined correctly for the given day
 		current_schedule_index = today_index - 1
 		day_delta = 1
@@ -197,7 +202,7 @@ class DatabaseHandler:
 			datetime_day_delta = datetime.timedelta(days=day_delta)
 			indexed_date = datetime.datetime.now() - datetime_day_delta
 			# Iterate through all potential rooms
-			for room in self.database_.rooms_:
+			for room in rooms:
 				# Room must not be in the due rooms list already
 				if not (room in self.due_rooms_):
 					schedule_char = room.room_scheduled_days_[current_schedule_index]
@@ -240,8 +245,6 @@ class DatabaseHandler:
 					
 			current_schedule_index = current_schedule_index - 1
 			day_delta = day_delta + 1
-		
-		self.applyChangesToDatabase()
 
 
 	# Method for figuring out whether the application had been started today already
