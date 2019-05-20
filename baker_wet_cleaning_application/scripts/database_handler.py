@@ -1,21 +1,18 @@
 #!/usr/bin/env python
 
 # For database
-import database
 import database_classes
 # For date and time calculations
 import datetime
 from datetime import date
 # For room information
 from ipa_building_msgs.msg import *
-import geometry_msgs
 # For map generation
 import numpy as np
-import cv2
 from cv_bridge import CvBridge, CvBridgeError
 
 
-class DatabaseHandler():
+class DatabaseHandler:
 
 	#========================================================================
 	# Description:
@@ -27,6 +24,10 @@ class DatabaseHandler():
 	due_rooms_ = []
 	# Contains all overdue rooms
 	overdue_rooms_ = []
+
+	TRASH_TASK = -1
+	DRY_TASK = 0
+	WET_TASK = 1
 
 	# ===============================================================================
 	# STATIC METHODS
@@ -45,6 +46,25 @@ class DatabaseHandler():
 	def getTodaysScheduleIndex():
 		return DatabaseHandler.getTodaysWeekType() * 7 + DatabaseHandler.getTodaysWeekDay()
 
+	@staticmethod
+	def isCleaningDay(schedule_char):
+		return schedule_char == "x" or schedule_char == "X"
+
+	@staticmethod
+	def isTrashDay(schedule_char):
+		return schedule_char == "p" or schedule_char == "P"
+
+	@staticmethod
+	def isDryDay(cleaning_method):
+		return cleaning_method == 2 or cleaning_method == 0
+
+	@staticmethod
+	def isWetDay(cleaning_method):
+		return cleaning_method == 2 or cleaning_method == 1
+
+	@staticmethod
+	def isTrashDay(cleaning_method):
+		return cleaning_method in [1, 2, 3]
 	# ===============================================================================
 	# OBJECT SPECIFIC METHODS
 	# ===============================================================================
@@ -64,7 +84,7 @@ class DatabaseHandler():
 			# Add the room to the final map
 			for x in range(image_width):
 				for y in range(image_height):
-					if (room_map_opencv[y, x] == 255):
+					if room_map_opencv[y, x] == 255:
 						tmp_map_opencv[y, x] = segmentation_id + 1
 			# Get room_information_in_pixels
 			room_information_in_pixel.append(room.room_information_in_pixel_)
@@ -101,18 +121,20 @@ class DatabaseHandler():
 	# USAGE: Run when the application is started the first time today. Then run at the beginning.
 	def getAllDueRooms(self):
 		print "[DatabaseHandler]: getAllDueRooms() ..."
+
 		# If the application ran already today and the due rooms list is not empty, this should not run
 		if self.database_.application_data_.last_planning_date_[0] is not None:
 			delta = datetime.datetime.now() - self.database_.application_data_.last_planning_date_[0]
 			if delta.days == 0 and len(self.due_rooms_) != 0:
 				print "[DatabaseHandler]: Earlier run detected!"
 				return
+
 		today_index = self.getTodaysScheduleIndex()
 		self.due_rooms_ = []
 		for room in self.database_.rooms_:
 			schedule_char = room.room_scheduled_days_[today_index]
 			# Some cleaning required
-			if (schedule_char != ""):
+			if schedule_char != "":
 				# Find out if the timestamps indicate that the room has been handled already today
 				timestamp_is_new = [
 					room.room_cleaning_datestamps_[0] is not None
@@ -122,36 +144,31 @@ class DatabaseHandler():
 					room.room_cleaning_datestamps_[2] is not None
 					and datetime.datetime.now() - room.room_cleaning_datestamps_[2] < datetime.timedelta(days=1)	# wet cleaning
 				]
+
 				# If today is a cleaning day
-				if schedule_char == "x" or schedule_char == "X":
-					# Cleaning method 2 --> Dry, Wet, Trash
-					if room.room_cleaning_method_ == 2:
-						if not((timestamp_is_new[0]) or (-1 in room.open_cleaning_tasks_)):	# trash
-							room.open_cleaning_tasks_.append(-1)
-						if not((timestamp_is_new[1]) or (0 in room.open_cleaning_tasks_)):	# dry
-							room.open_cleaning_tasks_.append(0)
-						if not((timestamp_is_new[2]) or (1 in room.open_cleaning_tasks_)):	# wet
-							room.open_cleaning_tasks_.append(1)
-					# Cleaning method 1 --> Wet, Trash
-					elif room.room_cleaning_method_ == 1:
-						if not((timestamp_is_new[0]) or (-1 in room.open_cleaning_tasks_)):	# trash
-							room.open_cleaning_tasks_.append(-1)
-						if not((timestamp_is_new[2]) or (1 in room.open_cleaning_tasks_)):	# wet
-							room.open_cleaning_tasks_.append(1)
-					# Cleaning method 0 --> Dry, Trash
-					elif room.room_cleaning_method_ == 0:
-						if not((timestamp_is_new[0]) or (-1 in room.open_cleaning_tasks_)):	# trash
-							room.open_cleaning_tasks_.append(-1)
-						if not((timestamp_is_new[1]) or (0 in room.open_cleaning_tasks_)):	# dry
-							room.open_cleaning_tasks_.append(0)
+				if self.isCleaningDay(schedule_char):
+
+					if self.isTrashDay(room.room_cleaning_method_)\
+						and (not timestamp_is_new[0] and not (self.TRASH_TASK in room.open_cleaning_tasks_)):
+							room.open_cleaning_tasks_.append(self.TRASH_TASK)
+
+					if self.isDryDay(room.room_cleaning_method_)\
+						and (not timestamp_is_new[1] and not (self.DRY_TASK in room.open_cleaning_tasks_)):
+							room.open_cleaning_tasks_.append(self.DRY_TASK)
+
+					if self.isWetDay(room.room_cleaning_method_)\
+						and (not timestamp_is_new[2] and not (self.WET_TASK in room.open_cleaning_tasks_)):
+							room.open_cleaning_tasks_.append(self.WET_TASK)
+
 				# If today is only a trashcan day
 				else:	# todo: check for "p" since trash is not just standard procedure
-					room.open_cleaning_tasks_.append(-1)
+					room.open_cleaning_tasks_.append(self.TRASH_TASK)
+
 				# Append room to the due list if any task is to be done
 				if len(room.open_cleaning_tasks_) != 0:
 					self.due_rooms_.append(room)
 		
-		self.applyChangesToDatabase()
+		self.applyChangesToDatabase() # saves all the due rooms in the database
 
 
 	# Method for restoring the due list after application was stopped
@@ -160,7 +177,7 @@ class DatabaseHandler():
 	def restoreDueRooms(self):
 		print "[DatabaseHandler]: Restoring due rooms from earlier runs..."
 		for room in self.database_.rooms_:
-			if (len(room.open_cleaning_tasks_) != 0):
+			if len(room.open_cleaning_tasks_) != 0:
 				self.due_rooms_.append(room)
 
 
@@ -186,45 +203,37 @@ class DatabaseHandler():
 					schedule_char = room.room_scheduled_days_[current_schedule_index]
 					cleaning_method = room.room_cleaning_method_
 					# Room floor cleaning with trashcan was scheduled
-					if (((schedule_char == "x") or (schedule_char == "X"))):
+					if self.isCleaningDay(schedule_char):
 						trashcan_date = room.room_cleaning_datestamps_[0]
 						dry_date = room.room_cleaning_datestamps_[1]
 						wet_date = room.room_cleaning_datestamps_[2]
+
 						# Room's trashcan was to be emptied and that did not happen
-						if ((trashcan_date != None) and (trashcan_date < indexed_date)):
-							if not (-1 in room.open_cleaning_tasks_):
-								room.open_cleaning_tasks_.append(-1)
+						if trashcan_date is None and trashcan_date < indexed_date:
+							if not (self.TRASH_TASK in room.open_cleaning_tasks_):
+								room.open_cleaning_tasks_.append(self.TRASH_TASK)
 							if not (room in self.overdue_rooms_):
 								self.overdue_rooms_.append(room)
+
 						# Room was to be cleaned dry and that did not happen
-						if ((cleaning_method == 0) and (dry_date != None) and (dry_date < indexed_date)):
-							if not (0 in room.open_cleaning_tasks_):
-								room.open_cleaning_tasks_.append(0)
+						if self.isDryDay(cleaning_method) and dry_date is not None and dry_date < indexed_date:
+							if not (self.DRY_TASK in room.open_cleaning_tasks_):
+								room.open_cleaning_tasks_.append(self.DRY_TASK)
 							if not (room in self.overdue_rooms_):
 								self.overdue_rooms_.append(room)
+
 						# Room was to be cleaned wet and that did not happen
-						elif ((cleaning_method == 1) and (wet_date != None) and (wet_date < indexed_date)):
-							if not (1 in room.open_cleaning_tasks_):
-								room.open_cleaning_tasks_.append(1)
+						if self.isWetDay(cleaning_method) and wet_date is not None and wet_date < indexed_date:
+							if not (self.WET_TASK in room.open_cleaning_tasks_):
+								room.open_cleaning_tasks_.append(self.WET_TASK)
 							if not (room in self.overdue_rooms_):
 								self.overdue_rooms_.append(room)
-						# Both cleanings were to be done and at least one did not happen
-						elif (cleaning_method == 2):
-							if ((dry_date != None) and (dry_date < indexed_date)):
-								if not (0 in room.open_cleaning_tasks_):
-									room.open_cleaning_tasks_.append(0)
-								if not (room in self.overdue_rooms_):
-									self.overdue_rooms_.append(room)
-							if ((wet_date != None) and (wet_date < indexed_date)):
-								if not (1 in room.open_cleaning_tasks_):
-									room.open_cleaning_tasks_.append(1)
-								if not (room in self.overdue_rooms_):
-									self.overdue_rooms_.append(room)
+
 					# Trashcan emptying was scheduled
-					elif ((schedule_char == "p") or (schedule_char == "P")):
+					elif self.isTrashDay(cleaning_method):
 						trashcan_date = room.room_cleaning_datestamps_[0]
-						if ((trashcan_date != None) and (trashcan_date < indexed_date)):
-							if not (-1 in room.open_cleaning_tasks_):
+						if trashcan_date is not None and trashcan_date < indexed_date:
+							if not (self.TRASH_TASK in room.open_cleaning_tasks_):
 								room.open_cleaning_tasks_.append(-1)
 							if not (room in self.overdue_rooms_):
 								self.overdue_rooms_.append(room)
@@ -235,42 +244,44 @@ class DatabaseHandler():
 		self.applyChangesToDatabase()
 
 
-
 	# Method for figuring out whether the application had been started today already
 	def noPlanningHappenedToday(self):
 		last_start = self.database_.application_data_.last_planning_date_[0]
 		today_date = datetime.datetime.now()
-		if (last_start != None):
+		if last_start is not None:
 			delta = today_date - last_start
-			if (delta.days < 1):
+			if delta.days < 1:
 				return False
 			else:
 				return True
 		else:
 			return True
 
-			
+
 	# Method for sorting a list of rooms after the cleaning method
 	def sortRoomsList(self, rooms_list):
 		rooms_wet_cleaning = []
 		rooms_dry_cleaning = []
 		# Divide between wet and dry cleaning 
 		for room in rooms_list:
-			if (0 in room.open_cleaning_tasks_):
+			if self.DRY_TASK in room.open_cleaning_tasks_:
 				rooms_dry_cleaning.append(room)
-			if (1 in room.open_cleaning_tasks_):
+			if self.WET_TASK in room.open_cleaning_tasks_:
 				rooms_wet_cleaning.append(room)
+
 		# Append all trashcan-only-rooms to the dry
 		for room in rooms_list:
-			if ((-1 in room.open_cleaning_tasks_) and (len(room.open_cleaning_tasks_) == 1)):
+			if (self.TRASH_TASK in room.open_cleaning_tasks_) and len(room.open_cleaning_tasks_) == 1:
 				rooms_dry_cleaning.append(room)
+
 		return rooms_dry_cleaning, rooms_wet_cleaning
 
 
 	# Method for setting a room as completed
 	def checkoutCompletedRoom(self, room, assignment_type):
 		# Print checkout on console
-		print "[DatabaseHandler]: Checking out room " + str(room.room_id_) + ", cleaning subtask " + str(assignment_type) + ", out of " + str(room.open_cleaning_tasks_)
+		print "[DatabaseHandler]: Checking out room " + str(room.room_id_) + ", cleaning subtask " + str(assignment_type)\
+			  + ", out of " + str(room.open_cleaning_tasks_)
 		# Add entry into the log
 		log_item = database_classes.LogItem()
 		log_item.room_id_ = room.room_id_
@@ -295,7 +306,8 @@ class DatabaseHandler():
 
 	
 	# Public method to add an entry to the log. Method from the database does not need to be called, avoiding nasty imports
-	def addLogEntry(self, room_id, status, cleaning_task, found_dirtspots, found_trashcans, cleaned_surface_area, room_issues, used_water_amount, battery_usage):
+	def addLogEntry(self, room_id, status, cleaning_task, found_dirtspots, found_trashcans, cleaned_surface_area,
+					room_issues, used_water_amount, battery_usage):
 		new_entry = database_classes.LogItem()
 		new_entry.room_id_ = room_id
 		new_entry.log_week_and_day_ = [self.getTodaysWeekType(), self.getTodaysWeekDay()]
