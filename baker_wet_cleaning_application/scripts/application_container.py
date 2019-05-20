@@ -99,16 +99,16 @@ class ApplicationContainer:
 		self.printMsg("Current status is " + str(self.application_status_[0]))
 		if (self.application_status_[0] == 1):
 			self.prePauseProcedure()
-			while (self.application_status_[0] == 1):
+			while (self.isPaused()):
 				pass
-			if self.application_status_[0] == 0:
+			if self.isOk():
 				self.application_resumed_after_pause = True
 				self.postPauseProcedure()
-		elif (self.application_status_[0] == 2):
+		elif self.isPaused():
 			self.cancelProcedure()
-		elif (self.application_status_[0] == 3):
+		elif self.isTerminated():
 			self.cancelProcedure()
-		return self.application_status_[0]
+		return self.getStatus()
 
 	# Implement application procedures of inherited classes here.
 	@abstractmethod
@@ -125,12 +125,42 @@ class ApplicationContainer:
 		while not rospy.is_shutdown():
 			#if self.handleInterrupt() != 0:
 			#	pass
-			if self.application_status_[0] == 0:
+			if self.isOk():
 				self.printMsg("Application started.")
 				self.executeCustomBehavior()
-				if self.application_status_[0] == 0 and self.application_resumed_after_pause == False:
-					self.application_status_[0] = 2		# set back to 2=Cancelled after successful, uninterrupted execution to avoid automatic restart
-				if self.application_resumed_after_pause == False:
+				if self.isOk() and self.application_resumed_after_pause == False:
+					self.cancelApplication()	# set back to 2=Cancelled after successful, uninterrupted execution to avoid automatic restart
+				if not self.application_resumed_after_pause:
 					self.printMsg("Application completed with code " + str(self.application_status_[0]))
-			elif self.application_status_[0] == 3:
+			elif self.isTerminated():
 				break
+			
+	def setStatus(self, status):
+		self.application_status_[0] = status
+		
+	def getStatus(self):
+		return self.application_status_[0]
+	
+	def cancelApplication(self):
+		self.setStatus(2)
+	
+	def isCancelled(self):
+		return self.getStatus() == 2
+	
+	def pauseApplication(self):
+		self.setStatus(1)
+		
+	def isPaused(self):
+		return self.getStatus() == 1
+	
+	def terminateApplication(self):
+		self.setStatus(3)
+	
+	def isTerminated(self):
+		return self.getStatus() == 3
+	
+	def runApplication(self):
+		self.setStatus(0)
+		
+	def isOk(self):
+		return self.application_status_[0] == 0

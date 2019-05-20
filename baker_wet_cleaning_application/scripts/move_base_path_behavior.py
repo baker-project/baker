@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 
-import rospy
 import actionlib
 
-from scitos_msgs.msg import MoveBasePathAction
-from scitos_msgs.msg import MoveBasePathGoal
+from scitos_msgs.msg import MoveBasePathAction, MoveBasePathGoal
 
 import behavior_container
 

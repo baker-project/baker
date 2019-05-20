@@ -20,7 +20,7 @@ class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 
 	#========================================================================
 	# Description:
-	# Class which contains the beavior of cleaning the floor of a single room
+	# Class which contains the behavior of cleaning the floor of a single room
 	# This class does not require database elements
 	#========================================================================
 		
@@ -52,9 +52,6 @@ class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 		self.receive_coverage_image_service_str_ = "/room_exploration/coverage_monitor_server/get_coverage_image"
 
 
-
-
-
 	# Method for returning to the standard pose of the robot
 	def returnToRobotStandardState(self):
 		# save current data if necessary
@@ -70,9 +67,6 @@ class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 				print "Stop cleaning returned with success status " + str(resp.success)
 			except rospy.ServiceException, e:
 				print "Service call to " + self.stop_cleaning_service_str_ + " failed: %s" % e
-
-
-
 
 
 	# Implemented Behavior
@@ -108,7 +102,7 @@ class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 		self.room_explorer_.executeBehavior()
 
 		# If no trajectory was created - move on to next room
-		if (self.room_explorer_.exploration_result_ != None):
+		if self.room_explorer_.exploration_result_ != None:
 			
 			# Interruption opportunity
 			if self.handleInterrupt() >= 1:
@@ -216,7 +210,7 @@ class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 			self.wall_follower_.setParameters(
 				self.map_data_,
 				self.room_map_data_,
-				self.room_map_data_,	#self.coverage_map_response_.coverage_map,
+				self.room_map_data_,	#todo: self.coverage_map_response_.coverage_map,
 				self.map_resolution_,
 				self.map_origin_,
 				0.2,

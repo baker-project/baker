@@ -19,7 +19,7 @@ import move_base_wall_follow_behavior
 class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 
 	#========================================================================
-	# Serivces to be used:
+	# Services to be used:
 	# room_exploration_service_str_ = 
 	#       '/room_exploration_server'
 	# move_base_path_service_str_ =
@@ -55,6 +55,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 		# Get a opencv representation of the segmented image
 		self.bridge_ = CvBridge()
 		self.opencv_segmented_map_ = self.bridge_.imgmsg_to_cv2(self.segmentation_data_.segmented_map, desired_encoding = "passthrough")
+
 
 	# Method for returning to the standard pose of the robot
 	def returnToRobotStandardState(self):
@@ -270,7 +271,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 		tmp_map_opencv = np.zeros((image_height, image_width), np.uint8)
 		for x in range(image_width):
 			for y in range(image_height):
-				if (opencv_segmented_map[y, x] == current_room_index + 1):
+				if opencv_segmented_map[y, x] == current_room_index + 1:
 					tmp_map_opencv[y, x] = 255
 					# print "%i %i %i" % (self.opencv_segmented_map_[y, x], x, y)
 		return self.bridge_.cv2_to_imgmsg(tmp_map_opencv, encoding = "mono8")

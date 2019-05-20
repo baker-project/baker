@@ -1,37 +1,23 @@
 #!/usr/bin/env python
 
-import rospy
-from geometry_msgs.msg import PoseStamped, Pose2D, Point32, Quaternion
-import std_srvs.srv
-import dynamic_reconfigure.client
-import ipa_building_msgs.srv
-
-import cv2
-import numpy as np
-from cv_bridge import CvBridge, CvBridgeError
 import threading
 
 import behavior_container
-import move_base_behavior
-import room_exploration_behavior
-import move_base_path_behavior
 import trolley_movement_behavior
-import trashcan_emptying_behavior
 import tool_changing_behavior
-import move_base_wall_follow_behavior
 import room_wet_floor_cleaning_behavior
 
 class WetCleaningBehavior(behavior_container.BehaviorContainer):
 
 	#========================================================================
 	# Description:
-	# Handles the wet cleanig process (i.e. Floor cleaning, Trashcan)
+	# Handles the wet cleaning process (i.e. Floor cleaning, Trashcan)
 	# for all rooms provided in a given list
 	#========================================================================
 
-		
 	# Method for setting parameters for the behavior
-	def setParameters(self, database_handler, room_information_in_meter, sequence_data, mapping, robot_frame_id, robot_radius, coverage_radius, field_of_view, field_of_view_origin, use_cleaning_device):
+	def setParameters(self, database_handler, room_information_in_meter, sequence_data, mapping, robot_frame_id,
+					  robot_radius, coverage_radius, field_of_view, field_of_view_origin, use_cleaning_device):
 		# Parameters set from the outside
 		self.database_handler_= database_handler
 		self.room_information_in_meter_ = room_information_in_meter
@@ -56,15 +42,11 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 		self.trolley_movement_service_str_ = ""
 		self.tool_changing_service_str_ = ""
 
-
-
 	# Method for returning to the standard pose of the robot
 	def returnToRobotStandardState(self):
 		# nothing to save
 		# nothing to be undone
 		pass
-
-
 
 	# Driving through room and wet cleaning
 	def driveCleaningTrajectory(self, room_counter, current_room_index):
@@ -117,8 +99,6 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 			0 # battery usage
 		)
 
-
-
 	# Searching for trashcans
 	def trashcanRoutine(self, room_counter):
 		# ==========================================
@@ -139,14 +119,11 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 			0 # battery usage
 		)
 
-
-
 	# Implemented Behavior
 	def executeCustomBehavior(self):
 		self.trolley_mover_ = trolley_movement_behavior.TrolleyMovementBehavior("TrolleyMovementBehavior", self.interrupt_var_)
 		self.tool_changer_ = tool_changing_behavior.ToolChangingBehavior("ToolChangingBehavior", self.interrupt_var_)
 		self.room_wet_floor_cleaner_ = room_wet_floor_cleaning_behavior.RoomWetFloorCleaningBehavior("RoomWetFloorCleaningBehavior", self.interrupt_var_)
-		
 
 		# Tool changing
 		self.tool_changer_.setParameters(self.database_handler_)
@@ -155,6 +132,7 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 		# Room counter index: Needed for mapping of room_indices <--> RoomItem.room_id
 		room_counter = 0
 
+		# todo: tsp on the checkpoints / rooms ?
 		for current_checkpoint_index in range(len(self.sequence_data_.checkpoints)):
 
 			# Trolley movement to checkpoint
@@ -167,10 +145,10 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 				cleaning_thread = threading.Thread(target = self.driveCleaningTrajectory(room_counter, current_room_index))
 				cleaning_thread.start()
 				cleaning_tasks = self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)).open_cleaning_tasks_
-				if ((-1 in cleaning_tasks) == True):
+				if -1 in cleaning_tasks: # todo: what is this? Is it useful?
 					trashcan_thread = threading.Thread(target = self.trashcanRoutine(room_counter))
 					trashcan_thread.start()
-				cleaning_thread.join()
+				cleaning_thread.join() # todo ???
 				
 				# Increment the current room counter index
 				room_counter = room_counter + 1

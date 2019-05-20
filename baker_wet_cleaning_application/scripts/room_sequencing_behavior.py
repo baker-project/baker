@@ -79,7 +79,7 @@ class RoomSequencingBehavior(behavior_container.BehaviorContainer):
 		else:
 			self.printMsg("Warning: tf lookup failed, taking (0,0) as robot_start_coordinate.")
 			room_sequence_goal.robot_start_coordinate.position = Point32(x=0, y=0)
-		room_sequence_goal.robot_start_coordinate.orientation = Quaternion(x=0.,y=0.,z=0., w=0.)	# todo: normalized quaternion
+		room_sequence_goal.robot_start_coordinate.orientation = Quaternion(x=0., y=0., z=0., w=0.)	# todo: normalized quaternion
 		room_sequence_client = actionlib.SimpleActionClient(str(self.service_str_), FindRoomSequenceWithCheckpointsAction)
 		self.printMsg("Running sequencing action...")
 		self.room_sequence_result_ = self.runAction(room_sequence_client, room_sequence_goal)

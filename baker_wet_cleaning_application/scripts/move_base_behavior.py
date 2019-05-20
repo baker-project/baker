@@ -3,7 +3,7 @@
 import rospy
 import actionlib
 
-from move_base_msgs.msg import *
+from move_base_msgs.msg import MoveBaseGoal, MoveBaseAction
 
 import behavior_container
 

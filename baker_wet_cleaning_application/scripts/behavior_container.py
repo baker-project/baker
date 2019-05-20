@@ -2,15 +2,10 @@
 
 import roslib
 roslib.load_manifest('baker_wet_cleaning_application')
-import actionlib
 import rospy
-import sys
-import time
 from abc import ABCMeta, abstractmethod
 
-
 class BehaviorContainer:
-
 	#========================================================================
 	# Description:
 	# Abstract class which contains one specific behavior of the application
@@ -19,15 +14,10 @@ class BehaviorContainer:
 	__metaclass__ = ABCMeta
 	# Arbitrary behavior name. Only used for debug.
 	behavior_name_ = "<Unnamed>"
-	# Status of the behavior. 0=OK, 1=Cancelled, 2=Erroneous
+	# Status of the behavior. 0=OK, 1=Cancelled, 2=Erroneous (use methods isOk, isCancelled, isErroneous)
 	behavior_status_ = 0
 	# Sleeping time in seconds
 	sleep_time_ = 1
-
-
-# Method for printing messages.
-	def printMsg(self, text):
-		print "[Behavior '" + str(self.behavior_name_) + "']: " + str(text)
 
 	# Constructor
 	def __init__(self, behavior_name, interrupt_var):
@@ -35,9 +25,13 @@ class BehaviorContainer:
 		# Get the pointer to the interrupt variable of the application container
 		self.interrupt_var_ = interrupt_var
 
-		# Method that returns the current interruption value [True/False]
+	# Method for printing messages.
+	def printMsg(self, text):
+		print "[Behavior '" + str(self.behavior_name_) + "']: " + str(text)
+
+	# Method that returns the current interruption value [True/False]
 	def executionInterrupted(self):
-		return (self.interrupt_var_[0] != 0)
+		return self.interrupt_var_[0] != 0
 
 	# Method that handles interruptions (ASSUMING: False=OK, True=INTERRUPT)
 	def handleInterrupt(self):
@@ -57,15 +51,15 @@ class BehaviorContainer:
 		# loop --> ask for action finished and sleep for one second
 		# in loop check for interrupt --> if necessary stop action with self.executionInterrupted() == True and wait until action stopped
 		# Definition of SimpleGoalState: 0 = PENDING, 1 = ACTIVE, 3 = DONE
-		while (action_client.get_state() < 3):
+		while action_client.get_state() < 3:
 			#self.printMsg("action_client.get_state()=" + str(action_client.get_state()))
-			if (self.executionInterrupted()==True or rospy.is_shutdown()==True):
+			if self.executionInterrupted() or rospy.is_shutdown():
 				action_client.cancel_goal()
-				while ((action_client.get_state()<2 or action_client.get_state()==2) and rospy.is_shutdown()==False):
+				while action_client.get_state() < 2 or action_client.get_state() == 2 and rospy.is_shutdown():
 					pass
 				return self.handleInterrupt()
 			rospy.sleep(self.sleep_time_)
-		if (action_client.get_state() == 3):
+		if action_client.get_state() == 3:
 			self.printMsg("Action successfully processed.")
 			action_result = action_client.get_result()
 		else:
@@ -93,3 +87,12 @@ class BehaviorContainer:
 		self.printMsg("Executing behavior...")
 		self.executeCustomBehavior()
 		self.printMsg("Execution ended with code " + str(self.behavior_status_))
+
+	def isOk(self):
+		return self.behavior_status_ == 0
+
+	def isCancelled(self):
+		return self.behavior_status_ == 1
+
+	def isErroneous(self):
+		return self.behavior_status_ == 2

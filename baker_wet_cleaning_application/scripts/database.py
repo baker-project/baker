@@ -19,7 +19,7 @@ import os
 from ipa_building_msgs.msg import *
 
 # Database class
-class Database():
+class Database:
 
 	#========================================================================
 	# Description:
@@ -31,7 +31,7 @@ class Database():
 	rooms_ = []
 	# Global map data
 	global_map_data_ = None
-	# Robot proprties
+	# Robot properties
 	robot_properties_ = None
 	# Global settings
 	global_settings_ = None
@@ -60,11 +60,9 @@ class Database():
 		return datetime_date.strftime("%Y-%m-%d_%H:%M")
 
 
-
 	@staticmethod
 	def stringToDatetime(string_date):
 		return datetime.strptime(string_date, "%Y-%m-%d_%H:%M")
-
 
 
 	@staticmethod
@@ -72,24 +70,22 @@ class Database():
 		return [point32_point.x, point32_point.y, point32_point.z]
 
 
-
 	@staticmethod
 	def arrayToPoint32(array_point):
 		return Point32(x=array_point[0], y=array_point[1], z=array_point[2])
-
 
 
 	def updateGlobalApplicationData(self, dict):
 		self.application_data_ = database_classes.GlobalApplicationData()
 		# Get the datetime of the last recorded start of the application
 		last_execution_date_str = dict.get("last_execution_date")
-		if (last_execution_date_str != None):
+		if last_execution_date_str != None:
 			self.application_data_.last_execution_date_ = self.stringToDatetime(last_execution_date_str)
 		else:
 			self.application_data_.last_execution_date_ = None
 		# Get the last planning dates (see database_classes.py for further explanation)
 		last_planning_date_str = dict.get("last_planning_date")
-		if ((last_planning_date_str[0] != None) and (last_planning_date_str[1] != None)):
+		if (last_planning_date_str[0] != None) and (last_planning_date_str[1] != None):
 			self.application_data_.last_planning_date_ = [self.stringToDatetime(last_planning_date_str[0]), self.stringToDatetime(last_planning_date_str[1])]
 		else:
 			self.application_data_.last_planning_date_ = [None, None]
@@ -100,47 +96,44 @@ class Database():
 		# Get the progress variable
 		progress_str = dict.get("progress")
 		self.application_data_.progress_[0] = progress_str[0]
-		if (progress_str[1] != None):
+		if progress_str[1] != None:
 			self.application_data_.progress_[1] = self.stringToDatetime(progress_str[1])
 		else:
 			self.application_data_.progress_[1] = None
-
 
 
 	def getGlobalApplicationDataDictFromGlobalApplicationData(self):
 		application_data_dict = {}
 		
 		execution_date_datetime = self.application_data_.last_execution_date_
-		if (execution_date_datetime != None):
+		if execution_date_datetime != None:
 			application_data_dict["last_execution_date"] = self.datetimeToString(execution_date_datetime)
 		else:
 			application_data_dict["last_execution_date"] = None
 		
 		planning_date_datetime = [None, None]
-		if (self.application_data_.last_planning_date_[0] != None):
+		if self.application_data_.last_planning_date_[0] != None:
 			planning_date_datetime[0] = self.datetimeToString(self.application_data_.last_planning_date_[0])
-		if (self.application_data_.last_planning_date_[1] != None):
+		if self.application_data_.last_planning_date_[1] != None:
 			planning_date_datetime[1] = self.datetimeToString(self.application_data_.last_planning_date_[1])
 		application_data_dict["last_planning_date"] = planning_date_datetime
 		
 		application_data_dict["last_database_save_successful"] = self.application_data_.last_database_save_successful_
 		application_data_dict["run_count"] = self.application_data_.run_count_
 
-		if (self.application_data_.progress_[1] != None):
+		if self.application_data_.progress_[1] != None:
 			application_data_dict["progress"] = [self.application_data_.progress_[0], self.datetimeToString(self.application_data_.progress_[1])]
 		else:
 			application_data_dict["progress"] = [self.application_data_.progress_[0], None]
 		
 		return application_data_dict
 	
-	
 
-	def updateGlobalSettings(self, dict):
+	def updateGlobalSettings(self, dict_settings):
 		self.global_settings_ = database_classes.GlobalSettings()
-		self.global_settings_.shall_auto_complete_ = dict.get("shall_auto_complete")
-		self.global_settings_.max_aux_time_ = dict.get("max_aux_time")
-		self.global_settings_.assignment_timedelta_ = dict.get("assignment_timedelta")
-
+		self.global_settings_.shall_auto_complete_ = dict_settings.get("shall_auto_complete")
+		self.global_settings_.max_aux_time_ = dict_settings.get("max_aux_time")
+		self.global_settings_.assignment_timedelta_ = dict_settings.get("assignment_timedelta")
 
 
 	def getGlobalSettingsDictFromGlobalSettings(self):
@@ -149,7 +142,6 @@ class Database():
 		global_settings_dict["max_aux_time"] = self.global_settings_.max_aux_time_
 		global_settings_dict["assignment_timedelta"] = self.global_settings_.assignment_timedelta_
 		return global_settings_dict
-
 
 
 	def updateGlobalMapData(self, dict):
@@ -178,7 +170,6 @@ class Database():
 		self.global_map_data_.map_header_frame_id_ = dict.get("map_header_frame_id")
 
 
-
 	def updateRobotProperties(self, dict):
 		self.robot_properties_ = database_classes.RobotProperties()
 		# Exploration server constants
@@ -197,7 +188,6 @@ class Database():
 		self.robot_properties_.wall_follow_path_tolerance_ = dict.get("wall_follow_path_tolerance")
 		self.robot_properties_.wall_follow_goal_position_tolerance_ = dict.get("wall_follow_goal_position_tolerance")
 		self.robot_properties_.wall_follow_goal_angle_tolerance_ = dict.get("wall_follow_goal_angle_tolerance")
-
 
 
 	# Make rooms_ contain all the rooms stated in the dict parameter
@@ -282,7 +272,6 @@ class Database():
 			
 			# Append current room object to the rooms_ list
 			self.rooms_.append(current_room)
-
 
 
 	# Get a dictionary representation of rooms_
@@ -404,7 +393,6 @@ class Database():
 			return False
 
 
-
 	# Returns the amount of runs of a specific day
 	# Run count increases, if application is found completed or discarded
 	def updateRunCount(self, date):
@@ -417,9 +405,6 @@ class Database():
 		else:
 			self.application_data_.run_count_ = 1
 			
-				
-
-
 
 	# Determine what the current logfile name is supposed to be
 	def getCurrentLogfileName(self):
@@ -431,7 +416,6 @@ class Database():
 		run_count = self.application_data_.run_count_
 		return "log_" + str(year) + "_" + str(week) + "_" + str(day) + "_run" + str(run_count) + ".json"
 		
-
 
 	# Convert log dict into an object array
 	def getLogListFromLogDict(self, dict):
@@ -472,7 +456,6 @@ class Database():
 		return log_dict
 
 
-
 	# Save the room data
 	def saveRoomDatabase(self, temporal=True):
 		rooms_dict = self.getRoomsDictFromRoomsList()
@@ -483,7 +466,6 @@ class Database():
 			file = open(self.tmp_rooms_filename_, "w")
 		file.write(rooms_text)
 		file.close()
-		
 
 
 	# Save the application data
@@ -496,7 +478,6 @@ class Database():
 			file = open(self.application_data_filename_, "w")
 		file.write(application_data_text)
 		file.close()
-
 
 
 # =========================================================================================
@@ -516,8 +497,6 @@ class Database():
 		self.application_data_filename_ = self.extracted_file_path + str("resources/json/application_data.json")
 		self.tmp_application_data_filename_ = self.extracted_file_path + str("resources/json/tmp_application_data.json")
 		self.log_filepath_ = self.extracted_file_path + str("resources/logs/")
-		
-
 
 
 	# Discard temporal database --> All current progress will be forgotten
@@ -539,8 +518,7 @@ class Database():
 		self.application_data_.progress_ = [4, datetime.now()]
 		self.saveCompleteDatabase(temporal_file=False)
 
-	
-	
+
 	# Load database data from files
 	def loadDatabase(self):
 		# Check if there is a temporal representation
@@ -555,7 +533,6 @@ class Database():
 		#except:
 		#	print "[Database] Loading of database failed. No valid original or temporal JSON file set found. Check for damaged data."
 		#	exit(1)
-
 
 
 	def addLogEntry(self, log_element):
@@ -589,7 +566,6 @@ class Database():
 		os.remove(current_backup_file_name)
 
 
-
 	# Save the complete database safely, remove temporal data on final save
 	def saveCompleteDatabase(self, temporal_file=True):
 		self.application_data_.last_database_save_successful_ = False
@@ -597,19 +573,19 @@ class Database():
 		self.saveRoomDatabase(temporal=temporal_file)
 		self.application_data_.last_database_save_successful_ = True
 		self.saveGlobalApplicationData(temporal=temporal_file)
-		if (temporal_file == False):
-			if (os.path.isfile(self.tmp_rooms_filename_) == True):
+		if not temporal_file:
+			if os.path.isfile(self.tmp_rooms_filename_):
 				os.remove(str(self.tmp_rooms_filename_))
-			if (os.path.isfile(self.tmp_application_data_filename_) == True):
+			if os.path.isfile(self.tmp_application_data_filename_):
 				os.remove(str(self.tmp_application_data_filename_))
 
 
 
-	# Retreive a room by providing a room_id
+	# Retrieve a room by providing a room_id
 	def getRoom(self, room_id):
 		result = None
 		for i in range(len(self.rooms_)):
-			if (self.rooms_[i].room_id_ == room_id):
+			if self.rooms_[i].room_id_ == room_id:
 				result = self.rooms_[i]
 		return result
 

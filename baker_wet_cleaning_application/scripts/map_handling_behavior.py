@@ -49,7 +49,7 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 			self.database_handler_.database_.robot_properties_.exploration_robot_radius_
 			)
 		self.room_sequencer_.executeCustomBehavior()
-		self.room_sequencing_data_ = self.room_sequencer_.room_sequence_result_	
+		self.room_sequencing_data_ = self.room_sequencer_.room_sequence_result_
 		self.mapping_ = self.database_handler_.getRoomMapping(self.rooms_list_, self.room_sequencing_data_)
 		#self.printMsg("self.room_sequencing_data_.checkpoints=" + str(self.room_sequencing_data_.checkpoints))
 		#self.printMsg("self.segmentation_data_.room_information_in_pixel=" + str(self.segmentation_data_.room_information_in_pixel))
