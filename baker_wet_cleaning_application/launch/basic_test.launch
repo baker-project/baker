@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+	<include file="launch/basic_application.launch" />
+
+	<test test-name="test_database_handler" pkg="baker_wet_cleaning_application" type="database_handler_test.py"/>
+</launch>
