@@ -145,10 +145,10 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 				cleaning_thread = threading.Thread(target = self.driveCleaningTrajectory(room_counter, current_room_index))
 				cleaning_thread.start()
 				cleaning_tasks = self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)).open_cleaning_tasks_
-				if -1 in cleaning_tasks: # todo: what is this? Is it useful?
+				if -1 in cleaning_tasks: # todo (rmb-ma): what is this? Is it useful?
 					trashcan_thread = threading.Thread(target = self.trashcanRoutine(room_counter))
 					trashcan_thread.start()
-				cleaning_thread.join() # todo ???
+				cleaning_thread.join() # todo (rmb-ma) ???
 				
 				# Increment the current room counter index
 				room_counter = room_counter + 1

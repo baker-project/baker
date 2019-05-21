@@ -12,6 +12,7 @@
 	<author email="yann.philippczyk@ipa.fraunhofer.de">Yann Philippczyk</author>
 
 	<buildtool_depend>catkin</buildtool_depend>
+	<test_depend>rostest</test_depend>
 	<depend>actionlib</depend>
 	<depend>actionlib_msgs</depend>
 	<depend>baker_msgs</depend>

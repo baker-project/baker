@@ -185,24 +185,19 @@ class DatabaseHandler:
 	# CASE: Some cleaning subtasks were not completed in the past (i.e. a scheduled one was missed)
 	# USAGE: Run after all the due rooms are done
 	def getAllOverdueRooms(self):
-		self.getAllOverdueRoomsAmongRooms(self.database_.rooms_)
-		self.applyChangesToDatabase()
-
-	@staticmethod
-	def getAllOverdueRoomsAmongRooms(self, rooms):
 		today_index = 0		# todo: verify whether this is always correct: todo_index should be determined correctly for the given day
 		current_schedule_index = today_index - 1
 		day_delta = 1
 		while current_schedule_index != today_index:
 			# Handle the case that today_index is a monday of an even week
-			if current_schedule_index == -1:
+			if current_schedule_index == -1: # todo (rmb-ma): not sure that is correct it should be at the end of the while loop
 				current_schedule_index = 13
 				continue
 			# Get the corresponding date
 			datetime_day_delta = datetime.timedelta(days=day_delta)
 			indexed_date = datetime.datetime.now() - datetime_day_delta
 			# Iterate through all potential rooms
-			for room in rooms:
+			for room in self.database_.rooms_:
 				# Room must not be in the due rooms list already
 				if not (room in self.due_rooms_):
 					schedule_char = room.room_scheduled_days_[current_schedule_index]
@@ -214,7 +209,7 @@ class DatabaseHandler:
 						wet_date = room.room_cleaning_datestamps_[2]
 
 						# Room's trashcan was to be emptied and that did not happen
-						if trashcan_date is None and trashcan_date < indexed_date:
+						if trashcan_date is not None and trashcan_date < indexed_date:
 							if not (self.TRASH_TASK in room.open_cleaning_tasks_):
 								room.open_cleaning_tasks_.append(self.TRASH_TASK)
 							if not (room in self.overdue_rooms_):
@@ -253,12 +248,8 @@ class DatabaseHandler:
 		today_date = datetime.datetime.now()
 		if last_start is not None:
 			delta = today_date - last_start
-			if delta.days < 1:
-				return False
-			else:
-				return True
-		else:
-			return True
+			return delta.days >= 1
+		return True
 
 
 	# Method for sorting a list of rooms after the cleaning method
@@ -332,4 +323,3 @@ class DatabaseHandler:
 	# Method to run after all cleaning operations were performed
 	def cleaningFinished(self):
 		self.database_.saveCompleteDatabase(temporal_file=False)
-

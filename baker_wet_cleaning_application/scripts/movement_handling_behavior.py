@@ -235,8 +235,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					0.5
 				)
 				self.wall_follower_.executeBehavior()
-				
-				
+
 				# Interruption opportunity
 				if self.handleInterrupt() >= 1:
 					return
