@@ -31,8 +31,7 @@ class RoomSequencingBehavior(behavior_container.BehaviorContainer):
 	#========================================================================
 
 	def __init__(self, behavior_name, interrupt_var, service_str):
-		self.behavior_name_ = behavior_name
-		self.interrupt_var_ = interrupt_var
+		super(RoomSequencingBehavior, self).__init__(behavior_name, interrupt_var)
 		self.service_str_ = service_str
 
 	# Method for setting parameters for the behavior

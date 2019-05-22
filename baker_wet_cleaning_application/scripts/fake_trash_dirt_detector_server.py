@@ -26,11 +26,9 @@ class Detector:
 
 
     def talker(self):
-        print("talker is running? and rospy.isShutdown= {}".format(rospy.is_shutdown()))
-        rate = rospy.Rate(20) # 0.2Hz
+        rate = rospy.Rate(3) # 0.2Hz
         while not rospy.is_shutdown():
             self.mutex_.acquire()
-            print("in talker: interrupt_detection {}".format(self.is_running_))
             if not self.is_running_:
                 self.mutex_.release()
                 return
@@ -44,24 +42,23 @@ class Detector:
             detections = DetectionArray()
             detections.detections = [detection]
 
-            rospy.loginfo('DETECTION')
             self.publisher_.publish(detections)
 
 
     def handleStartService(self, request):
+        print('[Service {}] Starting Detection'.format(self.name_))
         self.mutex_.acquire()
         if self.is_running_:
             self.mutex_.release()
             return EmptyResponse()
         self.mutex_.release()
-        print("Should start the detection")
         self.is_running_ = True
         Thread(target=self.talker).start()
         return EmptyResponse()
 
 
     def handleStopService(self, request):
-        print("should stop the detection")
+        print('[Service {}] Stopping Detection'.format(self.name_))
         self.mutex_.acquire()
         self.is_running_ = False
         self.mutex_.release()

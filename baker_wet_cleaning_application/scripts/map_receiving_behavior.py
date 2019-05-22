@@ -14,8 +14,7 @@ class MapReceivingBehavior(behavior_container.BehaviorContainer):
 	#========================================================================
 
 	def __init__(self, behavior_name, interrupt_var, service_str, map_segmented_receiving_service_str=None):
-		self.behavior_name_ = behavior_name
-		self.interrupt_var_ = interrupt_var
+		super(MapReceivingBehavior, self).__init__(behavior_name, interrupt_var)
 		self.service_str_ = service_str
 		self.map_segmented_receiving_service_str_ = map_segmented_receiving_service_str
 	

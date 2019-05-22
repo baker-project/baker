@@ -15,8 +15,7 @@ class MoveBasePathBehavior(behavior_container.BehaviorContainer):
 	#========================================================================
 
 	def __init__(self, behavior_name, interrupt_var, service_str):
-		self.behavior_name_ = behavior_name
-		self.interrupt_var_ = interrupt_var
+		super(MoveBasePathBehavior, self).__init__(behavior_name, interrupt_var)
 		self.service_str_ = service_str
 
 	# Method for returning to the standard pose of the robot
