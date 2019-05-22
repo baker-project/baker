@@ -34,6 +34,9 @@
 	<!-- include room sequence planning -->
 	<include file="$(find ipa_building_navigation)/ros/launch/room_sequence_planning_action_server.launch"/>
 	
+	<!-- dirt and trash fake detector -->
+	<node pkg="baker_wet_cleaning_application" type="fake_trash_dirt_detector_server.py" name="fake_trash_dirt_detector" output="screen" respawn="true" respawn_delay="2"/>
+	
 	<!-- application script -->
 	<node pkg="baker_wet_cleaning_application" type="application_wet_cleaning.py" name="application_wet_cleaning" output="screen" respawn="true" respawn_delay="2"/>
 

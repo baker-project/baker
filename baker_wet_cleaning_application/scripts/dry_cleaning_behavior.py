@@ -11,6 +11,7 @@ import room_exploration_behavior
 import move_base_path_behavior
 import services_params as srv
 from geometry_msgs.msg import Pose2D
+from cob_object_detection_msgs.msg import DetectionArray
 
 class DryCleaningBehavior(behavior_container.BehaviorContainer):
 
@@ -79,6 +80,9 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 		# ==========================================
 		self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)), 0)
 
+	def dirtDetectionCallback(self, detections):
+		self.printMsg("DIRT DETECTED!!")
+
 	# Driving through room
 	def exploreRoom(self, room_counter):
 		# todo (rmb-ma): see if it should be removed
@@ -122,6 +126,7 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 			planning_mode=2
 		)
 		self.room_explorer_.executeBehavior()
+		self.printMsg('Coverage path of room ID {} computed.'.format(str(self.mapping_.get(room_counter))))
 
 
 	def executeCustomBehaviorInRoomCounter(self, room_counter, current_room_index):
@@ -132,6 +137,18 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 		path = self.room_explorer_.exploration_result_.coverage_path_pose_stamped
 		if len(path) == 0:
 			return
+
+		# todo (rmb-ma)
+		cleaning_tasks = self.database_handler_.database_.getRoom(
+			self.mapping_.get(room_counter)).open_cleaning_tasks_
+
+		if DryCleaningBehavior.containsTrashcanTask(cleaning_tasks):
+			pass
+
+		if True:#drycleaningbehavior.containsDirtTask(cleaning_tasks):
+			self.printMsg('Subscribing to dirt_detector_topic')
+			rospy.Subscriber('dirt_detector_topic', DetectionArray, self.dirtDetectionCallback)
+
 
 		self.path_follower_ = move_base_path_behavior.MoveBasePathBehavior("MoveBasePathBehavior_PathFollowing",
 																		   self.interrupt_var_,
@@ -148,14 +165,6 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 
 		self.path_follower_.executeBehavior()
 
-		# todo (rmb-ma)
-		cleaning_tasks = self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)).open_cleaning_tasks_
-
-		if DryCleaningBehavior.containsTrashcanTask(cleaning_tasks):
-			pass
-
-		if DryCleaningBehavior.containsDirtTask(cleaning_tasks):
-			pass
 
 
 		# exploring_thread = threading.Thread(target = self.exploreRoom(room_counter))
