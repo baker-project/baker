@@ -35,7 +35,7 @@ class BehaviorContainer:
 
 	# Method that handles interruptions (ASSUMING: False=OK, True=INTERRUPT)
 	def handleInterrupt(self):
-		if self.executionInterrupted() == True:
+		if self.executionInterrupted():
 			self.printMsg("Interrupted")
 			self.returnToRobotStandardState()
 			self.printMsg("Execution interrupted with code " + str(self.behavior_status_))
@@ -61,11 +61,9 @@ class BehaviorContainer:
 			rospy.sleep(self.sleep_time_)
 		if action_client.get_state() == 3:
 			self.printMsg("Action successfully processed.")
-			action_result = action_client.get_result()
 		else:
 			self.printMsg("Action failed.")
-			action_result = None
-		return action_result
+		return action_client.get_result()
 
 	# Method for returning to the standard pose of the robot
 	@abstractmethod

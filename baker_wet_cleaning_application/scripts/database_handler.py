@@ -65,9 +65,13 @@ class DatabaseHandler:
 	@staticmethod
 	def isTrashDay(cleaning_method):
 		return cleaning_method in [0, 1, 2]
+
 	# ===============================================================================
 	# OBJECT SPECIFIC METHODS
 	# ===============================================================================
+
+	def __init__(self, database):
+		self.database_ = database
 
 	# Get the room information in pixel
 	def getMapAndRoomInformationInPixel(self, rooms_array):
@@ -99,10 +103,6 @@ class DatabaseHandler:
 		for room in rooms_array:
 			room_information_in_meter.append(room.room_information_in_meter_)
 		return room_information_in_meter
-
-
-	def __init__(self, database):
-		self.database_ = database
 
 
 	# Create a mapping RoomSequenceResult |-> RoomObject

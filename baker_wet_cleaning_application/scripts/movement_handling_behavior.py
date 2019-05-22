@@ -116,7 +116,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					planning_mode = 2
 				)
 				self.room_explorer_.executeBehavior()
-				if (self.room_explorer_.exploration_result_ == None):
+				if len(self.room_explorer_.exploration_result_.coverage_path_pose_stamped) == 0:
 					continue
 				
 				# Interruption opportunity

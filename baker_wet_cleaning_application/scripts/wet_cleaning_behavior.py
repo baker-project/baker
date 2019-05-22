@@ -7,6 +7,7 @@ import trolley_movement_behavior
 import tool_changing_behavior
 import room_wet_floor_cleaning_behavior
 
+
 class WetCleaningBehavior(behavior_container.BehaviorContainer):
 
 	#========================================================================
@@ -29,18 +30,7 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 		self.field_of_view_ = field_of_view
 		self.field_of_view_origin_ = field_of_view_origin
 		self.use_cleaning_device_ = use_cleaning_device	# todo: hack: cleaning device can be turned off for trade fair show
-		# Parameters set autonomously
-		self.room_exploration_service_str_ = '/room_exploration/room_exploration_server'
-		self.move_base_path_service_str_ = '/move_base_path'
-		self.move_base_wall_follow_service_str_ = '/move_base_wall_follow'
-		self.move_base_service_str_ = 'move_base'
-		self.start_cleaning_service_str_ = '/brush_cleaning_module_interface/start_brush_cleaner'
-		self.stop_cleaning_service_str_ = '/brush_cleaning_module_interface/stop_brush_cleaner'
-		self.coverage_monitor_dynamic_reconfigure_service_str_ = '/room_exploration/coverage_monitor_server'
-		self.stop_coverage_monitoring_service_str_ = "/room_exploration/coverage_monitor_server/stop_coverage_monitoring"
-		self.receive_coverage_image_service_str_ = "/room_exploration/coverage_monitor_server/get_coverage_image"
-		self.trolley_movement_service_str_ = ""
-		self.tool_changing_service_str_ = ""
+
 
 	# Method for returning to the standard pose of the robot
 	def returnToRobotStandardState(self):
@@ -58,18 +48,18 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 			return
 
 		self.room_wet_floor_cleaner_.setParameters(
-			self.database_handler_.database_.getRoom(self.mapping_.get(current_room_index)).room_map_data_, 
-			self.room_information_in_meter_[current_room_index].room_center,
-			self.database_handler_.database_.global_map_data_.map_image_, 
-			self.database_handler_.database_.global_map_data_.map_resolution_, 
-			self.database_handler_.database_.global_map_data_.map_origin_, 
-			self.database_handler_.database_.global_map_data_.map_header_frame_id_, 
-			self.robot_frame_id_, 
-			self.robot_radius_, 
-			self.coverage_radius_, 
-			self.field_of_view_,
-			self.field_of_view_origin_,
-			self.use_cleaning_device_	# todo: hack: cleaning device can be turned off for trade fair show
+			room_map_data=self.database_handler_.database_.getRoom(self.mapping_.get(current_room_index)).room_map_data_,
+			room_center=self.room_information_in_meter_[current_room_index].room_center,
+			map_data=self.database_handler_.database_.global_map_data_.map_image_,
+			map_resolution=self.database_handler_.database_.global_map_data_.map_resolution_,
+			map_origin=self.database_handler_.database_.global_map_data_.map_origin_,
+			map_header_frame_id=self.database_handler_.database_.global_map_data_.map_header_frame_id_,
+			robot_frame_id=self.robot_frame_id_,
+			robot_radius=self.robot_radius_,
+			coverage_radius=self.coverage_radius_,
+			field_of_view=self.field_of_view_,
+			field_of_view_origin=self.field_of_view_origin_,
+			use_cleaning_device=self.use_cleaning_device_	# todo: hack: cleaning device can be turned off for trade fair show
 		)
 		self.room_wet_floor_cleaner_.executeBehavior()
 

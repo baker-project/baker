@@ -16,7 +16,7 @@ import json
 from shutil import copyfile
 import os
 # For room information
-from ipa_building_msgs.msg import *
+from ipa_building_msgs.msg import RoomInformation
 
 # Database class
 class Database:
@@ -191,13 +191,13 @@ class Database:
 
 
 	# Make rooms_ contain all the rooms stated in the dict parameter
-	def updateRoomsList(self, dict):
+	def updateRoomsList(self, dict_settings):
 		self.rooms_ = []
-		for room_key in dict:
+		for room_key in dict_settings:
 			room_issues = []
 			current_room = database_classes.RoomItem()
 			# Get all issues of a room and get all properties of those issues
-			issues_dict = dict.get(room_key).get("room_issues")
+			issues_dict = dict_settings.get(room_key).get("room_issues")
 			for issue_key in issues_dict:
 				current_issue = database_classes.RoomIssue()
 				# Get the room issue ID
@@ -215,53 +215,53 @@ class Database:
 				room_issues.append(current_issue)
 			current_room.room_issues_ = room_issues
 			# Get the name of the room
-			current_room.room_name_ = dict.get(room_key).get("room_name")
+			current_room.room_name_ = dict_settings.get(room_key).get("room_name")
 			# Get the ID of the room
-			current_room.room_id_ = dict.get(room_key).get("room_id")
+			current_room.room_id_ = dict_settings.get(room_key).get("room_id")
 			# Get the position ID of the room
-			current_room.room_position_id_ = dict.get(room_key).get("room_position_id")
+			current_room.room_position_id_ = dict_settings.get(room_key).get("room_position_id")
 			# Get the floor of the room
-			current_room.room_floor_id_ = dict.get(room_key).get("room_floor_id")
+			current_room.room_floor_id_ = dict_settings.get(room_key).get("room_floor_id")
 			# Get the building ID of the room
-			current_room.room_building_id_ = dict.get(room_key).get("room_building_id")
+			current_room.room_building_id_ = dict_settings.get(room_key).get("room_building_id")
 			# Get the territory the room is in
-			current_room.room_territory_id_ = dict.get(room_key).get("room_territory_id")
+			current_room.room_territory_id_ = dict_settings.get(room_key).get("room_territory_id")
 			# Get the map of the room
-			current_room.room_map_filename_ = dict.get(room_key).get("room_map_filename")
+			current_room.room_map_filename_ = dict_settings.get(room_key).get("room_map_filename")
 			# Get an open cv representation of the map or None if there is no map
-			if (current_room.room_map_filename_ != None):
-				room_map_file_path = str(self.extracted_file_path) + str("resources/maps/") + str(current_room.room_map_filename_)
+			if current_room.room_map_filename_ is not None:
+				room_map_file_path = str(self.extracted_file_path) + str("/maps/") + str(current_room.room_map_filename_)
 				map_opencv = cv2.imread(room_map_file_path, 0)
 				bridge = CvBridge()
 				current_room.room_map_data_ = bridge.cv2_to_imgmsg(map_opencv, encoding = "mono8")
 			else:
 				current_room.room_map_data = None
 			# Get the room information
-			pixel_coords = dict.get(room_key).get("room_information_in_pixel")
+			pixel_coords = dict_settings.get(room_key).get("room_information_in_pixel")
 			current_room.room_information_in_pixel_ = RoomInformation()
 			current_room.room_information_in_pixel_.room_center = Point32(x=pixel_coords[0][0], y=pixel_coords[0][1], z=pixel_coords[0][2])
 			current_room.room_information_in_pixel_.room_min_max.points.append(Point32(x=pixel_coords[1][0], y=pixel_coords[1][1], z=pixel_coords[1][2]))
 			current_room.room_information_in_pixel_.room_min_max.points.append(Point32(x=pixel_coords[2][0], y=pixel_coords[2][1], z=pixel_coords[2][2]))
-			meter_coords = dict.get(room_key).get("room_information_in_meter")
+			meter_coords = dict_settings.get(room_key).get("room_information_in_meter")
 			current_room.room_information_in_meter_ = RoomInformation()
 			current_room.room_information_in_meter_.room_center = Point32(x=meter_coords[0][0], y=meter_coords[0][1], z=meter_coords[0][2])
 			current_room.room_information_in_meter_.room_min_max.points.append(Point32(x=meter_coords[1][0], y=meter_coords[1][1], z=meter_coords[1][2]))
 			current_room.room_information_in_meter_.room_min_max.points.append(Point32(x=meter_coords[2][0], y=meter_coords[2][1], z=meter_coords[2][2]))
 			# Get the room surface type
-			current_room.room_surface_type_ = dict.get(room_key).get("room_surface_type")
+			current_room.room_surface_type_ = dict_settings.get(room_key).get("room_surface_type")
 			# Get the cleaning method of the room
-			current_room.room_cleaning_method_ = dict.get(room_key).get("room_cleaning_method")
+			current_room.room_cleaning_method_ = dict_settings.get(room_key).get("room_cleaning_method")
 			# Get the room surface area
-			current_room.room_surface_area_ = dict.get(room_key).get("room_surface_area")
+			current_room.room_surface_area_ = dict_settings.get(room_key).get("room_surface_area")
 			# Get the room trashcan count
-			current_room.room_trashcan_count_ = dict.get(room_key).get("room_trashcan_count")
+			current_room.room_trashcan_count_ = dict_settings.get(room_key).get("room_trashcan_count")
 			# Get the days where the room has to be cleaned in a specified way
-			current_room.room_scheduled_days_ = dict.get(room_key).get("room_scheduled_days")
+			current_room.room_scheduled_days_ = dict_settings.get(room_key).get("room_scheduled_days")
 			# Get the yet open cleaning tasks
-			current_room.open_cleaning_tasks_ = dict.get(room_key).get("open_cleaning_tasks")
+			current_room.open_cleaning_tasks_ = dict_settings.get(room_key).get("open_cleaning_tasks")
 			
 			# Get the list with the datestamps
-			string_datestamp_list = dict.get(room_key).get("room_cleaning_datestamps")
+			string_datestamp_list = dict_settings.get(room_key).get("room_cleaning_datestamps")
 			datestamps = []
 			for datestamp in string_datestamp_list:
 				if (datestamp != None):
@@ -485,18 +485,18 @@ class Database:
 # =========================================================================================
 
 	# Constructor method
-	def __init__(self, extracted_file_path=""):
+	def __init__(self, extracted_file_path='resources'):
 		self.extracted_file_path = extracted_file_path
-		self.rooms_filename_ = self.extracted_file_path + str("resources/json/rooms.json")
-		self.tmp_rooms_filename_ = self.extracted_file_path + str("resources/json/tmp_rooms.json")
-		self.robot_properties_filename_ = self.extracted_file_path + str("resources/json/robot_properties.json")
-		self.global_settings_filename_ = self.extracted_file_path + str("resources/json/robot_settings.json")
-		self.global_map_data_filename_ = self.extracted_file_path + str("resources/json/global_map_data.json")
-		self.global_map_image_filename_ = self.extracted_file_path + str("resources/maps/global_map.png")
-		self.global_map_segmented_image_filename_ = self.extracted_file_path + str("resources/maps/global_map_segmented.png")
-		self.application_data_filename_ = self.extracted_file_path + str("resources/json/application_data.json")
-		self.tmp_application_data_filename_ = self.extracted_file_path + str("resources/json/tmp_application_data.json")
-		self.log_filepath_ = self.extracted_file_path + str("resources/logs/")
+		self.rooms_filename_ = self.extracted_file_path + str("/json/rooms.json")
+		self.tmp_rooms_filename_ = self.extracted_file_path + str("/json/tmp_rooms.json")
+		self.robot_properties_filename_ = self.extracted_file_path + str("/json/robot_properties.json")
+		self.global_settings_filename_ = self.extracted_file_path + str("/json/robot_settings.json")
+		self.global_map_data_filename_ = self.extracted_file_path + str("/json/global_map_data.json")
+		self.global_map_image_filename_ = self.extracted_file_path + str("/maps/global_map.png")
+		self.global_map_segmented_image_filename_ = self.extracted_file_path + str("/maps/global_map_segmented.png")
+		self.application_data_filename_ = self.extracted_file_path + str("/json/application_data.json")
+		self.tmp_application_data_filename_ = self.extracted_file_path + str("/json/tmp_application_data.json")
+		self.log_filepath_ = self.extracted_file_path + str("/logs/")
 
 
 	# Discard temporal database --> All current progress will be forgotten

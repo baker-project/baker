@@ -2,11 +2,43 @@
 
 # todo: see how using tabs for identation
 
+PKG = 'baker_wet_cleaning_application'
+NAME = 'database_handler_test'
+
 import unittest
+import rospkg
 
 from database_handler import DatabaseHandler as DH
+from database import Database
+
+from dry_cleaning_behavior import DryCleaningBehavior
 
 class TestDatabaseHandler(unittest.TestCase):
+
+    database_ = None
+
+    @classmethod
+    def setUpClass(cls):
+        # Loading database
+        rospack = rospkg.RosPack()
+        print('rospack_path' + rospack.get_path('baker_wet_cleaning_application'))
+        cls.database_ = Database(
+            extracted_file_path=str(rospack.get_path('baker_wet_cleaning_application') + '/resources_test'))
+        cls.database_.loadDatabase()
+
+        cls.database_handler_ = DH(cls.database_)
+
+    def setUp(self): # todo (rmb-ma): remove?
+        print "[setUp] Hello world !"
+
+    def tearDown(self):
+        # Reset the database
+        print "[tearDown] Hello world"
+
+    @classmethod
+    def tearDownClass(cls): # todo (rmb-ma): remove
+        print "[tearDownClass] Hello world! "
+
     def testIsCleaningDay(self):
         self.assertTrue(DH.isCleaningDay('x'))
         self.assertTrue(DH.isCleaningDay('X'))
@@ -34,9 +66,18 @@ class TestDatabaseHandler(unittest.TestCase):
         self.assertTrue(DH.isTrashDay(1))
         self.assertTrue(DH.isTrashDay(2))
 
+    def testGetAllDueRooms(self):
+        print('[getAllDueRooms] TODO')
+        # No earlier run
+        #l
+        self.assertFalse(True)
+
+    # todo (rmb-ma) split it into a new file?
+    def testDryCleaningBehavior(self):
+        pass
 
 
 if __name__ == '__main__':
     import rostest
-    rostest.rosrun('baker_wet_cleaning_application', 'test_database_handler', TestDatabaseHandler)
-    unittest.main()
+    print("hello world")
+    rostest.rosrun(PKG, NAME, TestDatabaseHandler)

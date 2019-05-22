@@ -20,7 +20,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 	#========================================================================
 
 	# Dry cleaning routine, to be called from inside executeCustomBehavior()
-	def processDryCleaning(self, rooms_dry_cleaning, is_overdue):
+	def processDryCleaning(self, rooms_dry_cleaning, is_overdue=False):
 
 		if len(rooms_dry_cleaning) == 0:
 			if not is_overdue:
@@ -45,15 +45,20 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 
 		# Run Dry Cleaning Behavior
 		self.dry_cleaner_.setParameters(
-			self.database_handler_,
-			self.map_handler_.room_sequencing_data_,
-			self.map_handler_.mapping_
+			database_handler=self.database_handler_,
+			sequencing_result=self.map_handler_.room_sequencing_data_,
+			mapping=self.map_handler_.mapping_,
+			robot_radius=self.robot_radius_,
+			coverage_radius=self.coverage_radius_,
+			field_of_view=self.field_of_view_,
+			field_of_view_origin=self.field_of_view_origin_,
+			room_information_in_meter=self.database_handler_.getRoomInformationInMeter(rooms_dry_cleaning)
 		)
 		self.dry_cleaner_.executeBehavior()
 
 
 	# Wet cleaning routine, to be called from inside executeCustomBehavior()
-	def processWetCleaning(self, rooms_wet_cleaning, is_overdue):
+	def processWetCleaning(self, rooms_wet_cleaning, is_overdue=False):
 
 		if len(rooms_wet_cleaning) == 0:
 			if not is_overdue:
@@ -78,16 +83,16 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 
 		# Run Wet Cleaning Behavior
 		self.wet_cleaner_.setParameters(
-			self.database_handler_,
-			self.database_handler_.getRoomInformationInMeter(rooms_wet_cleaning),
-			self.map_handler_.room_sequencing_data_,
-			self.map_handler_.mapping_,
-			self.robot_frame_id_,
-			self.robot_radius_,
-			self.coverage_radius_,
-			self.field_of_view_,
-			self.field_of_view_origin_,
-			self.use_cleaning_device_	# todo: hack: cleaning device can be turned off for trade fair show
+			database_handler=self.database_handler_,
+			room_information_in_meter=self.database_handler_.getRoomInformationInMeter(rooms_wet_cleaning),
+			sequence_data=self.map_handler_.room_sequencing_data_,
+			mapping=self.map_handler_.mapping_,
+			robot_frame_id=self.robot_frame_id_,
+			robot_radius=self.robot_radius_,
+			coverage_radius=self.coverage_radius_,
+			field_of_view=self.field_of_view_,
+			field_of_view_origin=self.field_of_view_origin_,
+			use_cleaning_device=self.use_cleaning_device_	# todo: hack: cleaning device can be turned off for trade fair show
 		)
 		self.wet_cleaner_.executeBehavior()
 
@@ -138,7 +143,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.printMsg("Loading database from files...")
 		rospack = rospkg.RosPack()
 		print str(rospack.get_path('baker_wet_cleaning_application'))
-		self.database_ = database.Database(extracted_file_path=str(rospack.get_path('baker_wet_cleaning_application') + "/"))
+		self.database_ = database.Database(extracted_file_path=str(rospack.get_path('baker_wet_cleaning_application') + "/resources"))
 		self.database_.loadDatabase()
 		#except:
 		#	self.printMsg("Fatal: Loading of database failed! Stopping application.")
@@ -228,8 +233,8 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 
 		# Dry cleaning of the due rooms
 		# =============================
-		self.processDryCleaning(rooms_dry_cleaning, False)
-		
+		self.processDryCleaning(rooms_dry_cleaning, is_overdue=False)
+
 
 		# Interruption opportunity
 		if self.handleInterrupt() >= 1:
@@ -238,7 +243,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 
 		# Wet cleaning of the due rooms
 		# =============================
-		self.processWetCleaning(rooms_wet_cleaning, False)
+		self.processWetCleaning(rooms_wet_cleaning, is_overdue=False)
 		
 		#self.printMsg("self.map_handler_.room_sequencing_data_.checkpoints=" + str(self.map_handler_.room_sequencing_data_.checkpoints))
 		
