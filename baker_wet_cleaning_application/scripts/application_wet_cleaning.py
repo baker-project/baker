@@ -175,7 +175,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		# Document start of the application
 		# Also determine whether an old task is to be continued, independent of the current date
 		# If datetime "last_execution_date_override" is not None, it will be set in the database.
-		if last_execution_date_override == None:
+		if last_execution_date_override is None:
 			self.database_.application_data_.last_execution_date_ = datetime.datetime.now()
 		else:
 			self.database_.application_data_.last_execution_date_ = last_execution_date_override

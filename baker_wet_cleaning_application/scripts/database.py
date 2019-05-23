@@ -79,13 +79,13 @@ class Database:
 		self.application_data_ = database_classes.GlobalApplicationData()
 		# Get the datetime of the last recorded start of the application
 		last_execution_date_str = dict.get("last_execution_date")
-		if last_execution_date_str != None:
+		if last_execution_date_str is not None:
 			self.application_data_.last_execution_date_ = self.stringToDatetime(last_execution_date_str)
 		else:
 			self.application_data_.last_execution_date_ = None
 		# Get the last planning dates (see database_classes.py for further explanation)
 		last_planning_date_str = dict.get("last_planning_date")
-		if (last_planning_date_str[0] != None) and (last_planning_date_str[1] != None):
+		if (last_planning_date_str[0] is not None) and (last_planning_date_str[1] is not None):
 			self.application_data_.last_planning_date_ = [self.stringToDatetime(last_planning_date_str[0]), self.stringToDatetime(last_planning_date_str[1])]
 		else:
 			self.application_data_.last_planning_date_ = [None, None]
@@ -96,7 +96,7 @@ class Database:
 		# Get the progress variable
 		progress_str = dict.get("progress")
 		self.application_data_.progress_[0] = progress_str[0]
-		if progress_str[1] != None:
+		if progress_str[1] is not None:
 			self.application_data_.progress_[1] = self.stringToDatetime(progress_str[1])
 		else:
 			self.application_data_.progress_[1] = None
@@ -106,22 +106,22 @@ class Database:
 		application_data_dict = {}
 		
 		execution_date_datetime = self.application_data_.last_execution_date_
-		if execution_date_datetime != None:
+		if execution_date_datetime is not None:
 			application_data_dict["last_execution_date"] = self.datetimeToString(execution_date_datetime)
 		else:
 			application_data_dict["last_execution_date"] = None
 		
 		planning_date_datetime = [None, None]
-		if self.application_data_.last_planning_date_[0] != None:
+		if self.application_data_.last_planning_date_[0] is not None:
 			planning_date_datetime[0] = self.datetimeToString(self.application_data_.last_planning_date_[0])
-		if self.application_data_.last_planning_date_[1] != None:
+		if self.application_data_.last_planning_date_[1] is not None:
 			planning_date_datetime[1] = self.datetimeToString(self.application_data_.last_planning_date_[1])
 		application_data_dict["last_planning_date"] = planning_date_datetime
 		
 		application_data_dict["last_database_save_successful"] = self.application_data_.last_database_save_successful_
 		application_data_dict["run_count"] = self.application_data_.run_count_
 
-		if self.application_data_.progress_[1] != None:
+		if self.application_data_.progress_[1] is not None:
 			application_data_dict["progress"] = [self.application_data_.progress_[0], self.datetimeToString(self.application_data_.progress_[1])]
 		else:
 			application_data_dict["progress"] = [self.application_data_.progress_[0], None]
@@ -264,7 +264,7 @@ class Database:
 			string_datestamp_list = dict_settings.get(room_key).get("room_cleaning_datestamps")
 			datestamps = []
 			for datestamp in string_datestamp_list:
-				if (datestamp != None):
+				if (datestamp is not None):
 					datestamps.append(self.stringToDatetime(datestamp))
 				else:
 					datestamps.append(None)
@@ -279,12 +279,12 @@ class Database:
 		room_dict = {}
 		for current_room in self.rooms_:
 			# Check if current_room is a room 
-			if (isinstance(current_room, database_classes.RoomItem) == True):
+			if isinstance(current_room, database_classes.RoomItem) :
 				# Make a dict of the issues of current_room
 				issues_dict = {}
 				for current_issue in current_room.room_issues_:
 					# Check if current_issue is an issue
-					if (isinstance(current_issue, database_classes.RoomIssue) == True):
+					if isinstance(current_issue, database_classes.RoomIssue):
 						# Fill in a string representation of the date
 						date_str_issue = current_issue.issue_date_.strftime("%Y-%m-%d_%H:%M")
 						# Fill in the issue coordinates
@@ -308,12 +308,12 @@ class Database:
 				# Fill in the datestamps
 				datestamp_list = []
 				for datestamp in current_room.room_cleaning_datestamps_:
-					if datestamp != None:
+					if datestamp is not None:
 						datestamp_list.append(self.datetimeToString(datestamp))
 					else:
 						datestamp_list.append(None)
 				# Fill in the room information
-				if ((current_room.room_information_in_meter_ != None) and (current_room.room_information_in_pixel_ != None)):
+				if (current_room.room_information_in_meter_ is not None) and (current_room.room_information_in_pixel_ is not None):
 					px_center_list = self.point32ToArray(current_room.room_information_in_pixel_.room_center)
 					px_min_list = self.point32ToArray(current_room.room_information_in_pixel_.room_min_max.points[0])
 					px_max_list = self.point32ToArray(current_room.room_information_in_pixel_.room_min_max.points[1])
@@ -353,42 +353,46 @@ class Database:
 	# Load temporal/original database from file.
 	def readFiles(self, temporal):
 		# Load the room data
-		if (temporal == True):
-			file = open(self.tmp_rooms_filename_, "r").read()
+		if temporal:
+			datafile = open(self.tmp_rooms_filename_, "r").read()
 		else:
-			file = open(self.rooms_filename_, "r").read()
-		rooms_dict = json.loads(file)
+			datafile = open(self.rooms_filename_, "r").read()
+		rooms_dict = json.loads(datafile)
 		self.updateRoomsList(rooms_dict)
+
 		# Load the application data
-		if (temporal == True):
-			file = open(self.tmp_application_data_filename_, "r").read()
+		if temporal:
+			datafile = open(self.tmp_application_data_filename_, "r").read()
 		else:
-			file = open(self.application_data_filename_, "r").read()
-		application_data_dict = json.loads(file)
+			datafile = open(self.application_data_filename_, "r").read()
+		application_data_dict = json.loads(datafile)
 		self.updateGlobalApplicationData(application_data_dict)
+
 		# Load the robot properties
-		file = open(self.robot_properties_filename_, "r").read()
-		robot_properties_dict = json.loads(file)
+		datafile = open(self.robot_properties_filename_, "r").read()
+		robot_properties_dict = json.loads(datafile)
 		self.updateRobotProperties(robot_properties_dict)
+
 		# Load the global settings
-		file = open(self.global_settings_filename_, "r").read()
-		global_settings_dict = json.loads(file)
+		datafile = open(self.global_settings_filename_, "r").read()
+		global_settings_dict = json.loads(datafile)
 		self.updateGlobalSettings(global_settings_dict)
+
 		# Load the global map data
-		file = open(self.global_map_data_filename_, "r").read()
-		global_map_data_dict = json.loads(file)
+		datafile = open(self.global_map_data_filename_, "r").read()
+		global_map_data_dict = json.loads(datafile)
 		self.updateGlobalMapData(global_map_data_dict)
 
 
 	# Check the integrity of the specified file, return True on intact files
 	def checkIntegrity(self, temporal):
 		try:
-			if (temporal == True):
-				file = open(self.tmp_application_data_filename_, "r").read()
+			if temporal:
+				datafile = open(self.tmp_application_data_filename_, "r").read()
 			else:
-				file = open(self.application_data_filename_, "r").read()
-			dict = json.loads(file)
-			return dict.get("last_database_save_successful")
+				datafile = open(self.application_data_filename_, "r").read()
+			dict_settings = json.loads(datafile)
+			return dict_settings.get("last_database_save_successful")
 		except:
 			return False
 
@@ -396,9 +400,9 @@ class Database:
 	# Returns the amount of runs of a specific day
 	# Run count increases, if application is found completed or discarded
 	def updateRunCount(self, date):
-		if (date!= None):
+		if date is not None:
 			delta = datetime.now() - date
-			if (delta.days == 0):
+			if delta.days == 0:
 				self.application_data_.run_count_ = self.application_data_.run_count_ + 1
 			else:
 				self.application_data_.run_count_ = 1
@@ -409,29 +413,29 @@ class Database:
 	# Determine what the current logfile name is supposed to be
 	def getCurrentLogfileName(self):
 		# Filename: log_<year>_<week>_<day>_run<run count>.json
-		date = self.application_data_.progress_[1]
-		week = date.isocalendar()[1]
-		year = date.year
-		day = date.weekday()
+		progress_date = self.application_data_.progress_[1]
+		week = progress_date.isocalendar()[1]
+		year = progress_date.year
+		day = progress_date.weekday()
 		run_count = self.application_data_.run_count_
 		return "log_" + str(year) + "_" + str(week) + "_" + str(day) + "_run" + str(run_count) + ".json"
 		
 
 	# Convert log dict into an object array
-	def getLogListFromLogDict(self, dict):
+	def getLogListFromLogDict(self, dict_settings):
 		log_item_list = []
-		for log_key in dict:
+		for log_key in dict_settings:
 			log_item = database_classes.LogItem()
-			log_item.cleaned_surface_area_ = dict.get(log_key).get("cleaned_surface_area")
-			log_item.cleaning_task_ = dict.get(log_key).get("cleaning_task")
-			log_item.date_and_time_ = self.stringToDatetime(dict.get(log_key).get("date_and_time"))
-			log_item.found_dirtspots_ = dict.get(log_key).get("found_dirtspots")
-			log_item.found_trashcans_ = dict.get(log_key).get("found_trashcans")
-			log_item.log_week_and_day_ = dict.get(log_key).get("week_and_day")
-			log_item.room_id_ = dict.get(log_key).get("room_id")
-			log_item.status_ = dict.get(log_key).get("status")
-			log_item.used_water_amount_ = dict.get(log_key).get("used_water_amount")
-			log_item.battery_usage_ = dict.get(log_key).get("battery_usage")
+			log_item.cleaned_surface_area_ = dict_settings.get(log_key).get("cleaned_surface_area")
+			log_item.cleaning_task_ = dict_settings.get(log_key).get("cleaning_task")
+			log_item.date_and_time_ = self.stringToDatetime(dict_settings.get(log_key).get("date_and_time"))
+			log_item.found_dirtspots_ = dict_settings.get(log_key).get("found_dirtspots")
+			log_item.found_trashcans_ = dict_settings.get(log_key).get("found_trashcans")
+			log_item.log_week_and_day_ = dict_settings.get(log_key).get("week_and_day")
+			log_item.room_id_ = dict_settings.get(log_key).get("room_id")
+			log_item.status_ = dict_settings.get(log_key).get("status")
+			log_item.used_water_amount_ = dict_settings.get(log_key).get("used_water_amount")
+			log_item.battery_usage_ = dict_settings.get(log_key).get("battery_usage")
 			log_item_list.append(log_item)
 		return log_item_list
 
@@ -460,24 +464,24 @@ class Database:
 	def saveRoomDatabase(self, temporal=True):
 		rooms_dict = self.getRoomsDictFromRoomsList()
 		rooms_text = json.dumps(rooms_dict, indent=4, sort_keys=True)
-		if (temporal == True):
-			file = open(self.rooms_filename_, "w")
+		if temporal:
+			datafile = open(self.rooms_filename_, "w")
 		else:
-			file = open(self.tmp_rooms_filename_, "w")
-		file.write(rooms_text)
-		file.close()
+			datafile = open(self.tmp_rooms_filename_, "w")
+		datafile.write(rooms_text)
+		datafile.close()
 
 
 	# Save the application data
 	def saveGlobalApplicationData(self, temporal=True):
 		application_data_dict = self.getGlobalApplicationDataDictFromGlobalApplicationData()
 		application_data_text = json.dumps(application_data_dict, indent=4, sort_keys=True)
-		if (temporal == True):
-			file = open(self.tmp_application_data_filename_, "w")
+		if temporal:
+			datafile = open(self.tmp_application_data_filename_, "w")
 		else:
-			file = open(self.application_data_filename_, "w")
-		file.write(application_data_text)
-		file.close()
+			datafile = open(self.application_data_filename_, "w")
+		datafile.write(application_data_text)
+		datafile.close()
 
 
 # =========================================================================================
@@ -540,15 +544,15 @@ class Database:
 		current_logfile_filename = self.getCurrentLogfileName()
 		current_file_name = str(self.log_filepath_) + str(current_logfile_filename)
 		if os.path.isfile(current_file_name):
-			file = open(current_file_name, "r").read()
+			datafile = open(current_file_name, "r").read()
 			# Translate text to dict and dict to list of LogItem
-			log_item_dict = json.loads(file)
+			log_item_dict = json.loads(datafile)
 			log_item_list = self.getLogListFromLogDict(log_item_dict)
 		else:
 			# Create empty logfile and empty LogItem list
-			file = open(current_file_name, "w")
-			file.write("{}")
-			file.close
+			datafile = open(current_file_name, "w")
+			datafile.write("{}")
+			datafile.close
 			log_item_list = []
 
 		# Append new LogItem instance to the LogItem list
@@ -560,9 +564,9 @@ class Database:
 		current_backup_file_name = str(self.log_filepath_) + "_backup_" + str(current_logfile_filename)
 		copyfile(current_file_name, current_backup_file_name)
 		# Save dict into current file
-		file = open(current_file_name, "w")
-		file.write(log_text)
-		file.close
+		datafile = open(current_file_name, "w")
+		datafile.write(log_text)
+		datafile.close
 		# Remove backup file
 		os.remove(current_backup_file_name)
 

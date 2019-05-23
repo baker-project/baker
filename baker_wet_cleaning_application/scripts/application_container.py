@@ -128,7 +128,7 @@ class ApplicationContainer:
 			if self.isOk():
 				self.printMsg("Application started.")
 				self.executeCustomBehavior()
-				if self.isOk() and self.application_resumed_after_pause == False:
+				if self.isOk() and not self.application_resumed_after_pause:
 					self.cancelApplication()	# set back to 2=Cancelled after successful, uninterrupted execution to avoid automatic restart
 				if not self.application_resumed_after_pause:
 					self.printMsg("Application completed with code " + str(self.application_status_[0]))

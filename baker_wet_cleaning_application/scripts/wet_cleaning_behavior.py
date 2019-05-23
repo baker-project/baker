@@ -69,44 +69,26 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 
 		# Mark the current room as finished
 		self.printMsg("ID of cleaned room: " + str(self.mapping_.get(room_counter)))
-		self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)), 1)
+		self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)),
+													 assignment_type=1)
 		self.printMsg(str(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)).open_cleaning_tasks_))
 
+		# todo (rmb-ma): isn't it dumm to stop the program just before adding it the task to the log?
 		# Interruption opportunity
 		if self.handleInterrupt() >= 1:
 			return
 
 		# Adding log entry for wet cleaning
 		self.database_handler_.addLogEntry(
-			self.mapping_.get(room_counter), # room id
-			1, # status (1=Completed)
-			1, # cleaning task (1=wet only)
-			0, # (found dirtspots)
-			0, # trashcan count
-			0, # surface area
-			[], # room issues
-			0, # water amount
-			0 # battery usage
-		)
-
-	# Searching for trashcans
-	def trashcanRoutine(self, room_counter):
-		# ==========================================
-		# insert trashcan handling here
-		# ==========================================
-		self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)), -1)
-
-		# Adding log entry for trashcan emptying
-		self.database_handler_.addLogEntry(
-			self.mapping_.get(room_counter), # room id
-			1, # status (1=Completed)
-			-1, # cleaning task (-1=trashcan only)
-			0, # (found dirtspots)
-			0, # trashcan count
-			0, # surface area
-			[], # room issues
-			0, # water amount
-			0 # battery usage
+			room_id=self.mapping_.get(room_counter),
+			status=1, # 1=Completed
+			cleaning_task=1, # 1=wet only
+			found_dirtspots=0,
+			found_trashcans=0,
+			cleaned_surface_area=0,
+			room_issues=[],
+			used_water_amount=0,
+			battery_usage=0
 		)
 
 	# Implemented Behavior
@@ -124,21 +106,15 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 
 		# todo: tsp on the checkpoints / rooms ?
 		for current_checkpoint_index in range(len(self.sequence_data_.checkpoints)):
-
 			# Trolley movement to checkpoint
 			self.trolley_mover_.setParameters(self.database_handler_)
 			self.trolley_mover_.executeBehavior()
 
 			for current_room_index in self.sequence_data_.checkpoints[current_checkpoint_index].room_indices:
-
 				# Handling of selected room
 				cleaning_thread = threading.Thread(target = self.driveCleaningTrajectory(room_counter, current_room_index))
 				cleaning_thread.start()
-				cleaning_tasks = self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)).open_cleaning_tasks_
-				if -1 in cleaning_tasks: # todo (rmb-ma): what is this? Is it useful?
-					trashcan_thread = threading.Thread(target = self.trashcanRoutine(room_counter))
-					trashcan_thread.start()
-				cleaning_thread.join() # todo (rmb-ma) ???
+				cleaning_thread.join()
 				
 				# Increment the current room counter index
 				room_counter = room_counter + 1

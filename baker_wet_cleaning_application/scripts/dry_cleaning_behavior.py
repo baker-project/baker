@@ -25,9 +25,11 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 	def containsTrashcanTask(tasks):
 		return -1 in tasks
 
+
 	@staticmethod
 	def containsDirtTask(tasks):
 		return 0 in tasks
+
 
 	def __init__(self, behavior_name, interrupt_var):
 		super(DryCleaningBehavior, self).__init__(behavior_name, interrupt_var)
@@ -36,6 +38,7 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 		self.detected_trash_= None
 		self.local_mutex_ = Lock()
 		(self.trash_topic_subscriber_, self.dirt_topic_subscriber_) = (None, None)
+		(self.found_dirtspots_, self.found_trashcans_) = (0, 0)
 
 	# Method for setting parameters for the behavior
 	def setParameters(self, database_handler, sequencing_result, mapping, robot_radius, coverage_radius, field_of_view,
@@ -52,40 +55,24 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 		self.field_of_view_origin_ = field_of_view_origin
 		self.room_information_in_meter_ = room_information_in_meter
 
+
 	# Method for returning to the standard state of the robot
 	def returnToRobotStandardState(self):
 		# nothing to be saved
 		# nothing to be undone
 		pass
 
-	# Searching for trashcans
+
+	# Empty the trash detected in self.detected_trash_
 	def trashcanRoutine(self, room_counter, current_room_index):
+		self.found_trashcans_ += 1
 		print("TRASHCAN ROUTINE STARTED")
-		# ==========================================
-		# insert trashcan handling here
-		# ==========================================
-		#self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)), -1)
 
-		# Adding log entry for wet cleaning
-		#self.database_handler_.addLogEntry(
-		#	self.mapping_.get(room_counter), # room id
-		#	1, # status (1=Completed)
-		#	-1, # cleaning task (-1=trashcan only)
-		#	0, # (found dirtspots)
-		#	0, # trashcan count
-		#	0, # surface area
-		#	[], # room issues
-		#	0, # water amount
-		#	0 # battery usage
-		#)
 
-	# Searching for dirt
+	# Remove the dirt detected in self.detected_dirt_
 	def dirtRoutine(self, room_counter, current_room_index):
+		self.found_dirtspots_ += 1
 		print("DIRT ROUTINE STARTED")
-		# ==========================================
-		# insert dirt removing here
-		# ==========================================
-		#self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)), 0)
 
 
 	def callEmptyService(self, service):
@@ -96,6 +83,7 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 		except rospy.ServiceException, e:
 			self.printMsg("Service call failed: %s" % e)
 
+
 	def stopDetectionsAndUnregister(self):
 		Thread(target=self.callEmptyService, args=(srv.STOP_DIRT_DETECTOR_SERVICE_STR,)).start()
 		Thread(target=self.callEmptyService, args=(srv.STOP_TRASH_DETECTOR_SERVICE_STR,)).start()
@@ -103,6 +91,7 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 			self.dirt_topic_subscriber_.unregister()
 		if self.trash_topic_subscriber_ is not None:
 			self.trash_topic_subscriber_.unregister()
+
 
 	def dirtDetectionCallback(self, detections):
 		self.printMsg("DIRT DETECTED!!")
@@ -125,6 +114,7 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 		self.detected_trash_ = detections
 		self.local_mutex_.release()
 
+
 	# Driving through room
 	def exploreRoom(self, room_counter):
 		# todo (rmb-ma): see if it should be removed
@@ -144,6 +134,7 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 			0, # water amount
 			0 # battery usage
 		)
+
 
 	def computeCoveragePath(self, room_counter, current_room_index):
 		self.printMsg('Starting computing coverage path of room ID'.format(str(self.mapping_.get(room_counter))))
@@ -171,12 +162,43 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 		self.printMsg('Coverage path of room ID {} computed.'.format(str(self.mapping_.get(room_counter))))
 
 
+	def checkoutRoom(self, room_counter, room_index):
+		self.printMsg("ID of dry cleaned room: " + str(self.mapping_.get(room_counter)))
+
+		cleaning_tasks = self.database_handler_.database_.getRoom(
+			self.mapping_.get(room_counter)).open_cleaning_tasks_
+
+		# Many opened tasks (trash + dirt ?) TRASH_TASK = -1 || DRY_TASK = 0
+
+		self.database_handler_.checkoutCompletedRoom(
+			self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)),
+			assignment_type=0)
+
+		# Adding log entry for dry cleaning (but two  )
+		self.database_handler_.addLogEntry(
+			room_id=self.mapping_.get(room_counter),
+			status=1,  # 1=Completed
+			cleaning_task=0,  # 1=wet only
+			found_dirtspots=self.found_dirtspots,
+			found_trashcans=self.found_trashcans_,
+			cleaned_surface_area=0,
+			room_issues=[],
+			used_water_amount=0,
+			battery_usage=0
+		)
+
 	def executeCustomBehaviorInRoomCounter(self, room_counter, current_room_index):
 		self.printMsg('Starting Dry Cleaning of room ID {}'.format( str(self.mapping_.get(room_counter))))
 
 		self.computeCoveragePath(room_counter=room_counter, current_room_index=current_room_index)
-
 		path = self.room_explorer_.exploration_result_.coverage_path_pose_stamped
+
+		if self.handleInterrupt() >= 1:
+			return
+
+		self.path_follower_ = move_base_path_behavior.MoveBasePathBehavior("MoveBasePathBehavior_PathFollowing",
+																		   self.interrupt_var_,
+																		   self.move_base_path_service_str_)
 		while len(path) > 0:
 			self.printMsg("Length of computed path {}".format(len(path)))
 
@@ -193,12 +215,6 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 			if True:#DryCleaningBehavior.containsDirtTask(cleaning_tasks):
 				Thread(target=self.callEmptyService, args=(srv.START_DIRT_DETECTOR_SERVICE_STR,)).start()
 				self.dirt_topic_subscriber_ = rospy.Subscriber('dirt_detector_topic', DetectionArray, self.dirtDetectionCallback)
-
-			self.path_follower_ = move_base_path_behavior.MoveBasePathBehavior("MoveBasePathBehavior_PathFollowing",
-																			   self.interrupt_var_,
-																			   self.move_base_path_service_str_)
-
-			self.printMsg("Starting follower")
 
 			room_map_data = self.database_handler_.database_.getRoom(self.mapping_.get(current_room_index)).room_map_data_
 			self.path_follower_.setParameters(
@@ -220,10 +236,11 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 				rospy.sleep(2)
 
 			thread.join()
-			print("self.path_follower is no more running")
 
-			# todo (rmb-ma). WARNING
-			# If both detections at the same time, the trashcan detection is ignored
+			if self.handleInterrupt() >= 1:
+				return
+
+			# todo (rmb-ma) WARNING /!\ If both detections at the same time, the trashcan detection is ignored
 			if self.detected_dirt_:
 				self.dirtRoutine(room_counter=room_counter, current_room_index=current_room_index)
 			elif self.detected_trash_:
@@ -235,10 +252,7 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 			path = path[last_visited_index:]
 
 		# Checkout the completed room
-		self.printMsg("ID of dry cleaned room: " + str(self.mapping_.get(room_counter)))
-		self.printMsg(
-			str(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)).open_cleaning_tasks_))
-
+		self.checkoutRoom(room_counter=room_counter, room_index=current_room_index)
 
 
 	# Implemented Behavior
@@ -247,12 +261,6 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 		self.tool_changer_ = tool_changing_behavior.ToolChangingBehavior("ToolChangingBehavior", self.interrupt_var_)
 		self.trolley_mover_ = trolley_movement_behavior.TrolleyMovementBehavior("TrolleyMovingBehavior",
 																				self.interrupt_var_)
-
-		# b. dirt/trash bin detections are received by topic (see 1.b: topic message type: cob_object_detection_msgs/DetectionArray.msg)
-		# a call back function a store in buffer, use mutex for safe reading/writing
-		# mutex in Python: https://stackoverflow.com/questions/3310049/proper-use-of-mutexes-in-python
-		# buffers: self.dirt_detections_ , self.trash_bin_detections_
-
 		# Tool change according to cleaning task
 		self.tool_changer_.setParameters(self.database_handler_)
 		self.tool_changer_.executeBehavior()
@@ -260,18 +268,10 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 		room_counter = 0
 
 		for checkpoint in self.sequencing_result_.checkpoints:
-
 			# Trolley movement to checkpoint
 			self.trolley_mover_.setParameters(self.database_handler_)
 			self.trolley_mover_.executeBehavior()
 
 			for room_index in checkpoint.room_indices:
-
 				self.executeCustomBehaviorInRoomCounter(room_counter=room_counter, current_room_index=room_index)
-
-				# plan for room exploration path
-				# --> path with waypoints
-
-
 				room_counter = room_counter + 1
-				

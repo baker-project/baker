@@ -43,7 +43,7 @@ class MapReceivingBehavior(behavior_container.BehaviorContainer):
 		print "Map received with resolution: ", self.map_data_.map_resolution, "   and origin: ", self.map_data_.map_origin
 		
 		# optionally receive the segmented map in sensor_msgs/Image format
-		if (self.map_segmented_receiving_service_str_ != None):
+		if (self.map_segmented_receiving_service_str_ is not None):
 			self.printMsg("Waiting for service " + str(self.map_segmented_receiving_service_str_) + " to become available ...")
 			try:
 				rospy.wait_for_service(self.map_segmented_receiving_service_str_, timeout=3.0)
