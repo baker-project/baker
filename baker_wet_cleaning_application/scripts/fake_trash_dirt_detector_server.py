@@ -13,7 +13,6 @@ class Detector:
     def __init__(self, name):
         self.name_ = name
         self.mutex_ = Lock()
-        rospy.init_node(name, anonymous=True)
         random.seed(0) # todo (rmb-ma): deterministic random (not really because of time)
 
         rospy.Service(self.name_ + '/start_detection', Empty, self.handleStartService)
@@ -22,7 +21,6 @@ class Detector:
         self.is_running_ = False
         self.publisher_ = rospy.Publisher(self.name_ + '_topic', DetectionArray, queue_size=10)
 
-        rospy.spin()
 
 
     def talker(self):
@@ -66,8 +64,10 @@ class Detector:
 
 if __name__ == "__main__":
     try:
+        rospy.init_node('fake_trash_dirt_detector', anonymous=True)
         dirt_detector = Detector('dirt_detector')
         trash_detector = Detector('trash_detector')
+        rospy.spin()
 
     except rospy.ROSInterruptException:
         pass
