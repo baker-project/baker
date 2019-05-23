@@ -42,5 +42,5 @@ class MoveBasePathBehavior(behavior_container.BehaviorContainer):
 		move_base_path_goal.goal_angle_tolerance = self.goal_angle_tolerance_
 		move_base_path_client = actionlib.SimpleActionClient(self.service_str_, MoveBasePathAction)
 		self.printMsg("Running move_base_path action...")
-		self.move_base_path_result_ = self.runAction(move_base_path_client, move_base_path_goal)
+		self.move_base_path_result_ = self.runAction(move_base_path_client, move_base_path_goal)['result']
 		self.printMsg("move_base_path completed.")

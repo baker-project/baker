@@ -54,5 +54,5 @@ class MoveBaseWallFollowBehavior(behavior_container.BehaviorContainer):
 		move_base_goal.wall_following_off_traveling_distance_threshold = self.wall_following_off_traveling_distance_threshold_
 		move_base_client = actionlib.SimpleActionClient(self.service_str_, MoveBaseWallFollowAction)
 		self.printMsg("Running move_base_wall_follow action...")
-		self.move_base_wall_follow_result_ = self.runAction(move_base_client, move_base_goal)
+		self.move_base_wall_follow_result_ = self.runAction(move_base_client, move_base_goal)['result']
 		self.printMsg("move_base_wall_follow completed.")

@@ -26,7 +26,6 @@ class BehaviorContainer:
 		# Get the pointer to the interrupt variable of the application container
 		self.interrupt_var_ = interrupt_var
 		self.mutex_ = Lock()
-		self.is_running = True
 
 	# Method for printing messages.
 	def printMsg(self, text):
@@ -36,6 +35,9 @@ class BehaviorContainer:
 		self.mutex_.acquire()
 		self.interrupt_var_ = [1]
 		self.mutex_.release()
+
+	def setInterruptVar(self, interrupt_var):
+		self.interrupt_var_ = interrupt_var
 
 	# Method that returns the current interruption value [True/False]
 	def executionInterrupted(self):
@@ -64,20 +66,18 @@ class BehaviorContainer:
 		# in loop check for interrupt --> if necessary stop action with self.executionInterrupted() == True and wait until action stopped
 		# Definition of SimpleGoalState: 0 = PENDING, 1 = ACTIVE, 3 = DONE
 		while action_client.get_state() < 3:
-			self.printMsg("action_client.get_state()=" + str(action_client.get_state()))
+			#self.printMsg("action_client.get_state()=" + str(action_client.get_state()))
 			if self.executionInterrupted() or rospy.is_shutdown():
 				action_client.cancel_goal()
 				while action_client.get_state() < 2 or action_client.get_state() == 2 and rospy.is_shutdown():
 					pass
-				self.is_running = False
-				return self.handleInterrupt()
+				return {'interrupt_var': self.handleInterrupt(), 'result': action_client.get_result()}
 			rospy.sleep(self.sleep_time_)
 		if action_client.get_state() == 3:
 			self.printMsg("Action successfully processed.")
 		else:
 			self.printMsg("Action failed.")
-		self.is_running = False
-		return action_client.get_result()
+		return {'interrupt_var': self.interrupt_var_[0], 'result': action_client.get_result()}
 
 	# Method for returning to the standard pose of the robot
 	@abstractmethod

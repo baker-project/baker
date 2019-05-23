@@ -22,9 +22,8 @@ class Detector:
         self.publisher_ = rospy.Publisher(self.name_ + '_topic', DetectionArray, queue_size=10)
 
 
-
     def talker(self):
-        rate = rospy.Rate(3) # 0.2Hz
+        rate = rospy.Rate(1) # 0.2Hz
         while not rospy.is_shutdown():
             self.mutex_.acquire()
             if not self.is_running_:

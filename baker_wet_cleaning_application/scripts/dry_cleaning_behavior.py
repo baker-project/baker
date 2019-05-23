@@ -179,7 +179,7 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 			room_id=self.mapping_.get(room_counter),
 			status=1,  # 1=Completed
 			cleaning_task=0,  # 1=wet only
-			found_dirtspots=self.found_dirtspots,
+			found_dirtspots=self.found_dirtspots_,
 			found_trashcans=self.found_trashcans_,
 			cleaned_surface_area=0,
 			room_issues=[],
@@ -225,17 +225,18 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 				goal_angle_tolerance=1.57
 			)
 
-			thread = Thread(target=self.path_follower_.executeBehavior)
-			thread.start()
+			self.path_follower_.setInterruptVar(self.interrupt_var_)
+			explorer_thread = Thread(target=self.path_follower_.executeBehavior)
+			explorer_thread.start()
 
-			while self.path_follower_.is_running:
+			while not self.path_follower_.executionInterrupted():
 				self.local_mutex_.acquire()
 				if self.detected_dirt_ is not None or self.detected_trash_ is not None:
 					self.path_follower_.interruptExecution()
 				self.local_mutex_.release()
 				rospy.sleep(2)
 
-			thread.join()
+			explorer_thread.join()
 
 			if self.handleInterrupt() >= 1:
 				return
@@ -247,7 +248,7 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 				self.trashcanRoutine(room_counter=room_counter, current_room_index=current_room_index)
 
 			# start again on the current position
-			last_visited_index = self.path_follower_.move_base_path_result_
+			last_visited_index = self.path_follower_.move_base_path_result_.last_visited_index
 			self.printMsg('Move stopped at position {}'.format(last_visited_index))
 			path = path[last_visited_index:]
 

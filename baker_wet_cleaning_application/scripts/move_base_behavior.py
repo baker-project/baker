@@ -41,5 +41,5 @@ class MoveBaseBehavior(behavior_container.BehaviorContainer):
 		move_base_goal.target_pose.header.stamp = rospy.Time.now()
 		move_base_client = actionlib.SimpleActionClient(self.service_str_, MoveBaseAction)
 		self.printMsg("Running move_base action...")
-		self.move_base_result_ = self.runAction(move_base_client, move_base_goal)
+		self.move_base_result_ = self.runAction(move_base_client, move_base_goal)['result']
 		self.printMsg("move_base completed.")

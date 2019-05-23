@@ -44,5 +44,5 @@ class MapSegmentationBehavior(behavior_container.BehaviorContainer):
 		segmentation_goal.room_segmentation_algorithm = self.map_segmentation_algorithm_
 		segmentation_client = actionlib.SimpleActionClient(str(self.service_str_), MapSegmentationAction)
 		self.printMsg("Running segmentation action...")
-		self.segmentation_result_ = self.runAction(segmentation_client, segmentation_goal)
+		self.segmentation_result_ = self.runAction(segmentation_client, segmentation_goal)['result']
 		self.printMsg("Map Segmentation completed")

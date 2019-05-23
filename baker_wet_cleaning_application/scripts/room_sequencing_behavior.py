@@ -4,7 +4,7 @@ import rospy
 import actionlib
 from std_msgs.msg import String
 from geometry_msgs.msg import PoseStamped, Pose2D, Point32, Quaternion
-from ipa_building_msgs.msg import *
+from ipa_building_msgs.msg import FindRoomSequenceWithCheckpointsAction, FindRoomSequenceWithCheckpointsGoal
 
 import behavior_container
 
@@ -18,7 +18,7 @@ _tl_creation_lock=threading.Lock()
 def get_transform_listener():
 	global _tl
 	with _tl_creation_lock:
-		if _tl==None:
+		if _tl is None:
 			_tl=tf.TransformListener(True, rospy.Duration(40.0))
 		return _tl
 ###########################################################################
@@ -64,7 +64,6 @@ class RoomSequencingBehavior(behavior_container.BehaviorContainer):
 
 	# Implemented Behavior
 	def executeCustomBehavior(self):
-		
 
 		room_sequence_goal = FindRoomSequenceWithCheckpointsGoal()
 		room_sequence_goal.input_map = self.database_.global_map_data_.map_image_
@@ -81,5 +80,5 @@ class RoomSequencingBehavior(behavior_container.BehaviorContainer):
 		room_sequence_goal.robot_start_coordinate.orientation = Quaternion(x=0., y=0., z=0., w=0.)	# todo: normalized quaternion
 		room_sequence_client = actionlib.SimpleActionClient(str(self.service_str_), FindRoomSequenceWithCheckpointsAction)
 		self.printMsg("Running sequencing action...")
-		self.room_sequence_result_ = self.runAction(room_sequence_client, room_sequence_goal)
+		self.room_sequence_result_ = self.runAction(room_sequence_client, room_sequence_goal)['result']
 		self.printMsg("Room sequencing completed.")
