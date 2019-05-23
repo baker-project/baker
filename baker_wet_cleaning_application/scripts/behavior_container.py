@@ -33,9 +33,8 @@ class BehaviorContainer:
 		print "[Behavior '" + str(self.behavior_name_) + "']: " + str(text)
 
 	def interruptExecution(self):
-		print("INTERRUPT INTERRUPT INTERRUPT INTERRUPT INTERRUPT INTERRUPT INTERRUPT INTERRUPT INTERRUPT INTERRUPT INTERRUPT INTERRUPT INTERRUPT")
 		self.mutex_.acquire()
-		self.interrupt_var_ = [0]
+		self.interrupt_var_ = [1]
 		self.mutex_.release()
 
 	# Method that returns the current interruption value [True/False]

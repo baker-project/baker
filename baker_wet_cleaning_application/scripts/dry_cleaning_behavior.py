@@ -58,53 +58,68 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 		pass
 
 	# Searching for trashcans
-	def trashcanRoutine(self, room_counter):
+	def trashcanRoutine(self, room_counter, current_room_index):
+		print("TRASHCAN ROUTINE STARTED")
 		# ==========================================
 		# insert trashcan handling here
 		# ==========================================
-		self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)), -1)
+		#self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)), -1)
 
 		# Adding log entry for wet cleaning
-		self.database_handler_.addLogEntry(
-			self.mapping_.get(room_counter), # room id
-			1, # status (1=Completed)
-			-1, # cleaning task (-1=trashcan only)
-			0, # (found dirtspots)
-			0, # trashcan count
-			0, # surface area
-			[], # room issues
-			0, # water amount
-			0 # battery usage
-		)
+		#self.database_handler_.addLogEntry(
+		#	self.mapping_.get(room_counter), # room id
+		#	1, # status (1=Completed)
+		#	-1, # cleaning task (-1=trashcan only)
+		#	0, # (found dirtspots)
+		#	0, # trashcan count
+		#	0, # surface area
+		#	[], # room issues
+		#	0, # water amount
+		#	0 # battery usage
+		#)
 
 	# Searching for dirt
-	def dirtRoutine(self, room_counter):
+	def dirtRoutine(self, room_counter, current_room_index):
+		print("DIRT ROUTINE STARTED")
 		# ==========================================
 		# insert dirt removing here
 		# ==========================================
-		self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)), 0)
+		#self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)), 0)
 
 
 	def callEmptyService(self, service):
 		rospy.wait_for_service(service)
 		try:
 			rospy.ServiceProxy(service, Empty)()
+			self.printMsg('Called ' + service)
 		except rospy.ServiceException, e:
 			self.printMsg("Service call failed: %s" % e)
+
 
 	def dirtDetectionCallback(self, detections):
 		self.printMsg("DIRT DETECTED!!")
 		# 1. Stop the dirt and the trash detections
-		#self.callEmptyService(srv.STOP_DIRT_DETECTOR_SERVICE_STR)
-		#self.callEmptyService(srv.STOP_TRASH_DETECTOR_SERVICE_STR)
+		# don't forget the , at the end of the args tupple
+		Thread(target=self.callEmptyService, args=(srv.STOP_DIRT_DETECTOR_SERVICE_STR,)).start()
+		Thread(target=self.callEmptyService, args=(srv.STOP_TRASH_DETECTOR_SERVICE_STR,)).start()
 
 		# 2. Stop the path follower
-		#self.local_mutex_.acquire()
-		# todo (rmb-ma) ???
-		print("mutex acquired mutex acquired mutex acquired mutex acquired mutex acquired mutex acquired mutex acquired mutex acquired")
-		self.detected_dirt_ = "detections[0]"
-		#self.local_mutex_.release()
+		self.local_mutex_.acquire()
+		self.detected_dirt_ = detections
+		self.local_mutex_.release()
 
+	# todo (rmb-ma) merge with dirtDetectionCallback (avoiding copy-paste)
+	def trashDetectionCallback(self, detections):
+		self.printMsg("Trash DETECTED!!")
+		# 1. Stop the dirt and the trash detections
+		# don't forget the , at the end of the args tupple
+		Thread(target=self.callEmptyService, args=(srv.STOP_DIRT_DETECTOR_SERVICE_STR,)).start()
+		Thread(target=self.callEmptyService, args=(srv.STOP_TRASH_DETECTOR_SERVICE_STR,)).start()
+
+		# 2. Stop the path follower
+		self.local_mutex_.acquire()
+		self.detected_trash_ = detections
+		self.local_mutex_.release()
 
 	# Driving through room
 	def exploreRoom(self, room_counter):
@@ -158,25 +173,29 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 		self.computeCoveragePath(room_counter=room_counter, current_room_index=current_room_index)
 
 		path = self.room_explorer_.exploration_result_.coverage_path_pose_stamped
+		self.printMsg("Length of computed path {}".format(len(path)))
 		if len(path) == 0:
 			return
 
-		# todo (rmb-ma)
 		cleaning_tasks = self.database_handler_.database_.getRoom(
 			self.mapping_.get(room_counter)).open_cleaning_tasks_
 
-		if DryCleaningBehavior.containsTrashcanTask(cleaning_tasks):
-			pass
+		(self.detected_trash_, self.detected_dirt_) = (None, None)
 
-		if True:#drycleaningbehavior.containsDirtTask(cleaning_tasks):
-			self.callEmptyService(srv.START_DIRT_DETECTOR_SERVICE_STR)
+		if True:#DryCleaningBehavior.containsTrashcanTask(cleaning_tasks):
+			Thread(target=self.callEmptyService, args=(srv.START_TRASH_DETECTOR_SERVICE_STR,)).start()
+			rospy.Subscriber('trash_detector_topic', DetectionArray, self.trashDetectionCallback)
 
-			self.printMsg('Subscribing to dirt_detector_topic')
+
+		if True:#DryCleaningBehavior.containsDirtTask(cleaning_tasks):
+			Thread(target=self.callEmptyService, args=(srv.START_DIRT_DETECTOR_SERVICE_STR,)).start()
 			rospy.Subscriber('dirt_detector_topic', DetectionArray, self.dirtDetectionCallback)
 
 		self.path_follower_ = move_base_path_behavior.MoveBasePathBehavior("MoveBasePathBehavior_PathFollowing",
 																		   self.interrupt_var_,
 																		   self.move_base_path_service_str_)
+
+		self.printMsg("Starting follower")
 
 		room_map_data = self.database_handler_.database_.getRoom(self.mapping_.get(current_room_index)).room_map_data_
 		self.path_follower_.setParameters(
@@ -191,15 +210,24 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 		thread.start()
 
 		while self.path_follower_.is_running:
-			print(str(self.detected_dirt_) + ' ' + str(self.detected_trash_))
+			self.local_mutex_.acquire()
 			if self.detected_dirt_ is not None or self.detected_trash_ is not None:
-				print("interrupt execution interrupt execution interrupt execution interrupt execution interrupt execution")
 				self.path_follower_.interruptExecution()
-			rospy.sleep(self.sleep_time_)
-		print("self.path_follower is no more running")
+			self.local_mutex_.release()
+			rospy.sleep(2)
+
 		thread.join()
+		print("self.path_follower is no more running")
 
+		# todo (rmb-ma). WARNING
+		# If both detections at the same time, the trashcan detection is ignored
+		if self.detected_dirt_:
+			self.dirtRoutine(room_counter=room_counter, current_room_index=current_room_index)
+		elif self.detected_trash_:
+			self.trashcanRoutine(room_counter=room_counter, current_room_index=current_room_index)
 
+		# start again on the current position
+		
 		# exploring_thread = threading.Thread(target = self.exploreRoom(room_counter))
 		# exploring_thread.start()
 		# if ((0 in cleaning_tasks) == True):
