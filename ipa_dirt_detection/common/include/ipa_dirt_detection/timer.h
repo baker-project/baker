@@ -6,15 +6,12 @@
  */
 
 // from: http://snipplr.com/view/40650/timer-class-for-both-unixlinuxmac-and-windows-system/
-
 //////////////////
 // How to Use ////
 //////////////////
-
 //#include <iostream>
 //#include "timer.h"
 //using namespace std;
-
 //int main()
 //{
 // Timer timer;
@@ -34,7 +31,6 @@
 // return 0;
 //}
 
-
 //////////////////////////////////////////////////////////////////////////////
 // Timer.h
 // =======
@@ -48,7 +44,6 @@
 //
 // Copyright (c) 2003 Song Ho Ahn
 //////////////////////////////////////////////////////////////////////////////
-
 #ifndef TIMER_H_DEF
 #define TIMER_H_DEF
 
@@ -59,7 +54,6 @@
 #endif
 
 #include <stdlib.h>
-
 
 class Timer
 {
@@ -83,7 +77,7 @@ public:
 		start();
 	}
 
-    // default destructor
+	// default destructor
 	~Timer()
 	{
 	}
@@ -96,7 +90,7 @@ public:
 	{
 		stopped = 0; // reset stop flag
 #ifdef WIN32
-		QueryPerformanceCounter(&startCount);
+				QueryPerformanceCounter(&startCount);
 #else
 		gettimeofday(&startCount, NULL);
 #endif
@@ -172,8 +166,8 @@ private:
 	int stopped; // stop flag
 #ifdef WIN32
 	LARGE_INTEGER frequency; // ticks per second
-	LARGE_INTEGER startCount; //
-	LARGE_INTEGER endCount; //
+	LARGE_INTEGER startCount;//
+	LARGE_INTEGER endCount;//
 #else
 	timeval startCount; //
 	timeval endCount; //
