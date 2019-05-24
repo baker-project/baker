@@ -237,7 +237,9 @@ class DatabaseHandler:
 								room.open_cleaning_tasks_.append(-1)
 							if not (room in self.overdue_rooms_):
 								self.overdue_rooms_.append(room)
-					
+			print("OVERDUE ROOMS")
+			print(self.overdue_rooms_)
+			print("========================================")
 			current_schedule_index = current_schedule_index - 1
 			day_delta = day_delta + 1
 

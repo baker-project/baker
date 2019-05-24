@@ -72,16 +72,14 @@ class BehaviorContainer:
 				while action_client.get_state() < 2 or action_client.get_state() == 2 and rospy.is_shutdown():
 					pass
 				action_client.wait_for_result()
-				print('ACTION CLIENT GET RESULT {}'.format(action_client.get_result()))
 				return {'interrupt_var': self.handleInterrupt(), 'result': action_client.get_result()}
 			rospy.sleep(self.sleep_time_)
 		if action_client.get_state() == 3:
 			self.printMsg("Action successfully processed.")
 		else:
 			self.printMsg("Action failed.")
-			
+
 		action_client.wait_for_result()
-		print('ACTION CLIENT GET RESULT {} (normal way)'.format(action_client.get_result()))
 		return {'interrupt_var': self.interrupt_var_[0], 'result': action_client.get_result()}
 
 	# Method for returning to the standard pose of the robot

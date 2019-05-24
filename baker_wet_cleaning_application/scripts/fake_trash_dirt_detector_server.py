@@ -2,6 +2,7 @@
 
 import rospy
 from cob_object_detection_msgs.msg import DetectionArray, Detection
+from tf2_msgs.msg import TFMessage
 from std_srvs.srv import Empty, EmptyResponse
 
 from threading import Thread, Lock
@@ -21,9 +22,20 @@ class Detector:
         self.is_running_ = False
         self.publisher_ = rospy.Publisher(self.name_ + '_topic', DetectionArray, queue_size=10)
 
+        self.current_position_ = (0, 0)
+
+    def updateCurrentPosition(self, message):
+        translation = message.transforms[0].transform.translation
+        x = translation.x
+        y = translation.y
+        self.mutex_.acquire()
+        self.current_position_ = (x, y)
+        self.mutex_.release()
 
     def talker(self):
-        rate = rospy.Rate(5) # 0.2Hz
+        rospy.Subscriber("/tf", TFMessage, self.updateCurrentPosition)
+
+        rate = rospy.Rate(0.2) # 0.2Hz
         while not rospy.is_shutdown():
             self.mutex_.acquire()
             if not self.is_running_:
@@ -36,6 +48,12 @@ class Detector:
                 continue
 
             detection = Detection()
+
+            self.mutex_.acquire()
+            detection.pose.pose.position.x = self.current_position_[0] + random.random()*0.02 - 0.01
+            detection.pose.pose.position.y = self.current_position_[1] + random.random()*0.02 - 0.01
+            self.mutex_.release()
+
             detections = DetectionArray()
             detections.detections = [detection]
 
@@ -65,7 +83,9 @@ if __name__ == "__main__":
     try:
         rospy.init_node('fake_trash_dirt_detector', anonymous=True)
         dirt_detector = Detector('dirt_detector')
+        #dirt_detector.handleStartService(0)
         trash_detector = Detector('trash_detector')
+        #trash_detector.handleStartService(0)
         rospy.spin()
 
     except rospy.ROSInterruptException:
