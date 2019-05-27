@@ -10,6 +10,7 @@ import trolley_movement_behavior
 import room_exploration_behavior
 import move_base_path_behavior
 import move_base_behavior
+from trashcan_emptying_behavior import TrashcanEmptyingBehavior
 import services_params as srv
 from geometry_msgs.msg import Pose2D, Quaternion
 from cob_object_detection_msgs.msg import DetectionArray
@@ -19,6 +20,10 @@ class Goal:
 	x = 0
 	y = 0
 	z = 0
+	def __init__(self, x, y):
+		self.x = x
+		self.y = y
+
 
 class DryCleaningBehavior(behavior_container.BehaviorContainer):
 
@@ -81,35 +86,17 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 
 		self.found_trashcans_ += 1
 		print("TRASHCAN ROUTINE STARTED")
+		trashcan_emptier = TrashcanEmptyingBehavior("TrashCanEmptyingBehavior", self.interrupt_var_, self.room_exploration_service_str_, srv.MOVE_BASE_SERVICE_STR)
+
 		position = self.detected_trash_.detections[0].pose.pose.position
-		print("ON POSITION ({}, {})".format(position.x, position.y))
-		# todo (rmb-ma): see how we can go there + see the locations to clean it
-
-		self.printMsg("Moving to the detected trash")
-
-		# todo (rmb-ma) fix this hack, don't use room center
-		goal = Goal()
-		(goal.x, goal.y) = (position.x, position.y)
-		self.move_base_handler_.setParameters(
-			goal_position=goal,
-			goal_orientation=Quaternion(x=0., y=0., z=0., w=1.),
-			header_frame_id='base_link'
-		)
-
-		self.move_base_handler_.executeBehavior()
-
 		room_center = self.room_information_in_meter_[room_id].room_center
-		self.printMsg("Moving to the trolley (room - center) - ({}, {})".format(room_center.x, room_center.y))
 
-		self.move_base_handler_.setParameters(
-			goal_position=room_center,
-			goal_orientation=Quaternion(x=0., y=0., z=0., w=1.),
-			header_frame_id='base_link'
+		trashcan_emptier.setParameters(
+			trashcan_position=position,
+			trolley_position=room_center
 		)
 
-		self.move_base_handler_.executeBehavior()
-		print("TRASHCAN ROUTINE FINISHED")
-
+		trashcan_emptier.executeBehavior()
 
 	# Remove the dirt detected in self.detected_dirt_
 	def dirtRoutine(self, room_id):
@@ -260,7 +247,6 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 
 		self.printMsg('Starting Dry Cleaning of room ID {}'.format(room_id))
 
-		#print([self.room_information_in_meter_[k].room_center for k in range(len(self.room_information_in_meter_))])
 		room_center = self.room_information_in_meter_[room_id].room_center
 
 		self.move_base_handler_.setParameters(
@@ -299,8 +285,8 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 
 
 			if True:#DryCleaningBehavior.containsDirtTask(cleaning_tasks):
-				self.dirt_topic_subscriber_ = rospy.Subscriber('dirt_detector_topic', DetectionArray, self.dirtDetectionCallback)
 				Thread(target=self.callEmptyService, args=(srv.START_DIRT_DETECTOR_SERVICE_STR,)).start()
+				self.dirt_topic_subscriber_ = rospy.Subscriber('dirt_detector_topic', DetectionArray, self.dirtDetectionCallback)
 
 			room_map_data = self.database_handler_.database_.getRoomById(room_id).room_map_data_
 			self.path_follower_.setParameters(
@@ -315,7 +301,7 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 			explorer_thread = Thread(target=self.path_follower_.executeBehavior)
 			explorer_thread.start()
 
-			while self.path_follower_.is_finished:
+			while not self.path_follower_.is_finished:
 				self.local_mutex_.acquire()
 				if self.detected_dirt_ is not None or self.detected_trash_ is not None:
 					self.path_follower_.interruptExecution()

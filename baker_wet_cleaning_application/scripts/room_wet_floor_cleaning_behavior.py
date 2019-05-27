@@ -75,7 +75,7 @@ class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 		self.room_explorer_ = room_exploration_behavior.RoomExplorationBehavior("RoomExplorationBehavior", self.interrupt_var_, self.room_exploration_service_str_)
 		self.path_follower_ = move_base_path_behavior.MoveBasePathBehavior("MoveBasePathBehavior_PathFollowing", self.interrupt_var_, self.move_base_path_service_str_)
 		self.wall_follower_ = move_base_wall_follow_behavior.MoveBaseWallFollowBehavior("MoveBaseWallFollowBehavior", self.interrupt_var_, self.move_base_wall_follow_service_str_)
-		self.trashcan_emptier_ = trashcan_emptying_behavior.TrashcanEmptyingBehavior("TrashcanEmptyingBehavior", self.interrupt_var_)
+		#self.trashcan_emptier_ = trashcan_emptying_behavior.TrashcanEmptyingBehavior("TrashcanEmptyingBehavior", self.interrupt_var_)
 		
 		# Room exploration
 		"""
