@@ -31,6 +31,7 @@ class MoveBasePathBehavior(behavior_container.BehaviorContainer):
 		self.path_tolerance_ = path_tolerance
 		self.goal_position_tolerance_ = goal_position_tolerance
 		self.goal_angle_tolerance_ = goal_angle_tolerance
+		self.is_finished = False
 
 	# Implemented Behavior
 	def executeCustomBehavior(self):

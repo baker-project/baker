@@ -587,7 +587,7 @@ class Database:
 
 
 	# Retrieve a room by providing a room_id
-	def getRoom(self, room_id):
+	def getRoomById(self, room_id):
 		result = None
 		for i in range(len(self.rooms_)):
 			if self.rooms_[i].room_id_ == room_id:

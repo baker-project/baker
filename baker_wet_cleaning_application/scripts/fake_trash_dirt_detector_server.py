@@ -11,9 +11,10 @@ import random
 
 class Detector:
 
-    def __init__(self, name):
+    def __init__(self, name, frequency=0.2):
         self.name_ = name
         self.mutex_ = Lock()
+        self.rate_ = frequency
         random.seed(0) # todo (rmb-ma): deterministic random (not really because of time)
 
         rospy.Service(self.name_ + '/start_detection', Empty, self.handleStartService)
@@ -35,7 +36,7 @@ class Detector:
     def talker(self):
         rospy.Subscriber("/tf", TFMessage, self.updateCurrentPosition)
 
-        rate = rospy.Rate(0.2) # 0.2Hz
+        rate = rospy.Rate(self.rate_) # 0.2Hz
         while not rospy.is_shutdown():
             self.mutex_.acquire()
             if not self.is_running_:
@@ -82,9 +83,9 @@ class Detector:
 if __name__ == "__main__":
     try:
         rospy.init_node('fake_trash_dirt_detector', anonymous=True)
-        dirt_detector = Detector('dirt_detector')
+        dirt_detector = Detector('dirt_detector', 0.000000001)
         #dirt_detector.handleStartService(0)
-        trash_detector = Detector('trash_detector')
+        trash_detector = Detector('trash_detector', 0.00000000001)
         #trash_detector.handleStartService(0)
         rospy.spin()
 

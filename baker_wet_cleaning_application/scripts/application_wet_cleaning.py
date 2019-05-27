@@ -36,12 +36,16 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		)
 		self.map_handler_.executeBehavior()
 		self.printMsg("Room Mapping (Dry): " + str(self.map_handler_.mapping_))
+
 		for checkpoint in self.map_handler_.room_sequencing_data_.checkpoints:
 			self.printMsg("Order: " + str(checkpoint.room_indices))
 
 		# Interruption opportunity
 		if self.handleInterrupt() >= 1:
 			return
+
+		print("GET ROOM INFORMATION IN METER")
+		print([rooms_dry_cleaning[k].room_id_ for k in range(len(rooms_dry_cleaning))])
 
 		# Run Dry Cleaning Behavior
 		self.dry_cleaner_.setParameters(

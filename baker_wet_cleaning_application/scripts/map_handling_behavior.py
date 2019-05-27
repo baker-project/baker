@@ -23,6 +23,7 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 		# Parameters set from the outside
 		self.database_handler_ = database_handler
 		self.rooms_list_ = rooms_list
+		self.is_finished = False
 
 
 	# Method for returning to the standard pose of the robot
@@ -49,6 +50,8 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 			self.database_handler_.database_.robot_properties_.exploration_robot_radius_
 			)
 		self.room_sequencer_.executeCustomBehavior()
+
+		print("ROOM SEQUENCING DONE")
 		self.room_sequencing_data_ = self.room_sequencer_.room_sequence_result_
 		self.mapping_ = self.database_handler_.getRoomMapping(self.rooms_list_, self.room_sequencing_data_)
 		#self.printMsg("self.room_sequencing_data_.checkpoints=" + str(self.room_sequencing_data_.checkpoints))

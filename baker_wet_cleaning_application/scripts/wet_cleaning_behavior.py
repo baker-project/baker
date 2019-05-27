@@ -39,17 +39,17 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 		pass
 
 	# Driving through room and wet cleaning
-	def driveCleaningTrajectory(self, room_counter, current_room_index):
+	def driveCleaningTrajectory(self, room_id):
 
-		self.printMsg("Moving to next room with current_room_index = " + str(current_room_index))
+		self.printMsg("Moving to next room with room_id = " + str(room_id))
 
 		# Interruption opportunity
 		if self.handleInterrupt() >= 1:
 			return
 
 		self.room_wet_floor_cleaner_.setParameters(
-			room_map_data=self.database_handler_.database_.getRoom(self.mapping_.get(current_room_index)).room_map_data_,
-			room_center=self.room_information_in_meter_[current_room_index].room_center,
+			room_map_data=self.database_handler_.database_.getRoomById(room_id).room_map_data_,
+			room_center=self.room_information_in_meter_[room_id].room_center,
 			map_data=self.database_handler_.database_.global_map_data_.map_image_,
 			map_resolution=self.database_handler_.database_.global_map_data_.map_resolution_,
 			map_origin=self.database_handler_.database_.global_map_data_.map_origin_,
@@ -68,10 +68,10 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 			return
 
 		# Mark the current room as finished
-		self.printMsg("ID of cleaned room: " + str(self.mapping_.get(room_counter)))
-		self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)),
+		self.printMsg("ID of cleaned room: " + str(room_id))
+		self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoomById(room_id),
 													 assignment_type=1)
-		self.printMsg(str(self.database_handler_.database_.getRoom(self.mapping_.get(room_counter)).open_cleaning_tasks_))
+		self.printMsg(str(self.database_handler_.database_.getRoomById(room_id).open_cleaning_tasks_))
 
 		# todo (rmb-ma): isn't it dumm to stop the program just before adding it the task to the log?
 		# Interruption opportunity
@@ -80,7 +80,7 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 
 		# Adding log entry for wet cleaning
 		self.database_handler_.addLogEntry(
-			room_id=self.mapping_.get(room_counter),
+			room_id=self.mapping_.get(room_id),
 			status=1, # 1=Completed
 			cleaning_task=1, # 1=wet only
 			found_dirtspots=0,
@@ -112,7 +112,8 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 
 			for current_room_index in self.sequence_data_.checkpoints[current_checkpoint_index].room_indices:
 				# Handling of selected room
-				cleaning_thread = threading.Thread(target = self.driveCleaningTrajectory(room_counter, current_room_index))
+				room_id = self.mapping_.get(room_counter)
+				cleaning_thread = threading.Thread(target=self.driveCleaningTrajectory(room_id=room_id))
 				cleaning_thread.start()
 				cleaning_thread.join()
 				

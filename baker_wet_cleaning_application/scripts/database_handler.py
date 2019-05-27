@@ -99,12 +99,14 @@ class DatabaseHandler:
 
 	# Get the room information in meter
 	def getRoomInformationInMeter(self, rooms_array):
-		room_information_in_meter = []
+		room_information_in_meter = {}
 		for room in rooms_array:
-			room_information_in_meter.append(room.room_information_in_meter_)
+			room_id = room.room_id_
+			room_information_in_meter[room_id] = room.room_information_in_meter_
 		return room_information_in_meter
 
 
+	# TODO (rmb-ma) use a list instead of a dict
 	# Create a mapping RoomSequenceResult |-> RoomObject
 	def getRoomMapping(self, rooms_list, room_sequence_result):
 		mapping = {}

@@ -26,6 +26,7 @@ class BehaviorContainer:
 		# Get the pointer to the interrupt variable of the application container
 		self.interrupt_var_ = interrupt_var
 		self.mutex_ = Lock()
+		self.is_finished = False
 
 	# Method for printing messages.
 	def printMsg(self, text):
@@ -56,7 +57,7 @@ class BehaviorContainer:
 
 	# Method for running an action server, shall only be called from def executeCustomBehavior
 	def runAction(self, action_client, action_goal):
-		self.is_running = True
+		self.is_finished = False
 		# action client --> call external functionality but do not wait for finishing
 		self.printMsg("Waiting for action " + str(action_client.action_client.ns) + " to become available...")
 		action_client.wait_for_server()
@@ -72,6 +73,7 @@ class BehaviorContainer:
 				while action_client.get_state() < 2 or action_client.get_state() == 2 and rospy.is_shutdown():
 					pass
 				action_client.wait_for_result()
+				self.is_finished = True
 				return {'interrupt_var': self.handleInterrupt(), 'result': action_client.get_result()}
 			rospy.sleep(self.sleep_time_)
 		if action_client.get_state() == 3:
@@ -80,6 +82,7 @@ class BehaviorContainer:
 			self.printMsg("Action failed.")
 
 		action_client.wait_for_result()
+		self.is_finished = True
 		return {'interrupt_var': self.interrupt_var_[0], 'result': action_client.get_result()}
 
 	# Method for returning to the standard pose of the robot
