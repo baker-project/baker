@@ -33,6 +33,9 @@
 
 	<!-- include room sequence planning -->
 	<include file="$(find ipa_building_navigation)/ros/launch/room_sequence_planning_action_server.launch"/>
+
+	<!-- include map accessibility analysis -->
+	<include file="$(find cob_map_accessibility_analysis)/ros/launch/map_accessibility_analysis.launch"/>
 	
 	<!-- dirt and trash fake detector -->
 	<node pkg="baker_wet_cleaning_application" type="fake_trash_dirt_detector_server.py" name="fake_trash_dirt_detector" output="screen" respawn="true" respawn_delay="2"/>

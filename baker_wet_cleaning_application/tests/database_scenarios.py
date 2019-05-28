@@ -3,10 +3,12 @@
 import argparse
 import json
 from datetime import datetime, timedelta
+import sys
 
 ROOM_NUMBER = 11
 DATABASE_LOCATION = '../resources/json/'
 DATE_FORMAT = '%Y-%m-%d_%H:%M'
+SET_APPLICATION_STATUS_SERVICE = '/set_application_status_application_wet_cleaning'
 
 
 def cleaningMethod(string):
@@ -35,7 +37,6 @@ def updateRooms(methods, reset_opened_tasks=False, reset_timestamps=False):
 			data[key]['open_cleaning_tasks'] = []
 
 		if reset_timestamps:
-
 			data[key]['room_cleaning_datestamps'] = [previous_date.strftime(DATE_FORMAT)] * 3
 
 		# todo (rmb-ma). doesn't work if ids are not following
@@ -61,11 +62,29 @@ def resetLastPlanningDate():
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='Reset the database to a given scenario')
 
+	parser.add_argument("--start_application", help="If you want to start the application (must be launched and connected to mira)",
+						action='store_true')
+	parser.add_argument("--stop_application",
+						help="If you want to stop the application (all other arguments are ignored)",
+						action='store_true')
+
 	for k in range(ROOM_NUMBER):
 		parser.add_argument('-r{}'.format(k), '--room{}'.format(k), type=cleaningMethod, nargs='?', default=-1,
 							help='Cleaning method of room {} (-1: nothing, 0: dry, 1: wet, 2: both). Default -1'.format(k))
 	args = vars(parser.parse_args())
 
 	cleaning_methods = [args.get('room{}'.format(k)) for k in range(ROOM_NUMBER)]
+
+	if args['stop_application']:
+		import subprocess
+		subprocess.call(['rosservice', 'call', SET_APPLICATION_STATUS_SERVICE, '2'])
+		print('WARNING - nothing done on the database')
+		sys.exit(1)
+
 	updateRooms(cleaning_methods, reset_opened_tasks=True, reset_timestamps=True)
 	resetLastPlanningDate()
+
+	if args['start_application']:
+		import subprocess
+
+		subprocess.call(['rosservice', 'call', SET_APPLICATION_STATUS_SERVICE, '0'])

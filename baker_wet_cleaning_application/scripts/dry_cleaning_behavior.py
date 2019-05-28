@@ -21,6 +21,7 @@ class Goal:
 	x = 0
 	y = 0
 	z = 0
+
 	def __init__(self, x, y):
 		self.x = x
 		self.y = y
@@ -101,7 +102,9 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 			assert False
 
 		self.found_dirtspots_ += 1
-		dirt_remover = DirtRemovingBehavior("DirtRemovingBehavior", self.interrupt_var_, srv.MOVE_BASE_SERVICE_STR)
+		dirt_remover = DirtRemovingBehavior("DirtRemovingBehavior", self.interrupt_var_,
+											move_base_service_str=srv.MOVE_BASE_SERVICE_STR,
+											map_accessibility_service_str=srv.MAP_ACCESSIBILITY_SERVICE_STR)
 
 		position = self.detected_dirt_.detections[0].pose.pose.position
 		dirt_remover.setParameters(dirt_position=position)
@@ -155,27 +158,6 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 		position = self.detected_trash_.detections[0].pose.pose.position
 		print("ON POSITION ({}, {})".format(position.x, position.y))
 
-	# Driving through room
-	def exploreRoom(self, room_counter):
-		# todo (rmb-ma): see if it should be removed
-		# ==========================================
-		# insert room exploration here
-		# ==========================================
-		
-		# Adding log entry for wet cleaning
-		self.database_handler_.addLogEntry(
-			self.mapping_.get(room_counter), # room id
-			1, # status (1=Completed)
-			0, # cleaning task (0=dry only)
-			0, # (found dirtspots)
-			0, # trashcan count
-			0, # surface area
-			[], # room issues
-			0, # water amount
-			0 # battery usage
-		)
-
-
 	def computeCoveragePath(self, room_id):
 		self.printMsg('Starting computing coverage path of room ID {}'.format(room_id))
 
@@ -201,7 +183,6 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 		)
 		self.room_explorer_.executeBehavior()
 		self.printMsg('Coverage path of room ID {} computed.'.format(room_id))
-
 
 	def checkoutRoom(self, room_id):
 		self.printMsg("checkout dry cleaned room: " + str(room_id))
@@ -311,7 +292,6 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 
 		# Checkout the completed room
 		self.checkoutRoom(room_id=room_id)
-
 
 	# Implemented Behavior
 	def executeCustomBehavior(self):
