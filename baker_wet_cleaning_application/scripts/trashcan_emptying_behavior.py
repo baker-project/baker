@@ -18,10 +18,11 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 	# > Leave the trashcan
 	#========================================================================
 
-	def __init__(self, behavior_name, interrupt_var, service_str, move_base_service_str):
+	def __init__(self, behavior_name, interrupt_var, move_base_service_str):
 		super(TrashcanEmptyingBehavior, self).__init__(behavior_name, interrupt_var)
-		self.service_str_ = service_str
 		self.move_base_handler_ = MoveBaseBehavior("MoveBaseBehavior", self.interrupt_var_, move_base_service_str)
+		(self.trolley_position_, self.trashcan_position_) = (None, None)
+
 
 	# Method for setting parameters for the behavior
 	def setParameters(self, trashcan_position, trolley_position):
@@ -43,8 +44,10 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 		)
 		self.move_base_handler_.executeBehavior()
 
+
 	# Implemented Behavior
 	def executeCustomBehavior(self):
+		assert(self.trashcan_position_ is not None and self.trolley_position_ is not None)
 
 		self.printMsg("Executing trashcan behavior located on ({}, {})".format(self.trashcan_position_.x, self.trashcan_position_.y))
 

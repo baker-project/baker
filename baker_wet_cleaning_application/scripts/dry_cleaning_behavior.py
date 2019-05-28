@@ -10,6 +10,7 @@ import trolley_movement_behavior
 import room_exploration_behavior
 import move_base_path_behavior
 import move_base_behavior
+from dirt_removing_behavior import DirtRemovingBehavior
 from trashcan_emptying_behavior import TrashcanEmptyingBehavior
 import services_params as srv
 from geometry_msgs.msg import Pose2D, Quaternion
@@ -85,16 +86,12 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 			assert False
 
 		self.found_trashcans_ += 1
-		print("TRASHCAN ROUTINE STARTED")
-		trashcan_emptier = TrashcanEmptyingBehavior("TrashCanEmptyingBehavior", self.interrupt_var_, self.room_exploration_service_str_, srv.MOVE_BASE_SERVICE_STR)
+		trashcan_emptier = TrashcanEmptyingBehavior("TrashcanEmptyingBehavior", self.interrupt_var_, srv.MOVE_BASE_SERVICE_STR)
 
 		position = self.detected_trash_.detections[0].pose.pose.position
-		room_center = self.room_information_in_meter_[room_id].room_center
+		room_center = self.room_information_in_meter_[room_id].room_center # todo (rmb-ma). use the exact trolley position
 
-		trashcan_emptier.setParameters(
-			trashcan_position=position,
-			trolley_position=room_center
-		)
+		trashcan_emptier.setParameters(trashcan_position=position, trolley_position=room_center)
 
 		trashcan_emptier.executeBehavior()
 
@@ -104,25 +101,12 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 			assert False
 
 		self.found_dirtspots_ += 1
-		print("DIRT ROUTINE STARTED")
+		dirt_remover = DirtRemovingBehavior("DirtRemovingBehavior", self.interrupt_var_, srv.MOVE_BASE_SERVICE_STR)
 
 		position = self.detected_dirt_.detections[0].pose.pose.position
-		print("ON POSITION ({}, {})".format(position.x, position.y))
+		dirt_remover.setParameters(dirt_position=position)
 
-		# todo (rmb-ma): see how we can go there + see the locations to clean it
-		room_center = self.room_information_in_meter_[room_id].room_center
-		self.printMsg("Moving to the detected dirt")
-
-		# todo (rmb-ma) fix this hack, don't use room center
-		room_center.x = position.x
-		room_center.y = position.y
-		self.move_base_handler_.setParameters(
-			goal_position=room_center,
-			goal_orientation=Quaternion(x=0., y=0., z=0., w=1.),
-			header_frame_id='base_link'
-			)
-
-		self.move_base_handler_.executeBehavior()
+		dirt_remover.executeBehavior()
 
 
 	def callEmptyService(self, service):

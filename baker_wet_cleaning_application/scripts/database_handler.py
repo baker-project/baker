@@ -136,40 +136,42 @@ class DatabaseHandler:
 		for room in self.database_.rooms_:
 			schedule_char = room.room_scheduled_days_[today_index]
 			# Some cleaning required
-			if schedule_char != "":
-				# Find out if the timestamps indicate that the room has been handled already today
-				timestamp_is_new = [
-					room.room_cleaning_datestamps_[0] is not None
-					and datetime.datetime.now() - room.room_cleaning_datestamps_[0] < datetime.timedelta(days=1),	# trash cans
-					room.room_cleaning_datestamps_[1] is not None
-					and datetime.datetime.now() - room.room_cleaning_datestamps_[1] < datetime.timedelta(days=1),	# dry cleaning
-					room.room_cleaning_datestamps_[2] is not None
-					and datetime.datetime.now() - room.room_cleaning_datestamps_[2] < datetime.timedelta(days=1)	# wet cleaning
-				]
+			if schedule_char == "":
+				continue
 
-				# If today is a cleaning day
-				if self.isCleaningDay(schedule_char):
+			# Find out if the timestamps indicate that the room has been handled already today
+			timestamp_is_new = [
+				room.room_cleaning_datestamps_[0] is not None
+				and datetime.datetime.now() - room.room_cleaning_datestamps_[0] < datetime.timedelta(days=1),	# trash cans
+				room.room_cleaning_datestamps_[1] is not None
+				and datetime.datetime.now() - room.room_cleaning_datestamps_[1] < datetime.timedelta(days=1),	# dry cleaning
+				room.room_cleaning_datestamps_[2] is not None
+				and datetime.datetime.now() - room.room_cleaning_datestamps_[2] < datetime.timedelta(days=1)	# wet cleaning
+			]
 
-					if self.isTrashDay(room.room_cleaning_method_)\
-						and (not timestamp_is_new[0] and not (self.TRASH_TASK in room.open_cleaning_tasks_)):
-							room.open_cleaning_tasks_.append(self.TRASH_TASK)
+			# If today is a cleaning day
+			if self.isCleaningDay(schedule_char):
 
-					if self.isDryDay(room.room_cleaning_method_)\
-						and (not timestamp_is_new[1] and not (self.DRY_TASK in room.open_cleaning_tasks_)):
-							room.open_cleaning_tasks_.append(self.DRY_TASK)
+				if self.isTrashDay(room.room_cleaning_method_)\
+					and (not timestamp_is_new[0] and not (self.TRASH_TASK in room.open_cleaning_tasks_)):
+						room.open_cleaning_tasks_.append(self.TRASH_TASK)
 
-					if self.isWetDay(room.room_cleaning_method_)\
-						and (not timestamp_is_new[2] and not (self.WET_TASK in room.open_cleaning_tasks_)):
-							room.open_cleaning_tasks_.append(self.WET_TASK)
+				if self.isDryDay(room.room_cleaning_method_)\
+					and (not timestamp_is_new[1] and not (self.DRY_TASK in room.open_cleaning_tasks_)):
+						room.open_cleaning_tasks_.append(self.DRY_TASK)
 
-				# If today is only a trashcan day
-				else:	# todo: check for "p" since trash is not just standard procedure
-					room.open_cleaning_tasks_.append(self.TRASH_TASK)
+				if self.isWetDay(room.room_cleaning_method_)\
+					and (not timestamp_is_new[2] and not (self.WET_TASK in room.open_cleaning_tasks_)):
+						room.open_cleaning_tasks_.append(self.WET_TASK)
 
-				# Append room to the due list if any task is to be done
-				if len(room.open_cleaning_tasks_) != 0:
-					self.due_rooms_.append(room)
-		
+			# If today is only a trashcan day
+			else:	# todo: check for "p" since trash is not just standard procedure
+				room.open_cleaning_tasks_.append(self.TRASH_TASK)
+
+			# Append room to the due list if any task is to be done
+			if len(room.open_cleaning_tasks_) != 0:
+				self.due_rooms_.append(room)
+
 		self.applyChangesToDatabase() # saves all the due rooms in the database
 
 
@@ -192,56 +194,57 @@ class DatabaseHandler:
 		day_delta = 1
 		while current_schedule_index != today_index:
 			# Handle the case that today_index is a monday of an even week
-			if current_schedule_index == -1: # todo (rmb-ma): not sure that is correct it should be at the end of the while loop
+			if current_schedule_index == -1:
 				current_schedule_index = 13
 				continue
+
 			# Get the corresponding date
 			datetime_day_delta = datetime.timedelta(days=day_delta)
 			indexed_date = datetime.datetime.now() - datetime_day_delta
 			# Iterate through all potential rooms
 			for room in self.database_.rooms_:
 				# Room must not be in the due rooms list already
-				if not (room in self.due_rooms_):
-					schedule_char = room.room_scheduled_days_[current_schedule_index]
-					cleaning_method = room.room_cleaning_method_
-					# Room floor cleaning with trashcan was scheduled
-					if self.isCleaningDay(schedule_char):
-						trashcan_date = room.room_cleaning_datestamps_[0]
-						dry_date = room.room_cleaning_datestamps_[1]
-						wet_date = room.room_cleaning_datestamps_[2]
+				if room in self.due_rooms_:
+					continue
 
-						# Room's trashcan was to be emptied and that did not happen
-						if trashcan_date is not None and trashcan_date < indexed_date:
-							if not (self.TRASH_TASK in room.open_cleaning_tasks_):
-								room.open_cleaning_tasks_.append(self.TRASH_TASK)
-							if not (room in self.overdue_rooms_):
-								self.overdue_rooms_.append(room)
+				schedule_char = room.room_scheduled_days_[current_schedule_index]
+				cleaning_method = room.room_cleaning_method_
+				# Room floor cleaning with trashcan was scheduled
+				if self.isCleaningDay(schedule_char):
+					trashcan_date = room.room_cleaning_datestamps_[0]
+					dry_date = room.room_cleaning_datestamps_[1]
+					wet_date = room.room_cleaning_datestamps_[2]
 
-						# Room was to be cleaned dry and that did not happen
-						if self.isDryDay(cleaning_method) and dry_date is not None and dry_date < indexed_date:
-							if not (self.DRY_TASK in room.open_cleaning_tasks_):
-								room.open_cleaning_tasks_.append(self.DRY_TASK)
-							if not (room in self.overdue_rooms_):
-								self.overdue_rooms_.append(room)
+					# Room's trashcan was to be emptied and that did not happen
+					if trashcan_date is not None and trashcan_date < indexed_date:
+						if not (self.TRASH_TASK in room.open_cleaning_tasks_):
+							room.open_cleaning_tasks_.append(self.TRASH_TASK)
+						if not (room in self.overdue_rooms_):
+							self.overdue_rooms_.append(room)
 
-						# Room was to be cleaned wet and that did not happen
-						if self.isWetDay(cleaning_method) and wet_date is not None and wet_date < indexed_date:
-							if not (self.WET_TASK in room.open_cleaning_tasks_):
-								room.open_cleaning_tasks_.append(self.WET_TASK)
-							if not (room in self.overdue_rooms_):
-								self.overdue_rooms_.append(room)
+					# Room was to be cleaned dry and that did not happen
+					if self.isDryDay(cleaning_method) and dry_date is not None and dry_date < indexed_date:
+						if not (self.DRY_TASK in room.open_cleaning_tasks_):
+							room.open_cleaning_tasks_.append(self.DRY_TASK)
+						if not (room in self.overdue_rooms_):
+							self.overdue_rooms_.append(room)
 
-					# Trashcan emptying was scheduled
-					elif self.isTrashDay(cleaning_method):
-						trashcan_date = room.room_cleaning_datestamps_[0]
-						if trashcan_date is not None and trashcan_date < indexed_date:
-							if not (self.TRASH_TASK in room.open_cleaning_tasks_):
-								room.open_cleaning_tasks_.append(-1)
-							if not (room in self.overdue_rooms_):
-								self.overdue_rooms_.append(room)
-			print("OVERDUE ROOMS")
-			print(self.overdue_rooms_)
-			print("========================================")
+					# Room was to be cleaned wet and that did not happen
+					if self.isWetDay(cleaning_method) and wet_date is not None and wet_date < indexed_date:
+						if not (self.WET_TASK in room.open_cleaning_tasks_):
+							room.open_cleaning_tasks_.append(self.WET_TASK)
+						if not (room in self.overdue_rooms_):
+							self.overdue_rooms_.append(room)
+
+				# Trashcan emptying was scheduled
+				elif self.isTrashDay(schedule_char):
+					trashcan_date = room.room_cleaning_datestamps_[0]
+					if trashcan_date is not None and trashcan_date < indexed_date:
+						if not (self.TRASH_TASK in room.open_cleaning_tasks_):
+							room.open_cleaning_tasks_.append(-1)
+						if not (room in self.overdue_rooms_):
+							self.overdue_rooms_.append(room)
+
 			current_schedule_index = current_schedule_index - 1
 			day_delta = day_delta + 1
 

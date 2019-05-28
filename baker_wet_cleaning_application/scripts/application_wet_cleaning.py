@@ -100,12 +100,12 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		)
 		self.wet_cleaner_.executeBehavior()
 
+
 	# Implement application procedures of inherited classes here.
 	def executeCustomBehavior(self, last_execution_date_override=None):
 
 		# Initialize behaviors
 		# ====================
-
 		self.map_handler_ = map_handling_behavior.MapHandlingBehavior("MapHandlingBehavior", self.application_status_)
 		self.dry_cleaner_ = dry_cleaning_behavior.DryCleaningBehavior("DryCleaningBehavior", self.application_status_)
 		self.wet_cleaner_ = wet_cleaning_behavior.WetCleaningBehavior("WetCleaningBehavior", self.application_status_)
