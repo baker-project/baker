@@ -16,9 +16,10 @@ import room_exploration_behavior
 import move_base_path_behavior
 import move_base_wall_follow_behavior
 
+
 class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 
-	#========================================================================
+	# ========================================================================
 	# Services to be used:
 	# room_exploration_service_str_ = 
 	#       '/room_exploration_server'
@@ -28,8 +29,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 	#		'/move_base_wall_follow'
 	# move_base_service_str_ =
 	#		'move_base'
-	#========================================================================
-
+	# ========================================================================
 		
 	# Method for setting parameters for the behavior
 	def setParameters(self, map_data, segmentation_data, sequence_data, robot_frame_id, robot_radius, coverage_radius, field_of_view, field_of_view_origin, use_cleaning_device):

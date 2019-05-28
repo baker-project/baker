@@ -17,15 +17,6 @@ from geometry_msgs.msg import Pose2D, Quaternion
 from cob_object_detection_msgs.msg import DetectionArray
 from std_srvs.srv import Empty, EmptyResponse
 
-class Goal:
-	x = 0
-	y = 0
-	z = 0
-
-	def __init__(self, x, y):
-		self.x = x
-		self.y = y
-
 
 class DryCleaningBehavior(behavior_container.BehaviorContainer):
 
@@ -111,7 +102,6 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 
 		dirt_remover.executeBehavior()
 
-
 	def callEmptyService(self, service):
 		rospy.wait_for_service(service)
 		try:
@@ -120,7 +110,6 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 		except rospy.ServiceException, e:
 			self.printMsg("Service call failed: %s" % e)
 
-
 	def stopDetectionsAndUnregister(self):
 		Thread(target=self.callEmptyService, args=(srv.STOP_DIRT_DETECTOR_SERVICE_STR,)).start()
 		Thread(target=self.callEmptyService, args=(srv.STOP_TRASH_DETECTOR_SERVICE_STR,)).start()
@@ -128,7 +117,6 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 			self.dirt_topic_subscriber_.unregister()
 		if self.trash_topic_subscriber_ is not None:
 			self.trash_topic_subscriber_.unregister()
-
 
 	def dirtDetectionCallback(self, detections):
 		self.printMsg("DIRT DETECTED!!")
@@ -230,8 +218,8 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 			return
 
 		self.path_follower_ = move_base_path_behavior.MoveBasePathBehavior("MoveBasePathBehavior_PathFollowing",
-																		   self.interrupt_var_,
-																		   self.move_base_path_service_str_)
+																			self.interrupt_var_,
+																			self.move_base_path_service_str_)
 
 		with open('/home/rmb/Desktop/rmb-ma_notes/path_visualizer/path.txt', 'w') as f:
 			f.write(str(path))
@@ -244,12 +232,11 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 
 			(self.detected_trash_, self.detected_dirt_) = (None, None)
 
-			if True:#DryCleaningBehavior.containsTrashcanTask(cleaning_tasks):
+			if True:  # DryCleaningBehavior.containsTrashcanTask(cleaning_tasks):
 				Thread(target=self.callEmptyService, args=(srv.START_TRASH_DETECTOR_SERVICE_STR,)).start()
 				self.trash_topic_subscriber_ = rospy.Subscriber('trash_detector_topic', DetectionArray, self.trashDetectionCallback)
 
-
-			if True:#DryCleaningBehavior.containsDirtTask(cleaning_tasks):
+			if True:  # DryCleaningBehavior.containsDirtTask(cleaning_tasks):
 				Thread(target=self.callEmptyService, args=(srv.START_DIRT_DETECTOR_SERVICE_STR,)).start()
 				self.dirt_topic_subscriber_ = rospy.Subscriber('dirt_detector_topic', DetectionArray, self.dirtDetectionCallback)
 
@@ -296,7 +283,7 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 	# Implemented Behavior
 	def executeCustomBehavior(self):
 		self.move_base_handler_ = move_base_behavior.MoveBaseBehavior("MoveBaseBehavior", self.interrupt_var_,
-																	  srv.MOVE_BASE_SERVICE_STR)
+																		srv.MOVE_BASE_SERVICE_STR)
 		self.tool_changer_ = tool_changing_behavior.ToolChangingBehavior("ToolChangingBehavior", self.interrupt_var_)
 		self.trolley_mover_ = trolley_movement_behavior.TrolleyMovementBehavior("TrolleyMovingBehavior",
 																				self.interrupt_var_)

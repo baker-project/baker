@@ -44,6 +44,17 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 		)
 		self.move_base_handler_.executeBehavior()
 
+	def takeTrashcan(self):
+		# todo (rmb-ma)
+		pass
+
+	def emptyTrashcan(self):
+		# todo (rmb-ma)
+		pass
+
+	def leaveTrashcan(self):
+		# todo (rmb-ma)
+		pass
 
 	# Implemented Behavior
 	def executeCustomBehavior(self):
@@ -55,17 +66,32 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 
 		self.printMsg("> Moving to the trashcan")
 		self.moveToGoal(self.trashcan_position_)
+		if self.handleInterrupt() >= 1:
+			return
 
 		self.printMsg("> Todo. Take the trashcan")
+		self.takeTrashcan()
+		if self.handleInterrupt() >= 1:
+			return
 
 		self.printMsg("> Moving to the trolley located on ({}, {})".format(self.trashcan_position_.x, self.trashcan_position_.y))
 		self.moveToGoal(self.trolley_position_)
+		if self.handleInterrupt() >= 1:
+			return
 
 		self.printMsg("> Todo. Empty the trashcan")
+		self.emptyTrashcan()
+		if self.handleInterrupt() >= 1:
+			return
 
 		self.printMsg("> Going to the trashcan location")
 		self.moveToGoal(self.trashcan_position_)
+		if self.handleInterrupt() >= 1:
+			return
 
 		self.printMsg("> Todo. Leave the trashcan")
+		self.leaveTrashcan()
+		if self.handleInterrupt() >= 1:
+			return
 
 		print("TRASHCAN ROUTINE FINISHED")

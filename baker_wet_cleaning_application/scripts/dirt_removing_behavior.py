@@ -4,16 +4,17 @@ import rospy
 import behavior_container
 from move_base_behavior import MoveBaseBehavior
 from geometry_msgs.msg import Quaternion, Pose2D, Pose
-from cob_map_accessibility_analysis.srv import CheckPerimeterAccessibility, CheckPerimeterAccessibilityRequest, CheckPerimeterAccessibilityResponse
+from cob_map_accessibility_analysis.srv import CheckPerimeterAccessibility, CheckPerimeterAccessibilityRequest
+
 
 class DirtRemovingBehavior(behavior_container.BehaviorContainer):
 
-	#========================================================================
+	# ========================================================================
 	# Description:
 	# Class which contains the behavior for removing dirt spots
 	# > Go to the dirt location
 	# > Clean
-	#========================================================================
+	# ========================================================================
 
 	def __init__(self, behavior_name, interrupt_var, move_base_service_str, map_accessibility_service_str):
 		super(DirtRemovingBehavior, self).__init__(behavior_name, interrupt_var)
@@ -60,6 +61,10 @@ class DirtRemovingBehavior(behavior_container.BehaviorContainer):
 		best_pose3d.orientation.w = best_pose2d.theta
 		return best_pose3d
 
+	def removeDirt(self):
+		# todo (rmb-ma)
+		pass
+
 	# Implemented Behavior
 	def executeCustomBehavior(self):
 		assert(self.dirt_position_ is not None)
@@ -72,17 +77,25 @@ class DirtRemovingBehavior(behavior_container.BehaviorContainer):
 			# todo - handler (rmb-ma)
 			self.printMsg("No accessible poses found.")
 			return
+		if self.handleInterrupt() >= 1:
+			return
 
 		self.printMsg("> Todo. Computing the best accessible pose.")
 		best_pose3d = self.computeBestPose(accessible_poses2d)
+		if self.handleInterrupt() >= 1:
+			return
 
 		self.printMsg("> Moving to an accessible pose")
-
 		self.move_base_handler_.setParameters(
 			goal_position=best_pose3d.position,
 			goal_orientation=best_pose3d.orientation,
 			header_frame_id='base_link'
 		)
 		self.move_base_handler_.executeBehavior()
+		if self.handleInterrupt() >= 1:
+			return
 
 		self.printMsg("> Todo. Remove the dirt")
+		self.removeDirt()
+		if self.handleInterrupt() >= 1:
+			return
