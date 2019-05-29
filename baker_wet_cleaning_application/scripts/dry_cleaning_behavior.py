@@ -1,21 +1,21 @@
 #!/usr/bin/env python
 
 from threading import Lock, Thread
-import time
+
 import rospy
-import behavior_container
-import database
+from cob_object_detection_msgs.msg import DetectionArray
+from geometry_msgs.msg import Pose2D, Quaternion
+from std_srvs.srv import Empty
+
+import move_base_behavior
+import move_base_path_behavior
+import room_exploration_behavior
+import services_params as srv
 import tool_changing_behavior
 import trolley_movement_behavior
-import room_exploration_behavior
-import move_base_path_behavior
-import move_base_behavior
 from dirt_removing_behavior import DirtRemovingBehavior
+from scripts.tests import behavior_container
 from trashcan_emptying_behavior import TrashcanEmptyingBehavior
-import services_params as srv
-from geometry_msgs.msg import Pose2D, Quaternion
-from cob_object_detection_msgs.msg import DetectionArray
-from std_srvs.srv import Empty, EmptyResponse
 
 
 class DryCleaningBehavior(behavior_container.BehaviorContainer):
@@ -53,7 +53,7 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 	def setParameters(self, database_handler, sequencing_result, mapping, robot_radius, coverage_radius, field_of_view,
 					  field_of_view_origin, room_information_in_meter):
 		self.database_handler_ = database_handler
-		self.sequencing_result_ = sequencing_result
+		self.sequencing_result_ = sequencing_resultupdateCurrentPosition
 		self.mapping_ = mapping
 		self.room_exploration_service_str_ = srv.ROOM_EXPLORATION_SERVICE_STR
 		self.move_base_path_service_str_ = srv.MOVE_BASE_PATH_SERVICE_STR
@@ -221,8 +221,8 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 																			self.interrupt_var_,
 																			self.move_base_path_service_str_)
 
-		with open('/home/rmb/Desktop/rmb-ma_notes/path_visualizer/path.txt', 'w') as f:
-			f.write(str(path))
+		#with open('/home/rmb/Desktop/rmb-ma_notes/path_visualizer/path.txt', 'w') as f:
+		#	f.write(str(path))
 
 		thread_move_to_the_room.join() # don't start the detections before
 		while len(path) > 0:
@@ -292,7 +292,6 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 		self.tool_changer_.executeBehavior()
 
 		room_counter = 0
-
 		for checkpoint in self.sequencing_result_.checkpoints:
 			# Trolley movement to checkpoint
 			self.trolley_mover_.setParameters(self.database_handler_)

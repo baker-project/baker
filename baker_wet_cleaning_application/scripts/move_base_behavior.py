@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-import rospy
 import actionlib
-
+import rospy
 from move_base_msgs.msg import MoveBaseGoal, MoveBaseAction
 
-import behavior_container
+from scripts.tests import behavior_container
+
 
 class MoveBaseBehavior(behavior_container.BehaviorContainer):
 

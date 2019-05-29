@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
 import rospy
-import behavior_container
-from move_base_behavior import MoveBaseBehavior
-from geometry_msgs.msg import Quaternion, Pose2D, Pose
 from cob_map_accessibility_analysis.srv import CheckPerimeterAccessibility, CheckPerimeterAccessibilityRequest
+from geometry_msgs.msg import Pose2D, Pose
+
+from move_base_behavior import MoveBaseBehavior
+from scripts.tests import behavior_container
 
 
 class DirtRemovingBehavior(behavior_container.BehaviorContainer):

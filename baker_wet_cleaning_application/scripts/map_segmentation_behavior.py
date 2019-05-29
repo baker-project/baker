@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 
-import roslib
 import actionlib
-import rospy
-from std_msgs.msg import String
 from ipa_building_msgs.msg import *
 
-import behavior_container
+from scripts.tests import behavior_container
+
 
 class MapSegmentationBehavior(behavior_container.BehaviorContainer):
 

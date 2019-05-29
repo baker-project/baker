@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
-import rospy
-import behavior_container
-import database_handler
+from scripts.tests import behavior_container
 
 
 class TrolleyMovementBehavior(behavior_container.BehaviorContainer):

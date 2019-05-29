@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-import rospy
-from std_msgs.msg import String
 import baker_msgs.srv
+import rospy
 
-import behavior_container
+from scripts.tests import behavior_container
+
 
 class MapReceivingBehavior(behavior_container.BehaviorContainer):
 

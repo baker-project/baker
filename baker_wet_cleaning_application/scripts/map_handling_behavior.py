@@ -1,12 +1,8 @@
 #!/usr/bin/env python
 
-import rospy
-from std_msgs.msg import String
-
-import behavior_container
-import map_receiving_behavior
-import map_segmentation_behavior
 import room_sequencing_behavior
+from scripts.tests import behavior_container
+
 
 class MapHandlingBehavior(behavior_container.BehaviorContainer):
 
@@ -51,7 +47,6 @@ class MapHandlingBehavior(behavior_container.BehaviorContainer):
 			)
 		self.room_sequencer_.executeCustomBehavior()
 
-		print("ROOM SEQUENCING DONE")
 		self.room_sequencing_data_ = self.room_sequencer_.room_sequence_result_
 		self.mapping_ = self.database_handler_.getRoomMapping(self.rooms_list_, self.room_sequencing_data_)
 		#self.printMsg("self.room_sequencing_data_.checkpoints=" + str(self.room_sequencing_data_.checkpoints))

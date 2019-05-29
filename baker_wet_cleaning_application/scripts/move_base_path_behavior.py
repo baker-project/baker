@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 import actionlib
-
 from scitos_msgs.msg import MoveBasePathAction, MoveBasePathGoal
 
-import behavior_container
+from scripts.tests import behavior_container
+
 
 class MoveBasePathBehavior(behavior_container.BehaviorContainer):
 

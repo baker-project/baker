@@ -142,11 +142,11 @@ class DatabaseHandler:
 			# Find out if the timestamps indicate that the room has been handled already today
 			timestamp_is_new = [
 				room.room_cleaning_datestamps_[0] is not None
-				and datetime.datetime.now() - room.room_cleaning_datestamps_[0] < datetime.timedelta(days=1),	# trash cans
+				and datetime.datetime.now() - room.room_cleaning_datestamps_[0] < datetime.timedelta(days=1),  # trash cans
 				room.room_cleaning_datestamps_[1] is not None
-				and datetime.datetime.now() - room.room_cleaning_datestamps_[1] < datetime.timedelta(days=1),	# dry cleaning
+				and datetime.datetime.now() - room.room_cleaning_datestamps_[1] < datetime.timedelta(days=1),  # dry cleaning
 				room.room_cleaning_datestamps_[2] is not None
-				and datetime.datetime.now() - room.room_cleaning_datestamps_[2] < datetime.timedelta(days=1)	# wet cleaning
+				and datetime.datetime.now() - room.room_cleaning_datestamps_[2] < datetime.timedelta(days=1)  # wet cleaning
 			]
 
 			# If today is a cleaning day
@@ -165,14 +165,14 @@ class DatabaseHandler:
 						room.open_cleaning_tasks_.append(self.WET_TASK)
 
 			# If today is only a trashcan day
-			else:	# todo: check for "p" since trash is not just standard procedure
+			else:  # todo: check for "p" since trash is not just standard procedure
 				room.open_cleaning_tasks_.append(self.TRASH_TASK)
 
 			# Append room to the due list if any task is to be done
 			if len(room.open_cleaning_tasks_) != 0:
 				self.due_rooms_.append(room)
 
-		self.applyChangesToDatabase() # saves all the due rooms in the database
+		self.applyChangesToDatabase()  # saves all the due rooms in the database
 
 
 	# Method for restoring the due list after application was stopped

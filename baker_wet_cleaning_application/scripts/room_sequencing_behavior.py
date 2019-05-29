@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 
-import rospy
-import actionlib
-from std_msgs.msg import String
-from geometry_msgs.msg import PoseStamped, Pose2D, Point32, Quaternion
-from ipa_building_msgs.msg import FindRoomSequenceWithCheckpointsAction, FindRoomSequenceWithCheckpointsGoal
-
-import behavior_container
-
-
 ###############''WORKAROUND FOR TRANSFORMLISTENER ISSUE####################
 import threading
+
+import actionlib
+import rospy
 import tf
+from geometry_msgs.msg import Point32, Quaternion
+from ipa_building_msgs.msg import FindRoomSequenceWithCheckpointsAction, FindRoomSequenceWithCheckpointsGoal
+
+from scripts.tests import behavior_container
+
 _tl=None
 _tl_creation_lock=threading.Lock()
 

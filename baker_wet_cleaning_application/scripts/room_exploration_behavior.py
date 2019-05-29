@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 import actionlib
-
 from ipa_building_msgs.msg import RoomExplorationGoal, RoomExplorationAction
 
-import behavior_container
+from scripts.tests import behavior_container
+
 
 class RoomExplorationBehavior(behavior_container.BehaviorContainer):
 	#========================================================================

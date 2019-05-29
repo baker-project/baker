@@ -1,20 +1,18 @@
 #!/usr/bin/env python
 
-import rospy
-from geometry_msgs.msg import PoseStamped, Pose2D, Point32, Quaternion
-import std_srvs.srv
 import dynamic_reconfigure.client
 import ipa_building_msgs.srv
+import rospy
+import std_srvs.srv
+from geometry_msgs.msg import Pose2D
 
-import behavior_container
 import move_base_behavior
-import room_exploration_behavior
 import move_base_path_behavior
-import trolley_movement_behavior
-import tool_changing_behavior
 import move_base_wall_follow_behavior
-import trashcan_emptying_behavior
+import room_exploration_behavior
 import services_params as srv
+from scripts.tests import behavior_container
+
 
 class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 

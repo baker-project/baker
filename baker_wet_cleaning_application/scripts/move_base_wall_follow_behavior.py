@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 
-import rospy
 import actionlib
-
 from scitos_msgs.msg import MoveBaseWallFollowAction
 from scitos_msgs.msg import MoveBaseWallFollowGoal
 
-import behavior_container
+from scripts.tests import behavior_container
+
 
 class MoveBaseWallFollowBehavior(behavior_container.BehaviorContainer):
 
