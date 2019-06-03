@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import actionlib
-from ipa_building_msgs.msg import *
+from ipa_building_msgs.msg import MapSegmentationGoal, mapSegmentationAction
 
 import behavior_container
 

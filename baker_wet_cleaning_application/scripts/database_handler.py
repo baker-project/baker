@@ -105,16 +105,13 @@ class DatabaseHandler:
 			room_information_in_meter[room_id] = room.room_information_in_meter_
 		return room_information_in_meter
 
-
-	# TODO (rmb-ma) use a list instead of a dict
+	@staticmethod
 	# Create a mapping RoomSequenceResult |-> RoomObject
-	def getRoomMapping(self, rooms_list, room_sequence_result):
-		mapping = {}
-		rooms_index = 0
+	def getRoomMapping(rooms_list, room_sequence_result):
+		mapping = []
 		for checkpoint in room_sequence_result.checkpoints:
 			for current_room_index in checkpoint.room_indices:
-				mapping[rooms_index] = rooms_list[current_room_index].room_id_
-				rooms_index = rooms_index + 1
+				mapping.append(rooms_list[current_room_index].room_id_)
 		return mapping
 
 

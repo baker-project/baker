@@ -8,10 +8,10 @@ import behavior_container
 
 class MapReceivingBehavior(behavior_container.BehaviorContainer):
 
-	#========================================================================
+	# ========================================================================
 	# Description:
 	# Class which contains the behavior receiving the map data from ROS.
-	#========================================================================
+	# ========================================================================
 
 	def __init__(self, behavior_name, interrupt_var, service_str, map_segmented_receiving_service_str=None):
 		super(MapReceivingBehavior, self).__init__(behavior_name, interrupt_var)
@@ -43,7 +43,7 @@ class MapReceivingBehavior(behavior_container.BehaviorContainer):
 		print "Map received with resolution: ", self.map_data_.map_resolution, "   and origin: ", self.map_data_.map_origin
 		
 		# optionally receive the segmented map in sensor_msgs/Image format
-		if (self.map_segmented_receiving_service_str_ is not None):
+		if self.map_segmented_receiving_service_str_ is not None:
 			self.printMsg("Waiting for service " + str(self.map_segmented_receiving_service_str_) + " to become available ...")
 			try:
 				rospy.wait_for_service(self.map_segmented_receiving_service_str_, timeout=3.0)

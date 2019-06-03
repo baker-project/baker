@@ -56,7 +56,7 @@ if __name__ == '__main__':
 	rooms_filename = DATABASE_LOCATION + 'rooms.json'
 	data = database_utils.loadRoomsDatabase(rooms_filename)
 
-	data = database_utils.updateRooms(data, rooms_filename, reset_opened_tasks=True, reset_timestamps=True)
+	data = database_utils.updateRooms(data, cleaning_methods, reset_opened_tasks=True, reset_timestamps=True)
 	database_utils.saveRoomsDatabase(rooms_filename, data)
 	resetLastPlanningDate()
 

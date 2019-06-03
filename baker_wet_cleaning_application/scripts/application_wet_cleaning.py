@@ -174,7 +174,6 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			self.database_.application_data_.progress_ = [1, datetime.datetime.now()]
 		self.database_handler_.applyChangesToDatabase()
 
-
 		# Document start of the application
 		# Also determine whether an old task is to be continued, independent of the current date
 		# If datetime "last_execution_date_override" is not None, it will be set in the database.
@@ -194,7 +193,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 
 		# Find due rooms
 		self.printMsg("Collecting due rooms...")
-		self.database_handler_.due_rooms_ = []		# todo: verify whether this is correct here (otherwise the list of due rooms is corrupted with double and many-times occurring rooms)
+		self.database_handler_.due_rooms_ = []
 		if self.database_handler_.noPlanningHappenedToday() and not shall_continue_old_cleaning:
 			#try:
 			self.database_handler_.computeAllDueRooms()

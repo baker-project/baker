@@ -14,6 +14,7 @@ import move_base_path_behavior
 import move_base_wall_follow_behavior
 import room_exploration_behavior
 import behavior_container
+from utils import getCurrentRobotPosition
 
 
 class MovementHandlingBehavior(behavior_container.BehaviorContainer):
@@ -101,18 +102,22 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				starting_position = Pose2D(x=1., y=0., theta=0.)
 				planning_mode = 2
 				"""
+
+				(robot_position, _, _) = getCurrentRobotPosition()
+				starting_position = (robot_position[0], robot_position[1]) if robot_position is not None else (current_room_center.x, current_room_center.y)
+
 				current_room_center = self.segmentation_data_.room_information_in_meter[current_room_index].room_center
 				current_room_map = self.getMapSegmentAsImageMsg(self.opencv_segmented_map_, current_room_index);
 				self.room_explorer_.setParameters(
 					current_room_map,
 					self.map_data_.map_resolution,
 					self.map_data_.map_origin,
-					robot_radius = self.robot_radius_,
-					coverage_radius = self.coverage_radius_,
-					field_of_view = self.field_of_view_,		# this field of view represents the off-center iMop floor wiping device
-					field_of_view_origin = self.field_of_view_origin_,
-					starting_position = Pose2D(x=current_room_center.x, y=current_room_center.y, theta=0.),	# todo: determine current robot position
-					planning_mode = 2
+					robot_radius=self.robot_radius_,
+					coverage_radius=self.coverage_radius_,
+					field_of_view=self.field_of_view_,		# this field of view represents the off-center iMop floor wiping device
+					field_of_view_origin=self.field_of_view_origin_,
+					starting_position=Pose2D(x=starting_position[0], y=starting_position[1], theta=0.),	 # todo: determine current theta
+					planning_mode=2
 				)
 				self.room_explorer_.executeBehavior()
 				if len(self.room_explorer_.exploration_result_.coverage_path_pose_stamped) == 0:

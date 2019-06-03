@@ -79,9 +79,9 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 
 		# Adding log entry for wet cleaning
 		self.database_handler_.addLogEntry(
-			room_id=self.mapping_.get(room_id),
-			status=1, # 1=Completed
-			cleaning_task=1, # 1=wet only
+			room_id=room_id,
+			status=1,  # 1=Completed
+			cleaning_task=1,  # 1=wet only
 			found_dirtspots=0,
 			found_trashcans=0,
 			cleaned_surface_area=0,
@@ -103,7 +103,6 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 		# Room counter index: Needed for mapping of room_indices <--> RoomItem.room_id
 		room_counter = 0
 
-		# todo: tsp on the checkpoints / rooms ?
 		for current_checkpoint_index in range(len(self.sequence_data_.checkpoints)):
 			# Trolley movement to checkpoint
 			self.trolley_mover_.setParameters(self.database_handler_)
@@ -111,7 +110,7 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 
 			for current_room_index in self.sequence_data_.checkpoints[current_checkpoint_index].room_indices:
 				# Handling of selected room
-				room_id = self.mapping_.get(room_counter)
+				room_id = self.mapping_[room_counter]
 				cleaning_thread = threading.Thread(target=self.driveCleaningTrajectory(room_id=room_id))
 				cleaning_thread.start()
 				cleaning_thread.join()

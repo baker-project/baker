@@ -12,15 +12,12 @@ DATABASE_LOCATION = '../resources/json'
 
 
 def loadRoomsDatabase(filename):
-	print("LOADING DATA For " + filename)
 	f = open(filename, 'r')
 	return json.load(f)
 
 
 def saveRoomsDatabase(filename, data):
 	f = open(filename, 'w')
-	print("Saving data into {}".format(filename))
-	print(json.dumps(data, indent=4, sort_keys=True))
 	json.dump(data, f, indent=4, sort_keys=True)
 
 
@@ -74,7 +71,6 @@ def updateDatabaseToScenario(scenario, database_location=DATABASE_LOCATION):
 	data = reset(data, reset_opened_tasks=True, reset_timestamps=True, reset_scheduled_tasks=True)
 
 	for key in [str(k) for k in data.keys()]:
-		print(key)
 
 		if 'open_cleaning_tasks' in scenario.keys() and key in scenario['open_cleaning_tasks'].keys():
 			print("Et la, la key {} fonctionne".format(key))

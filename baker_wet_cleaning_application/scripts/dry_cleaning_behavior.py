@@ -16,6 +16,7 @@ import trolley_movement_behavior
 from dirt_removing_behavior import DirtRemovingBehavior
 import behavior_container
 from trashcan_emptying_behavior import TrashcanEmptyingBehavior
+from utils import getCurrentRobotPosition
 
 
 class DryCleaningBehavior(behavior_container.BehaviorContainer):
@@ -156,7 +157,8 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 
 		room_center = self.room_information_in_meter_[room_id].room_center
 		room_map_data = self.database_handler_.database_.getRoomById(room_id).room_map_data_
-
+		(robot_position, _, _) = getCurrentRobotPosition()
+		starting_position = (robot_position[0], robot_position[1]) if robot_position is not None else (room_center.x, room_center.y)
 		self.room_explorer_.setParameters(
 			input_map=room_map_data,
 			map_resolution=self.database_handler_.database_.global_map_data_.map_resolution_,
@@ -165,8 +167,8 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 			coverage_radius=self.coverage_radius_,
 			field_of_view=self.field_of_view_,  # this field of view represents the off-center iMop floor wiping device
 			field_of_view_origin=self.field_of_view_origin_,
-			starting_position=Pose2D(x=room_center.x, y=room_center.y, theta=0.),
-			# todo: determine current robot position
+			starting_position=Pose2D(x=starting_position[0], y=starting_position[1], theta=0.),
+			# todo: determine theta
 			planning_mode=2
 		)
 		self.room_explorer_.executeBehavior()
@@ -221,8 +223,8 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 																			self.interrupt_var_,
 																			self.move_base_path_service_str_)
 
-		#with open('/home/rmb/Desktop/rmb-ma_notes/path_visualizer/path.txt', 'w') as f:
-		#	f.write(str(path))
+		with open('/home/rmb/Desktop/rmb-ma_notes/path_visualizer/path.txt', 'w') as f:
+			f.write(str(path))
 
 		thread_move_to_the_room.join() # don't start the detections before
 		while len(path) > 0:
@@ -298,6 +300,6 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 			self.trolley_mover_.executeBehavior()
 
 			for room_index in checkpoint.room_indices:
-				current_room_id = self.mapping_.get(room_counter)
+				current_room_id = self.mapping_[room_counter]
 				self.executeCustomBehaviorInRoomId(room_id=current_room_id)
 				room_counter = room_counter + 1

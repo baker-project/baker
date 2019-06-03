@@ -3,8 +3,21 @@
 import roslib
 roslib.load_manifest('baker_wet_cleaning_application')
 import rospy
+import tf
 from abc import ABCMeta, abstractmethod
 from threading import Lock
+
+_tl=None
+_tl_creation_lock = Lock()
+
+
+def get_transform_listener():
+	global _tl
+	with _tl_creation_lock:
+		if _tl is None:
+			_tl = tf.TransformListener(True, rospy.Duration(40.0))
+		return _tl
+###########################################################################
 
 class BehaviorContainer:
 	#========================================================================
