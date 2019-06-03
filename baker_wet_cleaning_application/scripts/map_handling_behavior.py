@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import room_sequencing_behavior
-from scripts.tests import behavior_container
+import behavior_container
 
 
 class MapHandlingBehavior(behavior_container.BehaviorContainer):

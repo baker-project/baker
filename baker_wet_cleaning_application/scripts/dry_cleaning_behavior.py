@@ -14,7 +14,7 @@ import services_params as srv
 import tool_changing_behavior
 import trolley_movement_behavior
 from dirt_removing_behavior import DirtRemovingBehavior
-from scripts.tests import behavior_container
+import behavior_container
 from trashcan_emptying_behavior import TrashcanEmptyingBehavior
 
 
@@ -53,7 +53,7 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 	def setParameters(self, database_handler, sequencing_result, mapping, robot_radius, coverage_radius, field_of_view,
 					  field_of_view_origin, room_information_in_meter):
 		self.database_handler_ = database_handler
-		self.sequencing_result_ = sequencing_resultupdateCurrentPosition
+		self.sequencing_result_ = sequencing_result
 		self.mapping_ = mapping
 		self.room_exploration_service_str_ = srv.ROOM_EXPLORATION_SERVICE_STR
 		self.move_base_path_service_str_ = srv.MOVE_BASE_PATH_SERVICE_STR

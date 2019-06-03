@@ -3,7 +3,7 @@
 import baker_msgs.srv
 import rospy
 
-from scripts.tests import behavior_container
+import behavior_container
 
 
 class MapReceivingBehavior(behavior_container.BehaviorContainer):

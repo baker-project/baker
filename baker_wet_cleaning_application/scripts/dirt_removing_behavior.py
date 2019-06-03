@@ -5,7 +5,7 @@ from cob_map_accessibility_analysis.srv import CheckPerimeterAccessibility, Chec
 from geometry_msgs.msg import Pose2D, Pose
 
 from move_base_behavior import MoveBaseBehavior
-from scripts.tests import behavior_container
+import behavior_container
 
 
 class DirtRemovingBehavior(behavior_container.BehaviorContainer):

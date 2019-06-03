@@ -5,8 +5,6 @@ import database_utils
 import rospkg
 
 import sys
-# Add the ptdraft folder path to the sys.path list
-sys.path.append('..')
 
 from database_handler import DatabaseHandler as DH
 from database import Database
@@ -47,7 +45,7 @@ class TestDatabaseHandler(unittest.TestCase):
         self.assertTrue(DH.isTrashDay(1))
         self.assertTrue(DH.isTrashDay(2))
 
-    def tesstRestoreDueRooms(self):
+    def testRestoreDueRooms(self):
 
         scenarios = [{},
                      {'open_cleaning_tasks': {}},
@@ -71,6 +69,5 @@ class TestDatabaseHandler(unittest.TestCase):
             self.assertEqual(database_handler.due_rooms_, outputs[k])
 
 if __name__ == '__main__':
-    print("HELLO WORLD")
     import rostest
     rostest.rosrun(PKG, NAME, TestDatabaseHandler)

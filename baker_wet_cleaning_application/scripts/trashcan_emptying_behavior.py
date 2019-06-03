@@ -3,7 +3,7 @@
 from geometry_msgs.msg import Quaternion
 
 from move_base_behavior import MoveBaseBehavior
-from scripts.tests import behavior_container
+import behavior_container
 
 
 class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):

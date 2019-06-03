@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
-from database_handler_test import TestDatabaseHandler
+from test_database_handler import TestDatabaseHandler
+
+PKG = 'baker_wet_cleaning_application'
+import roslib
+roslib.load_manifest(PKG)
 
 # =========================================================
 # Highest element in the hierarchy of the testing module
 # Launch and start all the tests (unittests and integration test)
-
-PKG = 'baker_wet_cleaning_application'
 
 if __name__ == '__main__':
 	import rostest

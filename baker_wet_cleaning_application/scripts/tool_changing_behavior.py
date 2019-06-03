@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from scripts.tests import behavior_container
+import behavior_container
 
 
 class ToolChangingBehavior(behavior_container.BehaviorContainer):

@@ -4,7 +4,7 @@ import actionlib
 import rospy
 from move_base_msgs.msg import MoveBaseGoal, MoveBaseAction
 
-from scripts.tests import behavior_container
+import behavior_container
 
 
 class MoveBaseBehavior(behavior_container.BehaviorContainer):

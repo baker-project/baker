@@ -3,7 +3,7 @@
 import actionlib
 from scitos_msgs.msg import MoveBasePathAction, MoveBasePathGoal
 
-from scripts.tests import behavior_container
+import behavior_container
 
 
 class MoveBasePathBehavior(behavior_container.BehaviorContainer):

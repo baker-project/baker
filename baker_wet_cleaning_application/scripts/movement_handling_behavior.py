@@ -13,7 +13,7 @@ import move_base_behavior
 import move_base_path_behavior
 import move_base_wall_follow_behavior
 import room_exploration_behavior
-from scripts.tests import behavior_container
+import behavior_container
 
 
 class MovementHandlingBehavior(behavior_container.BehaviorContainer):

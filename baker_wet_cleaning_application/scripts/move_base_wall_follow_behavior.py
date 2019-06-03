@@ -4,7 +4,7 @@ import actionlib
 from scitos_msgs.msg import MoveBaseWallFollowAction
 from scitos_msgs.msg import MoveBaseWallFollowGoal
 
-from scripts.tests import behavior_container
+import behavior_container
 
 
 class MoveBaseWallFollowBehavior(behavior_container.BehaviorContainer):

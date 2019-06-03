@@ -3,7 +3,7 @@
 import actionlib
 from ipa_building_msgs.msg import *
 
-from scripts.tests import behavior_container
+import behavior_container
 
 
 class MapSegmentationBehavior(behavior_container.BehaviorContainer):

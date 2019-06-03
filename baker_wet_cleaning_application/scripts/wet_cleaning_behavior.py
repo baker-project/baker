@@ -5,7 +5,7 @@ import threading
 import room_wet_floor_cleaning_behavior
 import tool_changing_behavior
 import trolley_movement_behavior
-from scripts.tests import behavior_container
+import behavior_container
 
 
 class WetCleaningBehavior(behavior_container.BehaviorContainer):
