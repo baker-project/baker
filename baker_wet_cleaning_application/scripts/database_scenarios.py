@@ -54,10 +54,10 @@ if __name__ == '__main__':
 		sys.exit(1)
 
 	rooms_filename = DATABASE_LOCATION + 'rooms.json'
-	data = database_utils.loadRoomsDatabase(rooms_filename)
+	data = database_utils.loadJsonDatabase(rooms_filename)
 
 	data = database_utils.updateRooms(data, cleaning_methods, reset_opened_tasks=True, reset_timestamps=True)
-	database_utils.saveRoomsDatabase(rooms_filename, data)
+	database_utils.saveJsonDatabase(rooms_filename, data)
 	resetLastPlanningDate()
 
 	if args['start_application']:

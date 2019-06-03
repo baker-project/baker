@@ -55,15 +55,15 @@ class DatabaseHandler:
 		return schedule_char == "p" or schedule_char == "P"
 
 	@staticmethod
-	def isDryDay(cleaning_method):
+	def isDryCleaningMethod(cleaning_method):
 		return cleaning_method == 2 or cleaning_method == 0
 
 	@staticmethod
-	def isWetDay(cleaning_method):
+	def isWetCleaningMethod(cleaning_method):
 		return cleaning_method == 2 or cleaning_method == 1
 
 	@staticmethod
-	def isTrashDay(cleaning_method):
+	def isTrashCleaningMethod(cleaning_method):
 		return cleaning_method in [0, 1, 2]
 
 	# ===============================================================================
@@ -79,12 +79,12 @@ class DatabaseHandler:
 		bridge = CvBridge()
 		segmentation_id = 0
 		# Get the dimension of the image and create the temp map
-		complete_map_opencv = bridge.imgmsg_to_cv2(self.database_.global_map_data_.map_image_, desired_encoding = "passthrough")
+		complete_map_opencv = bridge.imgmsg_to_cv2(self.database_.global_map_data_.map_image_, desired_encoding="passthrough")
 		image_height, image_width = complete_map_opencv.shape
 		tmp_map_opencv = np.zeros((image_height, image_width), np.uint8)
 		for room in rooms_array:
 			# Get an OPENCV representation of the image
-			room_map_opencv = bridge.imgmsg_to_cv2(room.room_map_data_, desired_encoding = "passthrough")
+			room_map_opencv = bridge.imgmsg_to_cv2(room.room_map_data_, desired_encoding="passthrough")
 			# Add the room to the final map
 			for x in range(image_width):
 				for y in range(image_height):
@@ -93,9 +93,8 @@ class DatabaseHandler:
 			# Get room_information_in_pixels
 			room_information_in_pixel.append(room.room_information_in_pixel_)
 			segmentation_id = segmentation_id + 1
-		segmented_map = bridge.cv2_to_imgmsg(tmp_map_opencv, encoding = "mono8")
+		segmented_map = bridge.cv2_to_imgmsg(tmp_map_opencv, encoding="mono8")
 		return room_information_in_pixel, segmented_map
-
 
 	# Get the room information in meter
 	def getRoomInformationInMeter(self, rooms_array):
@@ -119,71 +118,69 @@ class DatabaseHandler:
 	# CASE: First run of application, no rooms collected yet today.
 	# USAGE: Run when the application is started the first time today. Then run at the beginning.
 	def computeAllDueRooms(self):
-		print "[DatabaseHandler]: getAllDueRooms() ..."
+		print "[DatabaseHandler]: computing all due rooms ..."
 
 		self.due_rooms_ = []
 		self.restoreDueRooms()
 
 		# If the application ran already today and the due rooms list is not empty, this should not run
-		if self.database_.application_data_.last_planning_date_[0] is not None:
-			delta = datetime.datetime.now() - self.database_.application_data_.last_planning_date_[0]
-			if delta.days == 0 and len(self.due_rooms_) != 0:
-				print "[DatabaseHandler]: Earlier run detected!"
-				return
+		last_planning_dates = self.database_.application_data_.last_planning_date_
+		if last_planning_dates[0] is not None and date.today() == last_planning_dates[0].date() and len(self.due_rooms_) != 0:
+			print "[DatabaseHandler]: Earlier run detected!"
+			return False
 
 		today_index = self.getTodaysScheduleIndex()
 
 		for room in self.database_.rooms_:
+			cleaning_tasks = set(room.open_cleaning_tasks_)
+			method = room.room_cleaning_method_
 			schedule_char = room.room_scheduled_days_[today_index]
 			# Some cleaning required
 			if schedule_char == "":
 				continue
 
 			# Find out if the timestamps indicate that the room has been handled already today
-			timestamp_is_new = [
-				room.room_cleaning_datestamps_[0] is not None
-				and datetime.datetime.now() - room.room_cleaning_datestamps_[0] < datetime.timedelta(days=1),  # trash cans
-				room.room_cleaning_datestamps_[1] is not None
-				and datetime.datetime.now() - room.room_cleaning_datestamps_[1] < datetime.timedelta(days=1),  # dry cleaning
-				room.room_cleaning_datestamps_[2] is not None
-				and datetime.datetime.now() - room.room_cleaning_datestamps_[2] < datetime.timedelta(days=1)  # wet cleaning
-			]
+			date_stamps = room.room_cleaning_datestamps_
+			today = date.today()
+
+			already_done = {
+				'TRASH': date_stamps[0] is not None and date_stamps[0].date() == today,
+				'DRY': date_stamps[1] is not None and date_stamps[1].date() == today,
+				'WET': date_stamps[2] is not None and date_stamps[2].date() == today
+			}
 
 			# If today is a cleaning day
 			if self.isCleaningDay(schedule_char):
 
-				if self.isTrashDay(room.room_cleaning_method_)\
-					and (not timestamp_is_new[0] and not (self.TRASH_TASK in room.open_cleaning_tasks_)):
-						room.open_cleaning_tasks_.append(self.TRASH_TASK)
+				if self.isTrashCleaningMethod(method) and not already_done['TRASH']:
+					cleaning_tasks.add(self.TRASH_TASK)
 
-				if self.isDryDay(room.room_cleaning_method_)\
-					and (not timestamp_is_new[1] and not (self.DRY_TASK in room.open_cleaning_tasks_)):
-						room.open_cleaning_tasks_.append(self.DRY_TASK)
+				if self.isDryCleaningMethod(method) and not already_done['DRY']:
+					cleaning_tasks.add(self.DRY_TASK)
 
-				if self.isWetDay(room.room_cleaning_method_)\
-					and (not timestamp_is_new[2] and not (self.WET_TASK in room.open_cleaning_tasks_)):
-						room.open_cleaning_tasks_.append(self.WET_TASK)
+				if self.isWetCleaningMethod(method) and not already_done['WET']:
+					cleaning_tasks.add(self.WET_TASK)
 
 			# If today is only a trashcan day
-			else:  # todo: check for "p" since trash is not just standard procedure
-				room.open_cleaning_tasks_.append(self.TRASH_TASK)
+			elif self.isTrashDay(schedule_char):
+				cleaning_tasks.add(self.TRASH_TASK)
 
+			room.open_cleaning_tasks_ = list(cleaning_tasks)
 			# Append room to the due list if any task is to be done
 			if len(room.open_cleaning_tasks_) != 0:
 				self.due_rooms_.append(room)
 
 		self.applyChangesToDatabase()  # saves all the due rooms in the database
-
+		return True
 
 	# Method for restoring the due list after application was stopped
 	# CASE: Application stopped while not all rooms were completed, but room collecting completed. Restart --> Restore due list
-	# USAGE: Run before getAllDueRooms()
+	# USAGE: Run at the beginning of computeAllDueRooms
 	def restoreDueRooms(self):
 		print "[DatabaseHandler]: Restoring due rooms from earlier runs..."
 		for room in self.database_.rooms_:
 			if len(room.open_cleaning_tasks_) != 0:
 				self.due_rooms_.append(room)
-
 
 	# Method for extracting all overdue rooms from the due assignment
 	# CASE: Some cleaning subtasks were not completed in the past (i.e. a scheduled one was missed)
@@ -223,14 +220,14 @@ class DatabaseHandler:
 							self.overdue_rooms_.append(room)
 
 					# Room was to be cleaned dry and that did not happen
-					if self.isDryDay(cleaning_method) and dry_date is not None and dry_date < indexed_date:
+					if self.isDryCleaningMethod(cleaning_method) and dry_date is not None and dry_date < indexed_date:
 						if not (self.DRY_TASK in room.open_cleaning_tasks_):
 							room.open_cleaning_tasks_.append(self.DRY_TASK)
 						if not (room in self.overdue_rooms_):
 							self.overdue_rooms_.append(room)
 
 					# Room was to be cleaned wet and that did not happen
-					if self.isWetDay(cleaning_method) and wet_date is not None and wet_date < indexed_date:
+					if self.isWetCleaningMethod(cleaning_method) and wet_date is not None and wet_date < indexed_date:
 						if not (self.WET_TASK in room.open_cleaning_tasks_):
 							room.open_cleaning_tasks_.append(self.WET_TASK)
 						if not (room in self.overdue_rooms_):
