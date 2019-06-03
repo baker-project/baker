@@ -59,7 +59,7 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 			coverage_radius=self.coverage_radius_,
 			field_of_view=self.field_of_view_,
 			field_of_view_origin=self.field_of_view_origin_,
-			use_cleaning_device=self.use_cleaning_device_	# todo: hack: cleaning device can be turned off for trade fair show
+			use_cleaning_device=self.use_cleaning_device_  # todo: hack: cleaning device can be turned off for trade fair show
 		)
 		self.room_wet_floor_cleaner_.executeBehavior()
 
@@ -69,8 +69,7 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 
 		# Mark the current room as finished
 		self.printMsg("ID of cleaned room: " + str(room_id))
-		self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoomById(room_id),
-													 assignment_type=1)
+		self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoomById(room_id), assignment_type=1)
 		self.printMsg(str(self.database_handler_.database_.getRoomById(room_id).open_cleaning_tasks_))
 
 		# todo (rmb-ma): isn't it dumm to stop the program just before adding it the task to the log?

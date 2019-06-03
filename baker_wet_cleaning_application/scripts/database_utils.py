@@ -8,19 +8,23 @@ from datetime import datetime, timedelta
 # =========================================================
 
 DATE_FORMAT = '%Y-%m-%d_%H:%M'
-DATABASE_LOCATION = '../resources/json/'
+DATABASE_LOCATION = '../resources/json'
+
 
 def loadRoomsDatabase(filename):
+	print("LOADING DATA For " + filename)
 	f = open(filename, 'r')
 	return json.load(f)
 
 
 def saveRoomsDatabase(filename, data):
 	f = open(filename, 'w')
-	json.dump(f, indent=4, sort_keys=True)
+	print("Saving data into {}".format(filename))
+	print(json.dumps(data, indent=4, sort_keys=True))
+	json.dump(data, f, indent=4, sort_keys=True)
 
 
-def reset(data, reset_opened_tasks=False, reset_timestamps=False):
+def reset(data, reset_opened_tasks=False, reset_timestamps=False, reset_scheduled_tasks=False):
 	today = datetime.now()
 	week_type = today.isocalendar()[1] % 2
 	week_day = today.weekday()
@@ -36,7 +40,10 @@ def reset(data, reset_opened_tasks=False, reset_timestamps=False):
 		if reset_timestamps:
 			data[key]['room_cleaning_datestamps'] = [previous_date.strftime(DATE_FORMAT)] * 3
 
+		if reset_scheduled_tasks:
+			data[key]['room_scheduled_days'] = ['']*14
 	return data
+
 
 def updateRooms(data, methods, reset_opened_tasks=False, reset_timestamps=False):
 
@@ -62,12 +69,15 @@ def updateRooms(data, methods, reset_opened_tasks=False, reset_timestamps=False)
 	return data
 
 
-def updateDatabaseToScenario(scenario):
-	data = loadRoomsDatabase(DATABASE_LOCATION + 'rooms.json')
-	for key in [str(k) for k in data.keys()]:
+def updateDatabaseToScenario(scenario, database_location=DATABASE_LOCATION):
+	data = loadRoomsDatabase(database_location + 'rooms.json')
+	data = reset(data, reset_opened_tasks=True, reset_timestamps=True, reset_scheduled_tasks=True)
 
-		data[key]['open_cleaning_tasks'] = []
-		if 'open_cleaning_tasks' in scenario.keys and key in scenario['open_cleaning_tasks'].keys():
+	for key in [str(k) for k in data.keys()]:
+		print(key)
+
+		if 'open_cleaning_tasks' in scenario.keys() and key in scenario['open_cleaning_tasks'].keys():
+			print("Et la, la key {} fonctionne".format(key))
 			data[key]['open_cleaning_tasks'] = scenario['open_cleaning_tasks'][key]
 
-	saveRoomsDatabase(DATABASE_LOCATION + 'rooms.json', data)
+	saveRoomsDatabase(database_location + 'rooms.json', data)

@@ -501,7 +501,7 @@ class Database:
 		self.application_data_filename_ = self.extracted_file_path + str("/json/application_data.json")
 		self.tmp_application_data_filename_ = self.extracted_file_path + str("/json/tmp_application_data.json")
 		self.log_filepath_ = self.extracted_file_path + str("/logs/")
-
+		self.loadDatabase()
 
 	# Discard temporal database --> All current progress will be forgotten
 	def discardTemporalDatabase(self):
@@ -533,7 +533,7 @@ class Database:
 		if self.checkIntegrity(temporal_exists):
 			self.readFiles(temporal_exists)
 		else:
-			self.readFiles(not(temporal_exists))
+			self.readFiles(not temporal_exists)
 		#except:
 		#	print "[Database] Loading of database failed. No valid original or temporal JSON file set found. Check for damaged data."
 		#	exit(1)

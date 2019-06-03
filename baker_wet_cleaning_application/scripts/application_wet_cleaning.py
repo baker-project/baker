@@ -148,7 +148,6 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		rospack = rospkg.RosPack()
 		print str(rospack.get_path('baker_wet_cleaning_application'))
 		self.database_ = database.Database(extracted_file_path=str(rospack.get_path('baker_wet_cleaning_application') + "/resources"))
-		self.database_.loadDatabase()
 		#except:
 		#	self.printMsg("Fatal: Loading of database failed! Stopping application.")
 		#	exit(1)
@@ -198,9 +197,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.database_handler_.due_rooms_ = []		# todo: verify whether this is correct here (otherwise the list of due rooms is corrupted with double and many-times occurring rooms)
 		if self.database_handler_.noPlanningHappenedToday() and not shall_continue_old_cleaning:
 			#try:
-			# todo: check: it looks like the result of restoreDueRooms() could be erased in getAllDueRooms()
-			self.database_handler_.restoreDueRooms()
-			self.database_handler_.getAllDueRooms()
+			self.database_handler_.computeAllDueRooms()
 			print "len(self.database_.rooms_):", len(self.database_.rooms_), "\ndue rooms:"
 			for room in self.database_handler_.due_rooms_:
 				print room.room_name_

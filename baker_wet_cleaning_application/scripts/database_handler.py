@@ -121,8 +121,11 @@ class DatabaseHandler:
 	# Method for extracting all due rooms from the due assignment
 	# CASE: First run of application, no rooms collected yet today.
 	# USAGE: Run when the application is started the first time today. Then run at the beginning.
-	def getAllDueRooms(self):
+	def computeAllDueRooms(self):
 		print "[DatabaseHandler]: getAllDueRooms() ..."
+
+		self.due_rooms_ = []
+		self.restoreDueRooms()
 
 		# If the application ran already today and the due rooms list is not empty, this should not run
 		if self.database_.application_data_.last_planning_date_[0] is not None:
@@ -132,7 +135,7 @@ class DatabaseHandler:
 				return
 
 		today_index = self.getTodaysScheduleIndex()
-		self.due_rooms_ = []
+
 		for room in self.database_.rooms_:
 			schedule_char = room.room_scheduled_days_[today_index]
 			# Some cleaning required

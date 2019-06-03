@@ -4,8 +4,6 @@ import unittest
 import database_utils
 import rospkg
 
-import sys
-
 from database_handler import DatabaseHandler as DH
 from database import Database
 
@@ -55,18 +53,20 @@ class TestDatabaseHandler(unittest.TestCase):
                          '4': [TRASH_TASK]
                      }}]
 
-        outputs = [[], [], []]
+        outputs = [set([]), set([]), set([4, 1, 8])]
 
         rospack = rospkg.RosPack()
         for k in range(len(scenarios)):
-            print("testrestoreduerooms " + str(k))
-            database_utils.updateDatabaseToScenario(scenarios[k])
-            database = Database(
-                extracted_file_path=str(rospack.get_path('baker_wet_cleaning_application') + "/resources"))
-
+            database_location = str(rospack.get_path('baker_wet_cleaning_application') + '/resources')
+            database_utils.updateDatabaseToScenario(scenarios[k], database_location=database_location + '/json/')
+            database = Database(extracted_file_path=database_location)
             database_handler = DH(database)
-            database_handler.getAllDueRooms()
-            self.assertEqual(database_handler.due_rooms_, outputs[k])
+            database_handler.restoreDueRooms()
+            database_handler.computeAllDueRooms()
+            due_rooms = database_handler.due_rooms_
+            due_rooms_ids = [room.room_id_ for room in due_rooms]
+            print(set(due_rooms_ids), outputs[k])
+            self.assertEqual(set(due_rooms_ids), outputs[k], msg="Test index {}".format(k))
 
 if __name__ == '__main__':
     import rostest

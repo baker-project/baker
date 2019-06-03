@@ -23,7 +23,17 @@ class RobotProperties():
 	wall_follow_goal_position_tolerance_ = 0
 	wall_follow_goal_angle_tolerance_ = 0
 
-
+	def __str__(self):
+		output = "[RobotProperties]:\n"
+		output += "\tRadius {} | coverage radius {} | fov {}\n".format(self.exploration_robot_radius_,
+																		self.exploration_coverage_radius_, self.exploration_field_of_view_)
+		output += "\tFrameId {}\n".format(self.exploration_header_frame_id_)
+		output += "\tPath tolerance {} | Goal tolerance {} | Angle tolerance {}\n".format(self.path_follow_path_tolerance_,
+																						  self.path_follow_goal_position_tolerance_, self.path_follow_goal_angle_tolerance_)
+		output += "\tWall tolerance {} | Wall position tolerance {} | Wall angle tolerance {}\n".format(self.wall_follow_path_tolerance_,
+																										self.wall_follow_goal_position_tolerance_,
+																										self.wall_follow_goal_angle_tolerance_)
+		return output
 
 # Class which contains all global application settings
 class GlobalSettings():
@@ -37,7 +47,10 @@ class GlobalSettings():
 	# (INTEGER)
 	assignment_timedelta_ = 14
 
-
+	def __str__(self):
+		return "[GlobalSettings]: autocomplete {} | maxAuxTime {} | timeDelta {}".format(self.shall_auto_complete_,
+																						 self.max_aux_time_,
+																						 self.assignment_timedelta_)
 
 # Class which contains all global map data
 class GlobalMapData():
@@ -56,7 +69,6 @@ class GlobalMapData():
 	# Map header frame id
 	# (STRING)
 	map_header_frame_id_ = ""
-
 
 
 # Class which contains all application-wide data to be recorded
@@ -212,3 +224,5 @@ class RoomItem():
 	def __hash__(self):
 		return self.room_id_
 
+	def __str__(self):
+		return "[Room {}]".format(self.room_id_)
