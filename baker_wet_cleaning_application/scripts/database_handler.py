@@ -3,8 +3,7 @@
 # For database
 import database_classes
 # For date and time calculations
-import datetime
-from datetime import date
+from datetime import date, timedelta, datetime
 # For room information
 from ipa_building_msgs.msg import *
 # For map generation
@@ -185,24 +184,20 @@ class DatabaseHandler:
 	# Method for extracting all overdue rooms from the due assignment
 	# CASE: Some cleaning subtasks were not completed in the past (i.e. a scheduled one was missed)
 	# USAGE: Run after all the due rooms are done
-	def getAllOverdueRooms(self):
-		today_index = 0		# todo: verify whether this is always correct: todo_index should be determined correctly for the given day
-		current_schedule_index = today_index - 1
-		day_delta = 1
-		while current_schedule_index != today_index:
-			# Handle the case that today_index is a monday of an even week
-			if current_schedule_index == -1:
-				current_schedule_index = 13
+	def computeAllOverdueRooms(self):
+		today_index = self.getTodaysScheduleIndex()
+		today = datetime.now()
+
+		overdue_rooms = set()
+
+		for room in self.database_.rooms_:
+			if room in self.due_rooms_:
 				continue
 
-			# Get the corresponding date
-			datetime_day_delta = datetime.timedelta(days=day_delta)
-			indexed_date = datetime.datetime.now() - datetime_day_delta
-			# Iterate through all potential rooms
-			for room in self.database_.rooms_:
-				# Room must not be in the due rooms list already
-				if room in self.due_rooms_:
-					continue
+			cleaning_tasks = set(room.open_cleaning_tasks_)
+			for day_delta in range(1, 14):
+				current_schedule_index = (today_index - day_delta) % 14
+				current_schedule_date = today - timedelta(days=day_delta)
 
 				schedule_char = room.room_scheduled_days_[current_schedule_index]
 				cleaning_method = room.room_cleaning_method_
@@ -211,39 +206,31 @@ class DatabaseHandler:
 					trashcan_date = room.room_cleaning_datestamps_[0]
 					dry_date = room.room_cleaning_datestamps_[1]
 					wet_date = room.room_cleaning_datestamps_[2]
-
 					# Room's trashcan was to be emptied and that did not happen
-					if trashcan_date is not None and trashcan_date < indexed_date:
-						if not (self.TRASH_TASK in room.open_cleaning_tasks_):
-							room.open_cleaning_tasks_.append(self.TRASH_TASK)
-						if not (room in self.overdue_rooms_):
-							self.overdue_rooms_.append(room)
+					if self.isTrashCleaningMethod(cleaning_method) and (trashcan_date is None or trashcan_date < current_schedule_date):
+						cleaning_tasks.add(self.TRASH_TASK)
+						overdue_rooms.add(room)
 
 					# Room was to be cleaned dry and that did not happen
-					if self.isDryCleaningMethod(cleaning_method) and dry_date is not None and dry_date < indexed_date:
-						if not (self.DRY_TASK in room.open_cleaning_tasks_):
-							room.open_cleaning_tasks_.append(self.DRY_TASK)
-						if not (room in self.overdue_rooms_):
-							self.overdue_rooms_.append(room)
+					if self.isDryCleaningMethod(cleaning_method) and (dry_date is None or dry_date < current_schedule_date):
+						cleaning_tasks.add(self.DRY_TASK)
+						overdue_rooms.add(room)
 
 					# Room was to be cleaned wet and that did not happen
-					if self.isWetCleaningMethod(cleaning_method) and wet_date is not None and wet_date < indexed_date:
-						if not (self.WET_TASK in room.open_cleaning_tasks_):
-							room.open_cleaning_tasks_.append(self.WET_TASK)
-						if not (room in self.overdue_rooms_):
-							self.overdue_rooms_.append(room)
+					if self.isWetCleaningMethod(cleaning_method) and (wet_date is None or wet_date < current_schedule_date):
+						cleaning_tasks.add(self.WET_TASK)
+						overdue_rooms.add(room)
 
 				# Trashcan emptying was scheduled
 				elif self.isTrashDay(schedule_char):
 					trashcan_date = room.room_cleaning_datestamps_[0]
-					if trashcan_date is not None and trashcan_date < indexed_date:
-						if not (self.TRASH_TASK in room.open_cleaning_tasks_):
-							room.open_cleaning_tasks_.append(-1)
-						if not (room in self.overdue_rooms_):
-							self.overdue_rooms_.append(room)
+					if trashcan_date is None or trashcan_date < current_schedule_date:
+						cleaning_tasks.add(self.TRASH_TASK)
+						overdue_rooms.add(room)
 
-			current_schedule_index = current_schedule_index - 1
-			day_delta = day_delta + 1
+			room.open_cleaning_tasks_ = list(cleaning_tasks)
+
+		self.overdue_rooms_ = list(overdue_rooms)
 
 
 	# Method for figuring out whether the application had been started today already

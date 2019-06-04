@@ -58,14 +58,16 @@ class TestDatabaseHandler(unittest.TestCase):
             database_handler = DH(database)
             computed_output = evaluator(database_handler)
             self.assertEqual(computed_output, expected_outputs[k],
-                             msg='Test index {} failed computed {} != expected {}'.format(k, computed_output, expected_outputs))
+                             msg='Test index {} failed computed {} != expected {}'.format(k, computed_output, expected_outputs[k]))
 
     @staticmethod
     def dueRoomsEvaluator(database_handler):
         database_handler.computeAllDueRooms()
         due_rooms = database_handler.due_rooms_
-        due_rooms_ids = set([room.room_id_ for room in due_rooms])
-        return due_rooms_ids
+        cleaning_tasks = {}
+        for room in due_rooms:
+            cleaning_tasks[str(room.room_id_)] = set(room.open_cleaning_tasks_)
+        return cleaning_tasks
 
     def testRestoreDueRooms(self):
         scenarios = [{},
@@ -79,8 +81,16 @@ class TestDatabaseHandler(unittest.TestCase):
                          '1': [],
                          '10': [WET_TASK]
                      }}]
-
-        expected_outputs = [set([]), set([]), {4, 1, 8}, {10}]
+        expected_outputs = [{},
+                            {},
+                            {
+                                '4': {TRASH_TASK},
+                                '8': {WET_TASK, TRASH_TASK},
+                                '1': {TRASH_TASK, DRY_TASK}
+                            },
+                            {
+                                '10': {WET_TASK}
+                            }]
         self.applyScenarios(scenarios=scenarios, expected_outputs=expected_outputs, evaluator=self.dueRoomsEvaluator)
 
     def testComputeAllDueRoomsEarlierRun(self):
@@ -100,15 +110,53 @@ class TestDatabaseHandler(unittest.TestCase):
         self.applyScenarios(scenarios=scenarios, expected_outputs=expected_outputs, evaluator=evaluator)
 
     def testComputeAllDueRooms(self):
-
         scenarios = [{
             'cleaning_methods': {'5': TRASH_TASK, '4': DRY_TASK, '7': BOTH_TASKS, '8': WET_TASK}
         }]
-        # todo (rmb-ma) be more accurate on the output: testing tasks in each room and not only the rooms
-        expected_outputs = [{5, 4, 8, 7}]
+
+        expected_outputs = [{
+            '5': {TRASH_TASK},
+            '4': {DRY_TASK, TRASH_TASK},
+            '8': {WET_TASK, TRASH_TASK},
+            '7': {DRY_TASK, TRASH_TASK, WET_TASK}
+        }]
 
         self.applyScenarios(scenarios=scenarios, expected_outputs=expected_outputs, evaluator=self.dueRoomsEvaluator)
 
+    @staticmethod
+    def overdueRoomsEvaluator(database_handler):
+        database_handler.computeAllDueRooms()  # todo (rmb-ma) check if it should be called in computeAllOverdueRooms
+        database_handler.computeAllOverdueRooms()
+        overdue_rooms = database_handler.overdue_rooms_
+        cleaning_tasks = {}
+        for room in overdue_rooms:
+            cleaning_tasks[str(room.room_id_)] = set(room.open_cleaning_tasks_)
+        return cleaning_tasks
+
+    def testComputeAllOverdueRooms(self):
+        scenarios = [{
+            'room_cleaning_datestamps': {
+                '1': ['D-8', 'D-7', 'D-10'],  # [TRASH_DATE, DRY_DATE, WET_DATE]
+                '10': ['D-8', 'D-9', 'D-12']
+            },
+            'room_scheduled_days': {
+                '1': {'D-3': 'x', 'D-4': 'p'},
+                '10': {'D-5': 'p'},
+                '7': {'D-1': 'x'}
+            },
+            'cleaning_methods': {'1': DRY_TASK, '10': BOTH_TASKS, '7': DRY_TASK}
+        }]
+        expected_outputs = [{
+            '1': {TRASH_TASK, DRY_TASK},
+            '10': {TRASH_TASK},
+            '7': {DRY_TASK, TRASH_TASK}
+        }]
+
+        self.applyScenarios(scenarios=scenarios, expected_outputs=expected_outputs, evaluator=self.overdueRoomsEvaluator)
+
+    def testComputeAllRooms(self):
+        # test both due and overdue rooms
+        pass
 
 if __name__ == '__main__':
     import rostest

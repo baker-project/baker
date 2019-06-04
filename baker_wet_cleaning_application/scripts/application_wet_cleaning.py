@@ -257,7 +257,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		# Find overdue rooms
 		self.printMsg("Collecting overdue rooms...")
 		#try:
-		self.database_handler_.getAllOverdueRooms()
+		self.database_handler_.computeAllOverdueRooms()
 		#except:
 		#	self.printMsg("Fatal: Collecting of the over rooms failed!")
 		#	exit(1)
