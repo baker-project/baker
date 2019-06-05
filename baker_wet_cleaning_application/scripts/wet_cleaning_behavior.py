@@ -10,11 +10,11 @@ import behavior_container
 
 class WetCleaningBehavior(behavior_container.BehaviorContainer):
 
-	#========================================================================
+	# ========================================================================
 	# Description:
 	# Handles the wet cleaning process (i.e. Floor cleaning, Trashcan)
 	# for all rooms provided in a given list
-	#========================================================================
+	# ========================================================================
 
 	# Method for setting parameters for the behavior
 	def setParameters(self, database_handler, room_information_in_meter, sequence_data, mapping, robot_frame_id,
@@ -72,11 +72,6 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 		self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoomById(room_id), assignment_type=1)
 		self.printMsg(str(self.database_handler_.database_.getRoomById(room_id).open_cleaning_tasks_))
 
-		# todo (rmb-ma): isn't it dumm to stop the program just before adding it the task to the log?
-		# Interruption opportunity
-		if self.handleInterrupt() >= 1:
-			return
-
 		# Adding log entry for wet cleaning
 		self.database_handler_.addLogEntry(
 			room_id=room_id,
@@ -116,4 +111,4 @@ class WetCleaningBehavior(behavior_container.BehaviorContainer):
 				cleaning_thread.join()
 				
 				# Increment the current room counter index
-				room_counter = room_counter + 1
+				room_counter += 1

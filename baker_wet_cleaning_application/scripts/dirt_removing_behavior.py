@@ -66,6 +66,10 @@ class DirtRemovingBehavior(behavior_container.BehaviorContainer):
 		# todo (rmb-ma)
 		pass
 
+	def checkoutDirt(self):
+		# todo (rmb-ma)
+		pass
+
 	# Implemented Behavior
 	def executeCustomBehavior(self):
 		assert(self.dirt_position_ is not None)
@@ -95,8 +99,15 @@ class DirtRemovingBehavior(behavior_container.BehaviorContainer):
 		self.move_base_handler_.executeBehavior()
 		if self.handleInterrupt() >= 1:
 			return
+		if self.move_base_handler_.failed():
+			self.printMsg('Room center is not accessible. Failed to for removing dirt ({}, {})'.format(self.dirt_position_.x, self.dirt_position_.y))
+			self.state_ = 4
+			return
 
 		self.printMsg("> Todo. Remove the dirt")
 		self.removeDirt()
 		if self.handleInterrupt() >= 1:
 			return
+
+		self.printMsg("> Todo. Checkout the dirt")
+		self.checkoutDirt()

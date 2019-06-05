@@ -67,6 +67,10 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 
 		self.printMsg("> Moving to the trashcan")
 		self.moveToGoal(self.trashcan_position_)
+		if self.move_base_handler_.failed():
+			self.printMsg('Trashcan is not accessible. Failed to for emptying trashcan ({}, {})'.format(self.trashcan_position_.x, self.trashcan_position_.y))
+			self.state_ = 4
+			return
 		if self.handleInterrupt() >= 1:
 			return
 
@@ -75,8 +79,12 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 		if self.handleInterrupt() >= 1:
 			return
 
-		self.printMsg("> Moving to the trolley located on ({}, {})".format(self.trashcan_position_.x, self.trashcan_position_.y))
+		self.printMsg("> Moving to the trolley located on ({}, {})".format(self.trolley_position_.x, self.trolley_position_.y))
 		self.moveToGoal(self.trolley_position_)
+		if self.move_base_handler_.failed():
+			self.printMsg('Trolley is not accessible. Failed to for emptying trashcan ({}, {})'.format(self.trashcan_position_.x, self.trashcan_position_.y))
+			self.state_ = 4
+			return
 		if self.handleInterrupt() >= 1:
 			return
 
@@ -89,10 +97,13 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 		self.moveToGoal(self.trashcan_position_)
 		if self.handleInterrupt() >= 1:
 			return
+		if self.move_base_handler_.failed():
+			self.printMsg('Trashcan location is not accessible. Failed to for emptying trashcan ({}, {})'.format(self.trashcan_position_.x, self.trashcan_position_.y))
+			self.state_ = 4
+			return
 
 		self.printMsg("> Todo. Leave the trashcan")
 		self.leaveTrashcan()
 		if self.handleInterrupt() >= 1:
 			return
 
-		print("TRASHCAN ROUTINE FINISHED")

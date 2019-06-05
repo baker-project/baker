@@ -40,6 +40,7 @@ class BehaviorContainer:
 		self.interrupt_var_ = interrupt_var
 		self.mutex_ = Lock()
 		self.is_finished = False
+		self.state_ = None
 
 	# Method for printing messages.
 	def printMsg(self, text):
@@ -67,6 +68,9 @@ class BehaviorContainer:
 			self.returnToRobotStandardState()
 			self.printMsg("Execution interrupted with code " + str(self.behavior_status_))
 		return self.interrupt_var_[0]
+
+	def failed(self):
+		return self.state_ != 3
 
 	# Method for running an action server, shall only be called from def executeCustomBehavior
 	def runAction(self, action_client, action_goal):
@@ -96,6 +100,7 @@ class BehaviorContainer:
 
 		action_client.wait_for_result()
 		self.is_finished = True
+		self.state_ = action_client.get_state()
 		return {'interrupt_var': self.interrupt_var_[0], 'result': action_client.get_result()}
 
 	# Method for returning to the standard pose of the robot

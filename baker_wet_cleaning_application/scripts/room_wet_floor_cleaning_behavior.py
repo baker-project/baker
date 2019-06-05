@@ -16,11 +16,11 @@ import behavior_container
 
 class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 
-	#========================================================================
+	# ========================================================================
 	# Description:
 	# Class which contains the behavior of cleaning the floor of a single room
 	# This class does not require database elements
-	#========================================================================
+	# ========================================================================
 		
 	# Method for setting parameters for the behavior
 	def setParameters(self, room_map_data, room_center, map_data, map_resolution, map_origin, map_header_frame_id, robot_frame_id, robot_radius, coverage_radius,
@@ -37,7 +37,7 @@ class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 		self.coverage_radius_ = coverage_radius
 		self.field_of_view_ = field_of_view
 		self.field_of_view_origin_ = field_of_view_origin
-		self.use_cleaning_device_ = use_cleaning_device	# todo: hack: cleaning device can be turned off for trade fair show
+		self.use_cleaning_device_ = use_cleaning_device	 # todo: hack: cleaning device can be turned off for trade fair show
 		# Parameters set autonomously
 		self.room_exploration_service_str_ = srv.ROOM_EXPLORATION_SERVICE_STR
 		self.move_base_path_service_str_ = srv.MOVE_BASE_PATH_SERVICE_STR
@@ -54,17 +54,20 @@ class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 	def returnToRobotStandardState(self):
 		# save current data if necessary
 		# undo or check whether everything has been undone
-	
-		if self.use_cleaning_device_:	# todo: hack: cleaning device can be turned off for trade fair show
-			# baker_brush_cleaning_module_interface: turn off the cleaning device (service "stop_brush_cleaner")
-			self.printMsg("Stop cleaning with " + self.stop_cleaning_service_str_)
-			rospy.wait_for_service(self.stop_cleaning_service_str_) 
-			try:
-				req = rospy.ServiceProxy(self.stop_cleaning_service_str_, std_srvs.srv.Trigger)
-				resp = req()
-				print "Stop cleaning returned with success status " + str(resp.success)
-			except rospy.ServiceException, e:
-				print "Service call to " + self.stop_cleaning_service_str_ + " failed: %s" % e
+
+		# todo: hack: cleaning device can be turned off for trade fair show
+		if not self.use_cleaning_device_:
+			return
+
+		# baker_brush_cleaning_module_interface: turn off the cleaning device (service "stop_brush_cleaner")
+		self.printMsg("Stop cleaning with " + self.stop_cleaning_service_str_)
+		rospy.wait_for_service(self.stop_cleaning_service_str_)
+		try:
+			req = rospy.ServiceProxy(self.stop_cleaning_service_str_, std_srvs.srv.Trigger)
+			resp = req()
+			print "Stop cleaning returned with success status " + str(resp.success)
+		except rospy.ServiceException, e:
+			print "Service call to " + self.stop_cleaning_service_str_ + " failed: %s" % e
 
 
 	# Implemented Behavior
@@ -90,12 +93,12 @@ class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 			input_map=self.room_map_data_,
 			map_resolution=self.map_resolution_,
 			map_origin=self.map_origin_,
-			robot_radius = self.robot_radius_,
-			coverage_radius = self.coverage_radius_,
-			field_of_view = self.field_of_view_,		# this field of view represents the off-center iMop floor wiping device
-			field_of_view_origin = self.field_of_view_origin_,
-			starting_position = Pose2D(x=self.room_center_.x, y=self.room_center_.y, theta=0.),	# todo: determine current robot position
-			planning_mode = 2
+			robot_radius=self.robot_radius_,
+			coverage_radius=self.coverage_radius_,
+			field_of_view=self.field_of_view_,		# this field of view represents the off-center iMop floor wiping device
+			field_of_view_origin=self.field_of_view_origin_,
+			starting_position=Pose2D(x=self.room_center_.x, y=self.room_center_.y, theta=0.),	# todo: determine current robot position
+			planning_mode=2
 		)
 		self.room_explorer_.executeBehavior()
 
@@ -133,7 +136,7 @@ class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 			return
 
 		# baker_brush_cleaning_module_interface: turn on the cleaning device (service "start_brush_cleaner")
-		if self.use_cleaning_device_:	# todo: hack: cleaning device can be turned off for trade fair show
+		if self.use_cleaning_device_: # todo: hack: cleaning device can be turned off for trade fair show
 			self.printMsg("Start cleaning with " + self.start_cleaning_service_str_)
 			rospy.wait_for_service(self.start_cleaning_service_str_)
 			try:
@@ -157,6 +160,7 @@ class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 										"robot_trajectory_recording_active":True})
 		except rospy.ServiceException, e:
 			print "Dynamic reconfigure request to " + self.coverage_monitor_dynamic_reconfigure_service_str_ + " failed: %s" % e
+			# todo (rmb-ma). no return?
 
 		# Explored path follow
 		"""
@@ -205,18 +209,19 @@ class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 			print "Receive coverage image returned with success status " + str(resp.success)
 		except rospy.ServiceException, e:
 			print "Service call to " + self.receive_coverage_image_service_str_ + " failed: %s" % e
+			# todo (rmb-ma). No return?
 
 		self.wall_follower_.setParameters(
-			self.map_data_,
-			self.room_map_data_,
-			self.room_map_data_,	#todo: self.coverage_map_response_.coverage_map,
-			self.map_resolution_,
-			self.map_origin_,
-			0.2,
-			0.3,
-			1.57,
-			0.1,
-			0.8
+			map=self.map_data_,
+			area_map=self.room_map_data_,
+			coverage_map=self.room_map_data_,	# todo: self.coverage_map_response_.coverage_map,
+			map_resolution=self.map_resolution_,
+			map_origin=self.map_origin_,
+			path_tolerance=0.2,
+			goal_position_tolerance=0.3,
+			goal_angle_tolerance=1.57,
+			target_wall_distance=0.1,
+			wall_following_off_traveling_distance_threshold=0.8
 		)
 		self.wall_follower_.executeBehavior()
 
@@ -236,7 +241,7 @@ class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 
 
 		# baker_brush_cleaning_module_interface: turn off the cleaning device (service "stop_brush_cleaner")
-		if self.use_cleaning_device_:	# todo: hack: cleaning device can be turned off for trade fair show
+		if self.use_cleaning_device_: # todo: hack: cleaning device can be turned off for trade fair show
 			self.printMsg("Stop cleaning with " + self.stop_cleaning_service_str_)
 			rospy.wait_for_service(self.stop_cleaning_service_str_)
 			try:

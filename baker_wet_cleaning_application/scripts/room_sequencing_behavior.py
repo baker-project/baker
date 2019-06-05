@@ -7,6 +7,7 @@ from ipa_building_msgs.msg import FindRoomSequenceWithCheckpointsAction, FindRoo
 import behavior_container
 from utils import getCurrentRobotPosition
 
+
 class RoomSequencingBehavior(behavior_container.BehaviorContainer):
 
 	#========================================================================
@@ -18,8 +19,12 @@ class RoomSequencingBehavior(behavior_container.BehaviorContainer):
 		super(RoomSequencingBehavior, self).__init__(behavior_name, interrupt_var)
 		self.service_str_ = service_str
 
+		self.room_sequence_result_ = None
+		self.database_ = None
+		self.room_information_in_pixel_ = None
+		self.robot_radius_ = None
+
 	# Method for setting parameters for the behavior
-	#def setParameters(self, map_data, segmentation_data, robot_radius):
 	def setParameters(self, database, room_information_in_pixel, robot_radius):
 		self.database_ = database
 		self.room_information_in_pixel_ = room_information_in_pixel
@@ -42,7 +47,8 @@ class RoomSequencingBehavior(behavior_container.BehaviorContainer):
 		room_sequence_goal.room_information_in_pixel = self.room_information_in_pixel_
 		(robot_pose_translation, robot_pose_rotation, robot_pose_rotation_euler) = getCurrentRobotPosition()
 		if robot_pose_translation is not None:
-			room_sequence_goal.robot_start_coordinate.position = Point32(x=robot_pose_translation[0], y=robot_pose_translation[1])  # actual current coordinates should be inserted
+			self.printMsg("Robot starting from position ({}, {})".format(*robot_pose_translation))
+			room_sequence_goal.robot_start_coordinate.position = Point32(x=robot_pose_translation[0], y=robot_pose_translation[1])
 		else:
 			self.printMsg("Warning: tf lookup failed, taking (0,0) as robot_start_coordinate.")
 			room_sequence_goal.robot_start_coordinate.position = Point32(x=0, y=0)

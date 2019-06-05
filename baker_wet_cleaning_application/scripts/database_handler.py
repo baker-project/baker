@@ -112,7 +112,6 @@ class DatabaseHandler:
 				mapping.append(rooms_list[current_room_index].room_id_)
 		return mapping
 
-
 	# Method for extracting all due rooms from the due assignment
 	# CASE: First run of application, no rooms collected yet today.
 	# USAGE: Run when the application is started the first time today. Then run at the beginning.
@@ -236,7 +235,7 @@ class DatabaseHandler:
 	# Method for figuring out whether the application had been started today already
 	def noPlanningHappenedToday(self):
 		last_start = self.database_.application_data_.last_planning_date_[0]
-		today_date = datetime.datetime.now()
+		today_date = datetime.now()
 		if last_start is not None:
 			delta = today_date - last_start
 			return delta.days >= 1
@@ -273,7 +272,7 @@ class DatabaseHandler:
 		log_item.cleaning_task_ = assignment_type
 		log_item.battery_usage_ = 0
 		log_item.cleaned_surface_area_ = 0
-		log_item.date_and_time_ = datetime.datetime.now()
+		log_item.date_and_time_ = datetime.now()
 		log_item.found_dirtspots_ = 0
 		log_item.found_trashcans_ = 0
 		log_item.log_week_and_day_ = [self.getTodaysWeekType(), self.getTodaysWeekDay()]
@@ -285,7 +284,7 @@ class DatabaseHandler:
 		# Remove assignment from the room's open assignment list
 		room.open_cleaning_tasks_.remove(assignment_type)
 		# Save current datetime as timestamp for the specified assignment
-		room.room_cleaning_datestamps_[assignment_type + 1] = datetime.datetime.now()
+		room.room_cleaning_datestamps_[assignment_type + 1] = datetime.now()
 		# Save all changes to the database
 		self.applyChangesToDatabase()
 
@@ -296,7 +295,7 @@ class DatabaseHandler:
 		new_entry = database_classes.LogItem()
 		new_entry.room_id_ = room_id
 		new_entry.log_week_and_day_ = [self.getTodaysWeekType(), self.getTodaysWeekDay()]
-		new_entry.date_and_time_ = datetime.datetime.now()
+		new_entry.date_and_time_ = datetime.now()
 		new_entry.status_ = status
 		new_entry.cleaning_task_ = cleaning_task
 		new_entry.found_dirtspots_ = found_dirtspots

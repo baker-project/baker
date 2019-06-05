@@ -53,7 +53,7 @@ def updateRooms(data, methods, reset_opened_tasks=False, reset_timestamps=False)
 
 		# todo (rmb-ma). doesn't work if ids are not following
 		data[key]['room_cleaning_method'] = methods[int(key)]
-		data[key]['room_scheduled_days'][today_index] = 'x' if methods[int(key)] > 0 else ''
+		data[key]['room_scheduled_days'][today_index] = 'x' if methods[int(key)] >= 0 else ''
 
 	return data
 
