@@ -146,7 +146,6 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 	def computeCoveragePath(self, room_id):
 		self.printMsg('Starting computing coverage path of room ID {}'.format(room_id))
 
-		# todo (rmb-ma): why room_explorer is an object attribute?
 		room_explorer = room_exploration_behavior.RoomExplorationBehavior("RoomExplorationBehavior",
 																		  self.interrupt_var_,
 																		  self.room_exploration_service_str_)
@@ -202,7 +201,7 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 
 		self.printMsg('Starting Dry Cleaning of room ID {}'.format(room_id))
 
-		starting_position = self.getCheckpointForRoomId(room_id).checkpoint_position_in_meter
+		starting_position = self.room_information_in_meter_[room_id].room_center
 		self.move_base_handler_.setParameters(
 			goal_position=starting_position,
 			goal_orientation=Quaternion(x=0., y=0., z=0., w=1.),
@@ -307,6 +306,13 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 			# Trolley movement to checkpoint
 			self.trolley_mover_.setParameters(self.database_handler_)
 			self.trolley_mover_.executeBehavior()
+
+			self.move_base_handler_.setParameters(
+				goal_position=checkpoint.checkpoint_position_in_meter,
+				goal_orientation=Quaternion(x=0., y=0., z=0., w=1.),
+				header_frame_id='base_link'
+			)
+			self.move_base_handler_.executeBehavior()
 
 			for _ in checkpoint.room_indices:
 				current_room_id = self.mapping_[room_counter]
