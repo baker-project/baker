@@ -12,11 +12,13 @@
 	<maintainer email="richard.bormann@ipa.fraunhofer.de">Richard Bormann</maintainer>
 	<author>Richard Bormann</author>
 
-	<buildtool_depend>catkin</buildtool_depend>
+ 	<buildtool_depend>catkin</buildtool_depend>
 
-	<build_depend>message_generation</build_depend>
-	<exec_depend>message_runtime</exec_depend>
+ 	<build_depend>message_generation</build_depend>
+ 	<exec_depend>message_runtime</exec_depend>
 
+ 	<depend>actionlib</depend>  
+ 	<depend>actionlib_msgs</depend>
 	<depend>sensor_msgs</depend>
 	<depend>std_msgs</depend>
 </package>

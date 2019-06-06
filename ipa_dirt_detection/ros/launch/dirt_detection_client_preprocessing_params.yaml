@@ -1,0 +1,51 @@
+# number of considered scales
+# single scale = 1
+# multi scale > 1
+# int
+detect_scales: 1
+
+# bird eye start resolution
+# double
+bird_eye_start_resolution: 75.0
+
+# bird eye base/standard resolution for bird eye's perspective [pixel/m]
+# double
+bird_eye_base_resolution: 300.0
+
+# for normal operation mode, specifies whether dirt detection is on right from the beginning
+# bool
+dirt_detection_activated_on_startup: false
+
+# Use mask or not. if not all points belong to plane.
+# bool
+use_mask: true
+
+# if true, image warping to a bird's eye perspective is enabled
+# bool
+warp_image: true
+
+# the number of attempts to segment the floor plane in the image
+# int
+floor_search_iterations: 3  #3
+
+# minimum number of points that are necessary to find the floor plane
+# int
+min_plane_points: 100
+
+# only those points which are close enough to the camera are displayed in the bird's eye view [max distance in m]
+# double
+max_distance_to_camera: 3.00
+
+###################################################################################################################
+##### debug display switches - enable or disable the display of several kinds of images
+# all flags are of type bool
+
+# displays the original source image that comes with the point cloud data
+show_original_image: false #true
+
+# shows only the part of the color image that belongs to the plane, the remainder is masked black
+show_plane_color_image: false #true
+
+# save data for test todo: found no description (joel)
+save_data_for_test: false
+##### end debug display section
