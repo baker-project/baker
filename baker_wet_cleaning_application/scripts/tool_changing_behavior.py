@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
-import rospy
 import behavior_container
-import database_handler
 
 
 class ToolChangingBehavior(behavior_container.BehaviorContainer):

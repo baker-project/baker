@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 
-import rospy
 import actionlib
-
-from ipa_building_msgs.msg import *
+from ipa_building_msgs.msg import RoomExplorationGoal, RoomExplorationAction
 
 import behavior_container
 
-class RoomExplorationBehavior(behavior_container.BehaviorContainer):
 
+class RoomExplorationBehavior(behavior_container.BehaviorContainer):
 	#========================================================================
 	# Description:
 	# Class which contains the behavior for calculating an exploration
@@ -16,8 +14,7 @@ class RoomExplorationBehavior(behavior_container.BehaviorContainer):
 	#========================================================================
 
 	def __init__(self, behavior_name, interrupt_var, service_str):
-		self.behavior_name_ = behavior_name
-		self.interrupt_var_ = interrupt_var
+		super(RoomExplorationBehavior, self).__init__(behavior_name, interrupt_var)
 		self.service_str_ = service_str
 
 	# Method for returning to the standard pose of the robot
@@ -27,7 +24,8 @@ class RoomExplorationBehavior(behavior_container.BehaviorContainer):
 		pass
 
 	# Method for setting parameters for the behavior
-	def setParameters(self, input_map, map_resolution, map_origin, robot_radius, coverage_radius, field_of_view, field_of_view_origin, starting_position, planning_mode):
+	def setParameters(self, input_map, map_resolution, map_origin, robot_radius, coverage_radius, field_of_view,
+					  field_of_view_origin, starting_position, planning_mode):
 		self.input_map_ = input_map
 		self.map_resolution_ = map_resolution
 		self.map_origin_ = map_origin
@@ -52,7 +50,6 @@ class RoomExplorationBehavior(behavior_container.BehaviorContainer):
 		exploration_goal.planning_mode = self.planning_mode_
 		exploration_client = actionlib.SimpleActionClient(self.service_str_, RoomExplorationAction)
 		self.printMsg("Running room exploration action...")
-		self.exploration_result_ = self.runAction(exploration_client, exploration_goal)
-		if (self.exploration_result_ != None):
-			self.printMsg("Exploration path received with length " + str(len(self.exploration_result_.coverage_path_pose_stamped)))
+		self.exploration_result_ = self.runAction(exploration_client, exploration_goal)['result']
+		self.printMsg("Exploration path received with length " + str(len(self.exploration_result_.coverage_path_pose_stamped)))
 		self.printMsg("Room exploration action completed.")
