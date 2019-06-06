@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.8.3)
 project(ipa_dirt_detection)
 
 set(catkin_RUN_PACKAGES
+	actionlib
+	baker_msgs
 	cv_bridge
 	dynamic_reconfigure
 	geometry_msgs
@@ -29,7 +31,8 @@ find_package(PCL 1.3 REQUIRED)
 
 # dynamic reconfigure
 generate_dynamic_reconfigure_options(
-	cfg/DirtDetection.cfg
+	cfg/DirtDetectionPreprocessing.cfg
+	cfg/DirtDetectionSpectral.cfg
 )
 
 ###################################
@@ -65,36 +68,58 @@ include_directories(
 	${PCL_INCLUDE_DIRS}
 )
 
-### dirt_detection
-add_executable(dirt_detection
-	ros/src/dirt_detection.cpp
+### dirt_detection_server_spectral
+add_executable(dirt_detection_server_spectral
+	ros/src/dirt_detection_server_spectral.cpp
 )
-target_link_libraries(dirt_detection
+
+add_dependencies(dirt_detection_server_spectral ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
+
+target_link_libraries(dirt_detection_server_spectral
 	${catkin_LIBRARIES}
 	${OpenCV_LIBRARIES}
 	${Boost_LIBRARIES}
 	${PCL_INCLUDE_DIRS}
 )
-add_dependencies(dirt_detection ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
+### dirt_detection_client_preprocessing
+add_executable(dirt_detection_client_preprocessing
+	ros/src/dirt_detection_client_preprocessing.cpp
+)
+
+add_dependencies(dirt_detection_client_preprocessing 
+	${catkin_EXPORTED_TARGETS} 
+	${${PROJECT_NAME}_EXPORTED_TARGETS}
+)
+
+target_link_libraries(dirt_detection_client_preprocessing
+	${catkin_LIBRARIES}
+	${OpenCV_LIBRARIES}
+	${Boost_LIBRARIES}
+	${PCL_INCLUDE_DIRS}
+)
 
 ### dirt_detection_client
 add_executable(dirt_detection_client
 	ros/src/dirt_detection_client.cpp
 )
+
+add_dependencies(dirt_detection_client 
+	${catkin_EXPORTED_TARGETS} 
+	${${PROJECT_NAME}_EXPORTED_TARGETS}
+)
+
 target_link_libraries(dirt_detection_client
 	${catkin_LIBRARIES}
 	${OpenCV_LIBRARIES}
 	${Boost_LIBRARIES}
 )
-add_dependencies(dirt_detection_client ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
-
 
 #############
 ## Install ##
 #############
 ## Mark executables and/or libraries for installation
-install(TARGETS dirt_detection dirt_detection_client
+install(TARGETS dirt_detection_server_spectral dirt_detection_client_preprocessing
 	ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 	LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 	RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

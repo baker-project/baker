@@ -1,0 +1,9 @@
+sensor_msgs/Image plane_color_image_warped               # 
+sensor_msgs/Image plane_mask_warped                      # 
+
+---
+
+RotatedRect[] dirt_detections                            # 
+sensor_msgs/Image dirt_detections_mask                   # 
+
+---
