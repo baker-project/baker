@@ -87,7 +87,7 @@ class BehaviorContainer:
 			#self.printMsg("action_client.get_state()=" + str(action_client.get_state()))
 			if self.executionInterrupted() or rospy.is_shutdown():
 				action_client.cancel_goal()
-				while action_client.get_state() < 2 or action_client.get_state() == 2 and rospy.is_shutdown():
+				while action_client.get_state() < 3 and not rospy.is_shutdown():
 					pass
 				action_client.wait_for_result()
 				self.is_finished = True
