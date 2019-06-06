@@ -285,6 +285,7 @@ class DatabaseHandler:
 		room.open_cleaning_tasks_.remove(assignment_type)
 		# Save current datetime as timestamp for the specified assignment
 		room.room_cleaning_datestamps_[assignment_type + 1] = datetime.now()
+
 		# Save all changes to the database
 		self.applyChangesToDatabase()
 
