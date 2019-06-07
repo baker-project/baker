@@ -1,0 +1,56 @@
+# resolution for bird eye's perspective [pixel/m]
+# double
+bird_eye_resolution: 300.0
+
+# spectral residual component: number of Gaussian smoothing operations
+# int
+spectral_residual_gaussian_blur_iterations: 3    #3
+
+# side length of the fourier transformed image relative to the width of the original image
+# double
+spectral_residual_image_size_ratio: 0.25   #0.25
+
+# maximum of the spectral residual image with artificial dirt can be at maximum at this number, the spectral residual image is scaled to the ratio (max/spectralResidualNormalizationHighestMaxValue)
+# double
+spectral_residual_normalization_highest_max_value: 1500.0
+
+# if true, strong lines in the image will not produce dirt responses
+# bool
+remove_lines: false
+
+# dirt threshold (in [0,1])
+# double
+dirt_threshold: 0.35 #0.25 #0.09 #0.2  #0.35 #0.5 #0.2
+
+# checks whether the mean intensity in potential dirt spots is high enough compared to the rest of the spectral residual image
+# double
+dirt_check_std_dev_factor: 3.0   #3.6
+
+###################################################################################################################
+##### debug display switches - enable or disable the display of several kinds of images
+# all flags are of type bool
+
+# shows the warped color image of the plane
+show_warped_original_image: false
+
+# displays the detection results drawn into the color image
+show_dirt_detections: true #true
+
+# displays the color image with the artificial dirt added
+show_color_with_artificial_dirt: false
+
+# displays the filter response to the image with artificial dirt
+show_saliency_with_artificial_dirt: false
+
+# displays the saliency image before rescaling
+show_saliency_bad_scale: false
+
+# displays the detected lines in the image that might be used to shadow false positives
+show_detected_lines: false
+
+# displays the rescaled saliency image
+show_saliency_detection: false #true
+
+# save data for test todo: found no description (joel)
+save_data_for_test: false
+##### end debug display section

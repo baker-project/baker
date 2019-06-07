@@ -275,10 +275,12 @@ public:
 			pcl::ModelCoefficients& plane_model, cv::Mat& H, cv::Mat& R, cv::Mat& t, cv::Point2f& cameraImagePlaneOffset, cv::Mat& plane_color_image_warped,
 			cv::Mat& plane_mask_warped);
 
+	//todo: dont know if this is needed anymore, cause of map is not used anymore(joel)
 	/// converts point pointCamera, that lies within the floor plane and is provided in coordinates of the original camera image, into map coordinates
 	void transformPointFromCameraImageToWorld(const cv::Mat& pointCamera, const cv::Mat& H, const cv::Mat& R, const cv::Mat& t,
 			const cv::Point2f& cameraImagePlaneOffset, const tf::StampedTransform& transformMapCamera, cv::Point3f& pointWorld);
 
+	//todo: dont know if this is needed anymore, cause of map is not used anymore(joel)
 	/// converts point pointPlane, that lies within the floor plane and is provided in coordinates of the warped camera image, into map coordinates
 	void transformPointFromCameraWarpedToWorld(const cv::Mat& pointPlane, const cv::Mat& R, const cv::Mat& t, const cv::Point2f& cameraImagePlaneOffset,
 			const tf::StampedTransform& transformMapCamera, cv::Point3f& pointWorld);
@@ -286,6 +288,7 @@ public:
 	void transformPointFromWorldToCameraWarped(const cv::Point3f& pointWorld, const cv::Mat& R, const cv::Mat& t, const cv::Point2f& cameraImagePlaneOffset,
 			const tf::StampedTransform& transformMapCamera, cv::Mat& pointPlane);
 
+	//todo: dont know if this is needed anymore, cause of Image_Postprocessing_C1_rmb(joel)
 	/**
 	 * This function performs the saliency detection to spot dirt stains.
 	 *
@@ -303,9 +306,9 @@ public:
 	 * 						3.) The resulting images are add up.
 	 *
 	 * @param [in] 	C3_color_image			!!!THREE CHANNEL!!!('C3') image used to perform the saliency detection.
-	 * @param [out]	C1_saliency_image		One channel image('C1') which results from the saliency detection.
 	 * @param [in] 	mask					Determines the area of interest. Pixel of interests are white (255), all other pixels are black (0).
 	 * @param [in]	gaussianBlurCycles		Determines the number of repetitions of the gaussian filter used to reduce the noise.
+	 * @param [out]	C1_saliency_image		One channel image('C1') which results from the saliency detection.
 	 */
 	void SaliencyDetection_C3(const cv::Mat& C3_color_image, cv::Mat& C1_saliency_image, const cv::Mat* mask = 0, int gaussianBlurCycles = 2);
 
@@ -327,9 +330,9 @@ public:
 	 * It also the "C1_saliency_image" to mark the dirt in the "C3_color_image".
 	 *
 	 * @param [in] 		C1_saliency_image		One channel('C1') saliency image used for postprocessing.
-	 * @param [out]		C1_BlackWhite_image		One channel('C1') image in which all dirt pixels are white (255) and all other pixels are black (0).
-	 * @param [in,out] 	C3_color_image			Three channel('C3') color which corresponds to the "C1_saliency_image".
 	 * @param [in]		mask					Determines the area of interest. Pixel of interests are white (255), all other pixels are black (0).
+	 * @param [in,out] 	C3_color_image			Three channel('C3') color which corresponds to the "C1_saliency_image".
+	 * @param [out]		C1_BlackWhite_image		One channel('C1') image in which all dirt pixels are white (255) and all other pixels are black (0).
 	 *
 	 */
 	void Image_Postprocessing_C1_rmb(const cv::Mat& C1_saliency_image, cv::Mat& C1_BlackWhite_image, cv::Mat& C3_color_image,
