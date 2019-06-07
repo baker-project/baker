@@ -10,7 +10,7 @@ struct lessPoint2i: public std::binary_function<cv::Point2i, cv::Point2i, bool>
 };
 
 IpaDirtDetectionPreprocessing::ClientPreprocessing::ClientPreprocessing(ros::NodeHandle node_handle) :
-				node_handle_(node_handle), dirt_detection_client_("/ipa_dirt_detection_action", true)
+				node_handle_(node_handle), dirt_detection_client_("/ipa_dirt_detection_action", true), it_(0)
 {
 	//PARAMS
 	ros::NodeHandle pnh("~");
@@ -62,9 +62,9 @@ IpaDirtDetectionPreprocessing::ClientPreprocessing::ClientPreprocessing(ros::Nod
 	//After action server did action we publish image containing the dirt positions.
 	dirt_detected_ = node_handle_.advertise<cob_object_detection_msgs::DetectionArray>("dirt_detector_topic", 1);
 
-	//todo: i think we dont need this anymore (joel)
-	it_ = new image_transport::ImageTransport(node_handle_);
-	dirt_detection_image_pub_ = it_->advertise("dirt_detections", 1);
+	//todo: implement if needed
+//	it_ = new image_transport::ImageTransport(node_handle_);
+//	dirt_detection_image_pub_ = it_->advertise("dirt_detections", 1);
 
 	// services
 	activate_dirt_detection_service_server_ = node_handle_.advertiseService("activate_dirt_detection", &IpaDirtDetectionPreprocessing::ClientPreprocessing::activateDirtDetection, this);
@@ -126,7 +126,7 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 		return;
 
 	// get tf between camera and map
-	tf::StampedTransform transformMapCamera;
+	tf::StampedTransform transformMapCamera;	// todo: add parameter for preferred relative transform between camera z-axis and ground plane z-axis and check this in planeSegmentation()
 	transformMapCamera.setIdentity();
 
 	// convert point cloud message
@@ -134,8 +134,8 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 	pcl::fromROSMsg(*point_cloud2_rgb_msg, *input_cloud); //conversion Ros message->Pcl point cloud
 	//std::cout << input_cloud->size() << std::endl;
 
-	//Timer tim;
-	//double segmentation_time = 0., dirt_detection_time = 0.;
+	Timer tim;
+	double segmentation_time = 0., dirt_detection_time = 0.;
 
 	// find ground plane
 	cv::Mat plane_color_image = cv::Mat();
@@ -147,15 +147,15 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 	//if(use_mask_ == false)
 	//	plane_mask.setTo(cv::Scalar(255));
 
-	//std::cout << "Segmentation time: " << tim.getElapsedTimeInMilliSec() << "ms." << std::endl;
-	//segmentation_time = tim.getElapsedTimeInMilliSec();
-	//tim.start();
+	std::cout << "Segmentation time: " << tim.getElapsedTimeInMilliSec() << "ms." << std::endl;
+	segmentation_time = tim.getElapsedTimeInMilliSec();
+	tim.start();
+
 	for (int s = 0; s < detect_scales_; s++)
 	{
 		// check if a ground plane could be found
 		if (found_plane == true)
 		{
-			//int s = 0; //todo: check with multiscale callback from old version of dirt detection. do we need the for loop?
 			if (detect_scales_==1)
 			{
 				// single scale
@@ -164,7 +164,7 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 			}
 			else
 			{
-				image_scaling_ = pow(2, s) * bird_eye_start_resolution_ / bird_eye_base_resolution_; // todo: make the standard resolution of 300 a parameter
+				image_scaling_ = pow(2, s) * bird_eye_start_resolution_ / bird_eye_base_resolution_;
 				bird_eye_resolution_ = pow(2, s) * bird_eye_start_resolution_;
 			}
 
@@ -186,6 +186,7 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 			}
 			else
 			{
+				// todo: use rescaling with image_scaling_ here
 				H = (cv::Mat_<double>(3, 3) << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
 				R = H;
 				t = (cv::Mat_<double>(3, 1) << 0.0, 0.0, 0.0);
@@ -203,7 +204,7 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 			}
 
 
-			//============================ ACTION CLIENT ==============================================================================================
+			//================== Call ACTION CLIENT =====================================================================================
 			//setting up GOALS
 			baker_msgs::DirtDetectionGoal goal;
 			cv_bridge::CvImage cv_image;
@@ -229,6 +230,7 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 				ROS_ERROR("Timeout on action call to dirt detection.\n");
 				return;
 			}
+			//================== End ACTION CLIENT ======================================================================================
 
 			//check if action was successful
 			if (dirt_detection_client_.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
@@ -236,16 +238,53 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 				std::cout << "Received RESULT from server.\n" << dirt_detection_client_.getResult()->dirt_detections.size() << "=======================================================" << std::endl;
 
 				cob_object_detection_msgs::DetectionArray detected_dirt_to_publish;
-
+				const cv::Mat H_inv = H.inv();
 				for (size_t i=0; i<dirt_detection_client_.getResult()->dirt_detections.size(); ++i) //rescale, find coordinates for, and publish all dirts detected
 					{
 						// todo: rescale dirt detections with 1./image_scaling_
+						const baker_msgs::RotatedRect& det = dirt_detection_client_.getResult()->dirt_detections[i];
+						const cv::Rect dirt_warped = cv::RotatedRect(cv::Point2f(det.center_x, det.center_y), cv::Size2f(det.width, det.height), det.angle).boundingRect();
+						const int max_v = int(dirt_warped.y + dirt_warped.height*0.5);
+						const int max_u = int(dirt_warped.x + dirt_warped.width*0.5);
+						for (int v = int(dirt_warped.y - dirt_warped.height*0.5); v <= max_v; ++v)
+						{
+							for (int u = int(dirt_warped.x - dirt_warped.width*0.5); u <= max_u; ++u)
+							{
+								cv::Mat point_original_image = (cv::Mat_<double>(3, 1) << u, v, 1.0);
+								if (warp_image_ == true)
+								{
+									point_original_image = H_inv*(cv::Mat_<double>(3, 1) << u, v, 1.0);
+									point_original_image.at<double>(0,0) /= point_original_image.at<double>(2,0);
+									point_original_image.at<double>(1,0) /= point_original_image.at<double>(2,0);
+								}
+								const int u_pcl = point_original_image.at<double>(0,0);
+								const int v_pcl = point_original_image.at<double>(1,0);
+								if (u_pcl >= 0 && u_pcl<input_cloud->width && v_pcl >= 0 && v_pcl<input_cloud->height)
+								{
+									pcl::PointXYZRGB& point = (*input_cloud)[v_pcl*input_cloud->width + u_pcl];
+									// todo: average
+								}
+							}
+						}
+
+
+
 						cv::RotatedRect dirt;
+						//cv::RotatedRect dirt(cv::Point2f(det.center_x, det.center_y), cv::Size2f(det.width/bird_eye_resolution_, det.height/bird_eye_resolution_), det.angle);
+						if (warp_image_ == true)
+						{
+							H_inv*cv::Point3f();
+						}
+
+
 						//cv::RotatedRect dirt = dirt_detection_client_.getResult()->dirt_detections[i]; //todo: throws error. need conversion.
 						dirt.center.x = dirt.center.x * 1./image_scaling_;
 						dirt.center.y = dirt.center.y * 1./image_scaling_;
 						dirt.size.width = dirt.size.width * 1./image_scaling_;
 						dirt.size.height = dirt.size.height * 1./image_scaling_;
+
+						//if (warp_image_ == true)
+						// transform pixel coordinates back by using inverse homography of H
 
 						//todo: find coordinates in pointcloud
 						pcl::PointXYZRGB point;
@@ -390,17 +429,18 @@ bool IpaDirtDetectionPreprocessing::ClientPreprocessing::planeSegmentation(pcl::
 			//			cv::Point2i co((planePointWorld.getX() - gridOrigin_.x) * gridResolution_, (planePointWorld.getY() - gridOrigin_.y) * gridResolution_);
 
 		{
-			tf::StampedTransform rotationMapCamera = transform_map_camera;
-			rotationMapCamera.setOrigin(tf::Vector3(0, 0, 0));
-			tf::Vector3 planeNormalCamera(plane_model.values[0], plane_model.values[1], plane_model.values[2]);
-			tf::Vector3 planeNormalWorld = rotationMapCamera * planeNormalCamera;
+//			tf::StampedTransform rotationMapCamera = transform_map_camera;
+//			rotationMapCamera.setOrigin(tf::Vector3(0, 0, 0));
+//			tf::Vector3 planeNormalCamera(plane_model.values[0], plane_model.values[1], plane_model.values[2]);
+//			tf::Vector3 planeNormalWorld = rotationMapCamera * planeNormalCamera;
 
-			pcl::PointXYZRGB point = (*filtered_input_cloud)[(inliers->indices[inliers->indices.size() / 2])];
-			tf::Vector3 planePointCamera(point.x, point.y, point.z);
-			tf::Vector3 planePointWorld = transform_map_camera * planePointCamera;
-			//std::cout << "normCam: " << planeNormalCamera.getX() << ", " << planeNormalCamera.getY() << ", " << planeNormalCamera.getZ() << "  normW: " << planeNormalWorld.getX() << ", " << planeNormalWorld.getY() << ", " << planeNormalWorld.getZ() << "   point[half]: " << planePointWorld.getX() << ", " << planePointWorld.getY() << ", " << planePointWorld.getZ() << std::endl;
+//			pcl::PointXYZRGB point = (*filtered_input_cloud)[(inliers->indices[inliers->indices.size() / 2])];
+//			tf::Vector3 planePointCamera(point.x, point.y, point.z);
+//			tf::Vector3 planePointWorld = transform_map_camera * planePointCamera;
+//			//std::cout << "normCam: " << planeNormalCamera.getX() << ", " << planeNormalCamera.getY() << ", " << planeNormalCamera.getZ() << "  normW: " << planeNormalWorld.getX() << ", " << planeNormalWorld.getY() << ", " << planeNormalWorld.getZ() << "   point[half]: " << planePointWorld.getX() << ", " << planePointWorld.getY() << ", " << planePointWorld.getZ() << std::endl;
 
 			// verify that the found plane is a valid ground plane
+			//if ((int)inliers->indices.size()>min_plane_points_ && planeNormalWorld.getZ()<plane_normal_max_z_ && abs(planePointWorld.getZ())<plane_max_height_)  // add optional check if a preferred plane-normal direction is provided relative to camera and a height of camera above plan
 			if ((int) inliers->indices.size() > min_plane_points_)
 			{
 				found_plane = true;
@@ -669,7 +709,7 @@ bool IpaDirtDetectionPreprocessing::ClientPreprocessing::computeBirdsEyePerspect
 		correspondencePointsPlane.push_back(bird_eye_resolution_ * (pointsPlane[(int) i] - cameraImagePlaneOffset));
 	}
 	// b) compute homography
-	H = cv::findHomography(correspondencePointsCamera, correspondencePointsPlane);
+	H = cv::findHomography(correspondencePointsCamera, correspondencePointsPlane);		// i.e. H*camera = plane
 //		correspondencePointsCamera.push_back(cv::Point2f(160,400));
 //		correspondencePointsPlane.push_back(cv::Point2f(0,0));
 //		correspondencePointsCamera.push_back(cv::Point2f(320,400));
