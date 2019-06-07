@@ -36,7 +36,7 @@ class DatabaseCreator():
 		self.map_receiving_service_str_ = '/map_management_client/get_map_image'
 		self.map_segmented_receiving_service_str_ = '/map_management_client/get_map_segmented_image'
 		self.map_segmentation_service_str_ = '/room_segmentation/room_segmentation_server'
-		self.map_segmentation_algorithm_ = 0
+		self.map_segmentation_algorithm_ = 99
 		self.robot_radius_ = 0.2875
 
 	def createDatabase(self):
@@ -102,18 +102,18 @@ class DatabaseCreator():
 			room.room_floor_id_ = "1st Floor"
 			room.room_building_id_ = "Building C"
 			room.room_territory_id_ = "42"
-			room.room_surface_type = 2
-			room.room_cleaning_method_ = 2
+			room.room_surface_type_ = 0
+			room.room_cleaning_method_ = 0
 			room.room_surface_area_ = 3.141
 			room.room_trashcan_count_ = 4
 			room.room_cleaning_datestamps_ = [None, None, None]
-			room.room_issues = []
+			room.room_issues_ = []
 			room.room_map_ = img_file_name
-			room.room_map_data = self.openCv2CvBridge(cv_image)
+			room.room_map_data_ = self.openCv2CvBridge(cv_image)
 			room.room_map_filename_ = img_file_name
 			room.room_information_in_pixel_ = self.segmentation_result_.room_information_in_pixel[i]
 			room.room_information_in_meter_ = self.segmentation_result_.room_information_in_meter[i]
-			room.room_scheduled_days_ = ["","","","","","","","","","","","","",""]
+			room.room_scheduled_days_ = ["x","x","x","x","x","x","x","x","x","x","x","x","x","x"]
 			room.open_cleaning_tasks_ = []
 			self.database_.rooms_.append(room)
 
