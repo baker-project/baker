@@ -36,7 +36,7 @@ class DatabaseCreator():
 		self.map_receiving_service_str_ = '/map_management_client/get_map_image'
 		self.map_segmented_receiving_service_str_ = '/map_management_client/get_map_segmented_image'
 		self.map_segmentation_service_str_ = '/room_segmentation/room_segmentation_server'
-		self.map_segmentation_algorithm_ = 0
+		self.map_segmentation_algorithm_ = 99
 		self.robot_radius_ = 0.2875
 
 	def createDatabase(self):
@@ -56,10 +56,10 @@ class DatabaseCreator():
 			print "Map-Receiving-Service call failed: %s" % e
 		print "Map received with resolution: ", self.map_data_.map_resolution, " and origin: ", self.map_data_.map_origin
 		
-		"""
+		
 		# optionally receive the segmented map in sensor_msgs/Image format
 		if (self.map_segmented_receiving_service_str_ != None):
-			self.printMsg("Waiting for service " + str(self.map_segmented_receiving_service_str_) + " to become available ...")
+			print "Waiting for service " + str(self.map_segmented_receiving_service_str_) + " to become available ..."
 			try:
 				rospy.wait_for_service(self.map_segmented_receiving_service_str_, timeout=3.0)
 				get_map_segmented = rospy.ServiceProxy(self.map_segmented_receiving_service_str_, baker_msgs.srv.GetMap)
@@ -68,28 +68,33 @@ class DatabaseCreator():
 			except rospy.ServiceException, e:
 				print "No segmented map available: %s" % e
 				self.map_segmented_data_ = None
-		"""
+		
 
 
 		# Segment map
 		# ===========
 
 		segmentation_goal = MapSegmentationGoal()
-		segmentation_goal.input_map = self.map_data_.map
-		segmentation_goal.map_resolution = self.map_data_.map_resolution
-		segmentation_goal.map_origin = self.map_data_.map_origin
+		#segmentation_goal.input_map = self.map_data_.map
+		#segmentation_goal.map_resolution = self.map_data_.map_resolution
+		#segmentation_goal.map_origin = self.map_data_.map_origin
+		segmentation_goal.input_map = self.map_segmented_data_.map
+		segmentation_goal.map_resolution = self.map_segmented_data_.map_resolution
+		segmentation_goal.map_origin = self.map_segmented_data_.map_origin
 		segmentation_goal.return_format_in_meter = True
 		segmentation_goal.return_format_in_pixel = True
 		segmentation_goal.robot_radius = self.robot_radius_
 		segmentation_goal.room_segmentation_algorithm = self.map_segmentation_algorithm_
-		segmentation_client = actionlib.SimpleActionClient(str(self.map_segmentation_service_str_), MapSegmentationAction)
+		segmentation_client = actionlib.SimpleActionClient(self.map_segmentation_service_str_, MapSegmentationAction)
 		segmentation_client.wait_for_server()
 		segmentation_client.send_goal(segmentation_goal)
 		segmentation_client.wait_for_result()
+		print segmentation_client.get_state()
 		self.segmentation_result_ = segmentation_client.get_result()
 
-
 	def createRoomEntries(self):
+		if (self.segmentation_result_ == None):
+			return
 		for i in range(len(self.segmentation_result_.room_information_in_pixel)):
 			print "Creating room " + str(i)
 			cv_image = self.getMapSegmentAsImage(self.cvBridge2OpenCv(self.segmentation_result_.segmented_map), i)
@@ -102,18 +107,18 @@ class DatabaseCreator():
 			room.room_floor_id_ = "1st Floor"
 			room.room_building_id_ = "Building C"
 			room.room_territory_id_ = "42"
-			room.room_surface_type = 2
-			room.room_cleaning_method_ = 2
+			room.room_surface_type_ = 0
+			room.room_cleaning_method_ = 0
 			room.room_surface_area_ = 3.141
 			room.room_trashcan_count_ = 4
 			room.room_cleaning_datestamps_ = [None, None, None]
-			room.room_issues = []
+			room.room_issues_ = []
 			room.room_map_ = img_file_name
-			room.room_map_data = self.openCv2CvBridge(cv_image)
+			room.room_map_data_ = self.openCv2CvBridge(cv_image)
 			room.room_map_filename_ = img_file_name
 			room.room_information_in_pixel_ = self.segmentation_result_.room_information_in_pixel[i]
 			room.room_information_in_meter_ = self.segmentation_result_.room_information_in_meter[i]
-			room.room_scheduled_days_ = ["","","","","","","","","","","","","",""]
+			room.room_scheduled_days_ = ["x","x","x","x","x","x","x","x","x","x","x","x","x","x"]
 			room.open_cleaning_tasks_ = []
 			self.database_.rooms_.append(room)
 
@@ -177,7 +182,7 @@ class DatabaseCreator():
 		segmented_map_image_opencv = self.cvBridge2OpenCv(self.segmentation_result_.segmented_map)
 		cv2.imwrite("resources/maps/global_map_segmented.png", segmented_map_image_opencv)
 		map_image_opencv = self.cvBridge2OpenCv(self.map_data_.map)
-		cv2.imwrite"resources/maps/global_map.png", map_image_opencv()
+		cv2.imwrite("resources/maps/global_map.png", map_image_opencv)
 
 		# Save global application data
 		# ============================
