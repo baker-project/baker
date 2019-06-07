@@ -177,7 +177,7 @@ class DatabaseCreator():
 		segmented_map_image_opencv = self.cvBridge2OpenCv(self.segmentation_result_.segmented_map)
 		cv2.imwrite("resources/maps/global_map_segmented.png", segmented_map_image_opencv)
 		map_image_opencv = self.cvBridge2OpenCv(self.map_data_.map)
-		cv2.imwrite"resources/maps/global_map.png", map_image_opencv()
+		cv2.imwrite("resources/maps/global_map.png", map_image_opencv())
 
 		# Save global application data
 		# ============================
