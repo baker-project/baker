@@ -4,6 +4,7 @@ project(ipa_dirt_detection)
 set(catkin_RUN_PACKAGES
 	actionlib
 	baker_msgs
+	cob_object_detection_msgs
 	cv_bridge
 	dynamic_reconfigure
 	geometry_msgs
