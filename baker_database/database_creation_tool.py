@@ -56,7 +56,7 @@ class DatabaseCreator():
 			print "Map-Receiving-Service call failed: %s" % e
 		print "Map received with resolution: ", self.map_data_.map_resolution, " and origin: ", self.map_data_.map_origin
 		
-		"""
+		
 		# optionally receive the segmented map in sensor_msgs/Image format
 		if (self.map_segmented_receiving_service_str_ != None):
 			self.printMsg("Waiting for service " + str(self.map_segmented_receiving_service_str_) + " to become available ...")
@@ -68,16 +68,19 @@ class DatabaseCreator():
 			except rospy.ServiceException, e:
 				print "No segmented map available: %s" % e
 				self.map_segmented_data_ = None
-		"""
+		
 
 
 		# Segment map
 		# ===========
 
 		segmentation_goal = MapSegmentationGoal()
-		segmentation_goal.input_map = self.map_data_.map
-		segmentation_goal.map_resolution = self.map_data_.map_resolution
-		segmentation_goal.map_origin = self.map_data_.map_origin
+		#segmentation_goal.input_map = self.map_data_.map
+		#segmentation_goal.map_resolution = self.map_data_.map_resolution
+		#segmentation_goal.map_origin = self.map_data_.map_origin
+		segmentation_goal.input_map = self.map_segmented_data_.map
+		segmentation_goal.map_resolution = self.map_segmented_data_.map_resolution
+		segmentation_goal.map_origin = self.map_segmented_data_.map_origin
 		segmentation_goal.return_format_in_meter = True
 		segmentation_goal.return_format_in_pixel = True
 		segmentation_goal.robot_radius = self.robot_radius_
