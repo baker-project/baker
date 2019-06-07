@@ -11,6 +11,7 @@
 
 //MESSAGES
 #include <baker_msgs/DirtDetectionAction.h>
+#include <baker_msgs/RotatedRect.h>
 #include <actionlib/client/simple_action_client.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <std_srvs/Trigger.h>
