@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+	<include file="$(find baker_wet_cleaning_application)/launch/basic_application.launch" />
+
+	<test test-name="test_application_wet_cleaning" pkg="baker_wet_cleaning_application" type="test_application_wet_cleaning.py"/>
+</launch>
