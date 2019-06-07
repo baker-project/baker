@@ -134,8 +134,8 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 	pcl::fromROSMsg(*point_cloud2_rgb_msg, *input_cloud); //conversion Ros message->Pcl point cloud
 	//std::cout << input_cloud->size() << std::endl;
 
-	Timer tim;
-	double segmentation_time = 0., dirt_detection_time = 0.;
+//	Timer tim;
+//	double segmentation_time = 0., dirt_detection_time = 0.;
 
 	// find ground plane
 	cv::Mat plane_color_image = cv::Mat();
@@ -147,9 +147,9 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 	//if(use_mask_ == false)
 	//	plane_mask.setTo(cv::Scalar(255));
 
-	std::cout << "Segmentation time: " << tim.getElapsedTimeInMilliSec() << "ms." << std::endl;
-	segmentation_time = tim.getElapsedTimeInMilliSec();
-	tim.start();
+//	std::cout << "Segmentation time: " << tim.getElapsedTimeInMilliSec() << "ms." << std::endl;
+//	segmentation_time = tim.getElapsedTimeInMilliSec();
+//	tim.start();
 
 	for (int s = 0; s < detect_scales_; s++)
 	{
