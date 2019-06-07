@@ -101,10 +101,10 @@ add_dependencies(map_management_client
 #############
 ##  Test   ##
 #############
-if (CATKIN_ENABLE_TESTING)
-  find_package(rostest REQUIRED)
-  add_rostest(scripts/tests/database_handler_test.py)
-endif()
+#if (CATKIN_ENABLE_TESTING)
+#  find_package(rostest REQUIRED)
+#  add_rostest(scripts/tests/database_handler_test.py)
+#endif()
 #############
 ## Install ##
 #############
