@@ -271,10 +271,10 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 
 						cv::RotatedRect dirt;
 						//cv::RotatedRect dirt(cv::Point2f(det.center_x, det.center_y), cv::Size2f(det.width/bird_eye_resolution_, det.height/bird_eye_resolution_), det.angle);
-						if (warp_image_ == true)
-						{
-							H_inv*cv::Point3f();
-						}
+//						if (warp_image_ == true)
+//						{
+//							H_inv*cv::Point3f();
+//						}
 
 
 						//cv::RotatedRect dirt = dirt_detection_client_.getResult()->dirt_detections[i]; //todo: throws error. need conversion.
