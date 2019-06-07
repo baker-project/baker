@@ -1,0 +1,19 @@
+<scxml name="MyStateMachine" datamodel="python" binding="late">
+    <state id="A">
+        <history id="Ahistory">
+            <transition target="A1"/>
+        </history>
+        <state id="A1">
+            <transition event="e12" target="A2" />
+        </state>
+        <state id="A2">
+            <transition event="e23" target="A3" />
+        </state>
+        <state id="A3">
+            <transition event="eAB" target="B" />
+        </state>
+    </state>
+    <state id="B">
+        <transition event="back" target="Ahistory" />
+    </state>
+</scxml>

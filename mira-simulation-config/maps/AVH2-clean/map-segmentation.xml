@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <Map>
+    <!--Filename of the occupancy map image-->
+    <Image>${filePath}/map-segmentation.png</Image>
+    <!--Resolution of the occupancy map in [m/cell]-->
+    <CellSize>0.0500000007451</CellSize>
+    <!--Offset of the origin of the map image [cells]-->
+    <Offset>
+      <!--The x-coordinate-->
+      <X>344</X>
+      <!--The y-coordinate-->
+      <Y>259</Y>
+    </Offset>
+  </Map>
+</root>

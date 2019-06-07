@@ -1,0 +1,113 @@
+<root>
+
+	<!-- 
+	to start robot:
+	miracenter BakeRConfig:etc/BakeR-application.xml -v MCFFile=[map],cleaningMap=[cleaningMap]
+	(there must be a SCITOSRobotAttributes.xml setting required variables,
+	 e.g. copy from the SCITOSRobotAttributes-template.xml in this package)
+	-->
+
+	<var useDepth1="true"/>
+	<var useDepth2="true"/>
+	<var useDepth3="false"/>
+	<var useDepth4="false"/>
+
+	<var useRhodos="true"/>
+
+	<include file="${findpkg SCITOSJoystick}/etc/SCITOSJoystick.xml" />
+
+	<var pathPlanner="${findpkg PilotSmoothTransition}/etc/SmoothPathPlanner.xml"/>
+
+	<include file="${findpkg SCITOSConfigs}/etc/SCITOS-Pilot.xml" />
+
+	<namespace name="navigation">
+		<parameter name="Pilot.Planner.Objectives[?].item.Objective{mira::pilot::SmoothTransitionPathObjective}.Planner">
+			<PersistentDoubleBuffer>true</PersistentDoubleBuffer>
+			<MaxPlanningTime>3000</MaxPlanningTime>
+		</parameter>
+
+		<parameter name="Pilot.Planner.Objectives[?].item.Objective{mira::pilot::DirectionObjective}">
+			<MinWrongDirectionCost>0.001</MinWrongDirectionCost>
+		</parameter>
+
+		<parameter name="Pilot.Planner.Objectives[+end]">
+			<item>
+				<Objective class="mira::pilot::WallDistanceObjective">
+				</Objective>
+				<!--If true, the objective is disabled-->
+				<Disabled>false</Disabled>
+				<!--The weight for this objective-->
+				<Weight>1.0</Weight>
+			</item>
+		</parameter>
+	</namespace>
+
+	<namespace name="maps">
+		<namespace name="cost">
+			<parameter name="CostMapper.CostMaps[0].item.Mappers[0].item">
+				<MaxObstacleDistance>0.2</MaxObstacleDistance>
+			</parameter>	
+		</namespace>
+	</namespace>
+
+	<if useRhodos="true">
+		<var rhodosAcquisitionPlugin="mira::mapping::PointCloudAcquisition"/>
+		<using name="/robot/depth_assembled/OutputPointCloud" as="3d/PointCloud"/>
+		<include file="${findpkg Rhodos}/etc/RhodosPilotExtension.xml" />
+
+		<namespace name="3d">
+			<parameter name="Rhodos">
+				<AcquisitionPlugin class="mira::mapping::PointCloudAcquisition"/>
+				<CropRadius>2.0</CropRadius>
+				<ObstacleMapClearInterval>60000</ObstacleMapClearInterval>
+			</parameter>
+			<parameter name="Rhodos.ObstacleDetectionPlugin">
+				<MinObstacleHeight>0.10</MinObstacleHeight>
+				<HoleThreshold>1.50</HoleThreshold>
+			</parameter>
+		</namespace>
+	</if>
+
+	<namespace name="modules">
+		<namespace name="brushcleaning">
+			<using name="../../robot/RobotFrame"/>
+			<using name="../../robot/OdometryFrame"/>
+			<include file="${findpkg BakeRCleaningModule}/etc/BakeRCleaningModule.xml"/>
+			<parameter name="BakeRCleaningModule">
+				<BrushCleaningSpeed>127</BrushCleaningSpeed>
+				<BrushOrientationSpeed>50</BrushOrientationSpeed>
+				<ValveOnTime>1</ValveOnTime>
+				<ValveOffTime>20</ValveOffTime>
+			</parameter>
+		</namespace>
+		<namespace name="bay">
+			<include file="${findpkg BakeRModuleBay}/etc/BakeRModuleBay.xml"/>
+			<parameter name="ModuleBay">
+				<DockHeight>1150</DockHeight>
+			</parameter>
+		</namespace>
+	</namespace>
+
+	<if_exists var="cleaningMap">
+		<namespace name="maps">
+			<namespace name="cleaning">
+				<using name="../MapFrame"/>
+				<unit id="MapPublisher" class="mira::mapping::OccupancyGridLoader">
+					<include file="${cleaningMap}"/>
+				</unit>
+			</namespace>
+		</namespace>
+	</if_exists>
+	<if_exists var="segmentationMap">
+		<namespace name="maps">
+			<namespace name="segmentation">
+				<using name="../MapFrame"/>
+				<unit id="MapPublisher" class="mira::mapping::OccupancyGridLoader">
+					<include file="${segmentationMap}"/>
+				</unit>
+			</namespace>
+		</namespace>
+	</if_exists>
+
+</root>
+
