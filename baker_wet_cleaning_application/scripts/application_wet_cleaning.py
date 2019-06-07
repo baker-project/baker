@@ -160,6 +160,8 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		#	exit(1)
 
 		shall_continue_old_cleaning = False
+		if self.database_.application_data_.last_execution_date_ == None:
+			self.database_.application_data_.last_execution_date_ = datetime.datetime(datetime.MINYEAR, 1, 1)
 		days_delta = datetime.datetime.now() - self.database_.application_data_.last_execution_date_
 		print "------------ CURRENT_DATE: " + str(datetime.datetime.now())
 		print "------------ LAST_DATE: " + str(self.database_.application_data_.last_execution_date_)

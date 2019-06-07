@@ -120,6 +120,9 @@ class LogItem():
 	# Amount of used water
 	# (FLOAT)
 	used_water_amount_ = 0
+	# Trolley capacity
+	# (FLOAT)
+	trolley_capacity_ = 0
 	# Battery usage
 	# (FLOAT)
 	battery_usage_ = 0

@@ -18,7 +18,7 @@ from cv_bridge import CvBridge, CvBridgeError
 # For Point32
 from geometry_msgs.msg import Point32
 # For timedelta
-from datetime import timedelta
+from datetime import datetime, timedelta
 # For CSV creation
 import csv
 
@@ -40,7 +40,7 @@ class DatabaseCreator():
 		self.robot_radius_ = 0.2875
 
 	def createDatabase(self):
-		self.database_ = database.Database()
+		self.database_ = database.Database(auto_load_database=False)
 
 	def createSegmentedMap(self):
 
@@ -89,7 +89,6 @@ class DatabaseCreator():
 		segmentation_client.wait_for_server()
 		segmentation_client.send_goal(segmentation_goal)
 		segmentation_client.wait_for_result()
-		print segmentation_client.get_state()
 		self.segmentation_result_ = segmentation_client.get_result()
 
 	def createRoomEntries(self):
@@ -189,15 +188,20 @@ class DatabaseCreator():
 
 		application_data_dict = {
 			"last_database_save_successful": True,
-			"last_execution_date": None,
+			"last_execution_date": self.database_.datetimeToString(datetime(1999, 1, 1)),
 			"last_planning_date": [
 				None,
 				None
 			],
+			"progress": [
+				0,
+				None
+			],
 			"run_count": 0
 		}
+		application_data_dict_text = json.dumps(application_data_dict, indent=4, sort_keys=True)
 		file = open("resources/json/application_data.json", "w")
-		file.write(application_data_dict)
+		file.write(application_data_dict_text)
 
 
 
