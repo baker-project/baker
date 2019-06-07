@@ -36,7 +36,7 @@ class DatabaseCreator():
 		self.map_receiving_service_str_ = '/map_management_client/get_map_image'
 		self.map_segmented_receiving_service_str_ = '/map_management_client/get_map_segmented_image'
 		self.map_segmentation_service_str_ = '/room_segmentation/room_segmentation_server'
-		self.map_segmentation_algorithm_ = 99
+		self.map_segmentation_algorithm_ = 0
 		self.robot_radius_ = 0.2875
 
 	def createDatabase(self):
