@@ -59,7 +59,7 @@ class DatabaseCreator():
 		
 		# optionally receive the segmented map in sensor_msgs/Image format
 		if (self.map_segmented_receiving_service_str_ != None):
-			self.printMsg("Waiting for service " + str(self.map_segmented_receiving_service_str_) + " to become available ...")
+			print "Waiting for service " + str(self.map_segmented_receiving_service_str_) + " to become available ..."
 			try:
 				rospy.wait_for_service(self.map_segmented_receiving_service_str_, timeout=3.0)
 				get_map_segmented = rospy.ServiceProxy(self.map_segmented_receiving_service_str_, baker_msgs.srv.GetMap)
