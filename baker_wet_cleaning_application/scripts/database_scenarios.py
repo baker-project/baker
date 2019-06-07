@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 import sys
 import database_utils
 
-ROOM_NUMBER = 11
 DATABASE_LOCATION = '../resources/json/'
 SET_APPLICATION_STATUS_SERVICE = '/set_application_status_application_wet_cleaning'
 
@@ -40,12 +39,13 @@ if __name__ == '__main__':
 	parser.add_argument("--stop_application", action='store_true',
 						help="If you want to stop the application (all other arguments are ignored)")
 
-	for k in range(ROOM_NUMBER):
-		parser.add_argument('-r{}'.format(k), '--room{}'.format(k), type=cleaningMethod, nargs='?', default=-1,
-							help='Cleaning method of room {} (-1: nothing, 0: dry, 1: wet, 2: both). Default -1'.format(k))
+	keys = database_utils.getRoomIds(DATABASE_LOCATION)
+	for key in keys:
+		parser.add_argument('-r{}'.format(key), '--room{}'.format(key), type=cleaningMethod, nargs='?', default=-1,
+							help='Cleaning method of room {} (-1: nothing, 0: dry, 1: wet, 2: both). Default -1'.format(key))
 	args = vars(parser.parse_args())
 
-	cleaning_methods = [args.get('room{}'.format(k)) for k in range(ROOM_NUMBER)]
+	cleaning_methods = { key: args.get('room{}'.format(key)) for key in keys }
 
 	if args['stop_application']:
 		import subprocess

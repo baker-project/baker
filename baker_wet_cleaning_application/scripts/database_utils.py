@@ -37,6 +37,9 @@ def reset(data, reset_opened_tasks=False, reset_timestamps=False, reset_schedule
 			data[key]['room_scheduled_days'] = ['']*14
 	return data
 
+def getRoomIds(database_location=DATABASE_LOCATION):
+	rooms_data = loadJsonDatabase(database_location + 'rooms.json')
+	return [str(key) for key in rooms_data.keys()]
 
 def updateRooms(data, methods, reset_opened_tasks=False, reset_timestamps=False):
 	today_index = getTodayIndex()
@@ -52,8 +55,8 @@ def updateRooms(data, methods, reset_opened_tasks=False, reset_timestamps=False)
 			data[key]['room_cleaning_datestamps'] = [previous_date.strftime(DATE_FORMAT)] * 3
 
 		# todo (rmb-ma). doesn't work if ids are not following
-		data[key]['room_cleaning_method'] = methods[int(key)]
-		data[key]['room_scheduled_days'][today_index] = 'x' if methods[int(key)] >= 0 else ''
+		data[key]['room_cleaning_method'] = methods[key]
+		data[key]['room_scheduled_days'][today_index] = 'x' if methods[key] >= 0 else ''
 
 	return data
 
