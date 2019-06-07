@@ -88,6 +88,7 @@ class DatabaseCreator():
 		segmentation_client.wait_for_result()
 		self.segmentation_result_ = segmentation_client.get_result()
 
+		print self.segmentation_result_.room_information_in_pixel
 
 	def createRoomEntries(self):
 		for i in range(len(self.segmentation_result_.room_information_in_pixel)):
