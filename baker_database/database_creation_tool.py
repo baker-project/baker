@@ -85,16 +85,16 @@ class DatabaseCreator():
 		segmentation_goal.return_format_in_pixel = True
 		segmentation_goal.robot_radius = self.robot_radius_
 		segmentation_goal.room_segmentation_algorithm = self.map_segmentation_algorithm_
-		segmentation_client = actionlib.SimpleActionClient(str(self.map_segmentation_service_str_), MapSegmentationAction)
+		segmentation_client = actionlib.SimpleActionClient(self.map_segmentation_service_str_, MapSegmentationAction)
 		segmentation_client.wait_for_server()
 		segmentation_client.send_goal(segmentation_goal)
 		segmentation_client.wait_for_result()
 		print segmentation_client.get_state()
 		self.segmentation_result_ = segmentation_client.get_result()
 
-		print self.segmentation_result_
-
 	def createRoomEntries(self):
+		if (self.segmentation_result_ == None):
+			return
 		for i in range(len(self.segmentation_result_.room_information_in_pixel)):
 			print "Creating room " + str(i)
 			cv_image = self.getMapSegmentAsImage(self.cvBridge2OpenCv(self.segmentation_result_.segmented_map), i)
@@ -182,7 +182,7 @@ class DatabaseCreator():
 		segmented_map_image_opencv = self.cvBridge2OpenCv(self.segmentation_result_.segmented_map)
 		cv2.imwrite("resources/maps/global_map_segmented.png", segmented_map_image_opencv)
 		map_image_opencv = self.cvBridge2OpenCv(self.map_data_.map)
-		cv2.imwrite("resources/maps/global_map.png", map_image_opencv())
+		cv2.imwrite("resources/maps/global_map.png", map_image_opencv)
 
 		# Save global application data
 		# ============================

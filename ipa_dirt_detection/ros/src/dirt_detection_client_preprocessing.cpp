@@ -70,7 +70,7 @@ IpaDirtDetectionPreprocessing::ClientPreprocessing::ClientPreprocessing(ros::Nod
 	activate_dirt_detection_service_server_ = node_handle_.advertiseService("activate_dirt_detection", &IpaDirtDetectionPreprocessing::ClientPreprocessing::activateDirtDetection, this);
 	deactivate_dirt_detection_service_server_ = node_handle_.advertiseService("deactivate_dirt_detection", &IpaDirtDetectionPreprocessing::ClientPreprocessing::deactivateDirtDetection, this);
 
-	//std::cout << "Preprocessing constructed." << std::endl;
+	std::cout << "Dirt detection preprocessing initialized." << std::endl;
 }
 
 IpaDirtDetectionPreprocessing::ClientPreprocessing::~ClientPreprocessing()
@@ -375,10 +375,12 @@ bool IpaDirtDetectionPreprocessing::ClientPreprocessing::planeSegmentation(pcl::
 				color_image.at<cv::Vec3b>(v, u) = cv::Vec3b(point.b, point.g, point.r);
 			}
 		}
+		std::cout << input_cloud->height << "x" << input_cloud->width << std::endl;
+
 		//display original image
 		cv::imshow("original color image", color_image);
 		cvMoveWindow("original color image", 0, 0);
-		cv::waitKey(10);
+		cv::waitKey();
 		if (debug_["save_data_for_test"] == true)
 		{
 			//bird_eye_resolution_string_ = std::to_string(bird_eye_resolution_);
