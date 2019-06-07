@@ -1,23 +1,20 @@
 #!/usr/bin/env python
 
-import roslib
 import actionlib
-import rospy
-from std_msgs.msg import String
-from ipa_building_msgs.msg import *
+from ipa_building_msgs.msg import MapSegmentationGoal, mapSegmentationAction
 
 import behavior_container
 
+
 class MapSegmentationBehavior(behavior_container.BehaviorContainer):
 
-	#========================================================================
+	# ========================================================================
 	# Description:
 	# Class which contains the behavior for segmenting a map
-	#========================================================================
+	# ========================================================================
 
 	def __init__(self, behavior_name, interrupt_var, service_str):
-		self.behavior_name_ = behavior_name
-		self.interrupt_var_ = interrupt_var
+		super(MapSegmentationBehavior, self).__init__(behavior_name, interrupt_var)
 		self.service_str_ = service_str
 
 	# Method for setting parameters for the behavior
@@ -45,5 +42,5 @@ class MapSegmentationBehavior(behavior_container.BehaviorContainer):
 		segmentation_goal.room_segmentation_algorithm = self.map_segmentation_algorithm_
 		segmentation_client = actionlib.SimpleActionClient(str(self.service_str_), MapSegmentationAction)
 		self.printMsg("Running segmentation action...")
-		self.segmentation_result_ = self.runAction(segmentation_client, segmentation_goal)
+		self.segmentation_result_ = self.runAction(segmentation_client, segmentation_goal)['result']
 		self.printMsg("Map Segmentation completed")

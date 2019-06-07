@@ -79,7 +79,7 @@ target_link_libraries(dirt_detection_server_spectral
 	${catkin_LIBRARIES}
 	${OpenCV_LIBRARIES}
 	${Boost_LIBRARIES}
-	${PCL_INCLUDE_DIRS}
+	${PCL_LIBRARIES}
 )
 
 ### dirt_detection_client_preprocessing
@@ -96,7 +96,7 @@ target_link_libraries(dirt_detection_client_preprocessing
 	${catkin_LIBRARIES}
 	${OpenCV_LIBRARIES}
 	${Boost_LIBRARIES}
-	${PCL_INCLUDE_DIRS}
+	${PCL_LIBRARIES}
 )
 
 ### dirt_detection_client

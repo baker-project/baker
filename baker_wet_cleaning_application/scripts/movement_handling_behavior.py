@@ -1,25 +1,26 @@
 #!/usr/bin/env python
 
-import rospy
-from geometry_msgs.msg import PoseStamped, Pose2D, Point32, Quaternion
-
-import cv2
 import numpy as np
-from cv_bridge import CvBridge, CvBridgeError
-import std_srvs.srv
+
 import dynamic_reconfigure.client
 import ipa_building_msgs.srv
+import rospy
+import std_srvs.srv
+from cv_bridge import CvBridge
+from geometry_msgs.msg import Pose2D
 
-import behavior_container
 import move_base_behavior
-import room_exploration_behavior
 import move_base_path_behavior
 import move_base_wall_follow_behavior
+import room_exploration_behavior
+import behavior_container
+from utils import getCurrentRobotPosition
+
 
 class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 
-	#========================================================================
-	# Serivces to be used:
+	# ========================================================================
+	# Services to be used:
 	# room_exploration_service_str_ = 
 	#       '/room_exploration_server'
 	# move_base_path_service_str_ =
@@ -28,8 +29,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 	#		'/move_base_wall_follow'
 	# move_base_service_str_ =
 	#		'move_base'
-	#========================================================================
-
+	# ========================================================================
 		
 	# Method for setting parameters for the behavior
 	def setParameters(self, map_data, segmentation_data, sequence_data, robot_frame_id, robot_radius, coverage_radius, field_of_view, field_of_view_origin, use_cleaning_device):
@@ -55,6 +55,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 		# Get a opencv representation of the segmented image
 		self.bridge_ = CvBridge()
 		self.opencv_segmented_map_ = self.bridge_.imgmsg_to_cv2(self.segmentation_data_.segmented_map, desired_encoding = "passthrough")
+
 
 	# Method for returning to the standard pose of the robot
 	def returnToRobotStandardState(self):
@@ -101,21 +102,25 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				starting_position = Pose2D(x=1., y=0., theta=0.)
 				planning_mode = 2
 				"""
+
+				(robot_position, _, _) = getCurrentRobotPosition()
+				starting_position = (robot_position[0], robot_position[1]) if robot_position is not None else (current_room_center.x, current_room_center.y)
+
 				current_room_center = self.segmentation_data_.room_information_in_meter[current_room_index].room_center
 				current_room_map = self.getMapSegmentAsImageMsg(self.opencv_segmented_map_, current_room_index);
 				self.room_explorer_.setParameters(
 					current_room_map,
 					self.map_data_.map_resolution,
 					self.map_data_.map_origin,
-					robot_radius = self.robot_radius_,
-					coverage_radius = self.coverage_radius_,
-					field_of_view = self.field_of_view_,		# this field of view represents the off-center iMop floor wiping device
-					field_of_view_origin = self.field_of_view_origin_,
-					starting_position = Pose2D(x=current_room_center.x, y=current_room_center.y, theta=0.),	# todo: determine current robot position
-					planning_mode = 2
+					robot_radius=self.robot_radius_,
+					coverage_radius=self.coverage_radius_,
+					field_of_view=self.field_of_view_,		# this field of view represents the off-center iMop floor wiping device
+					field_of_view_origin=self.field_of_view_origin_,
+					starting_position=Pose2D(x=starting_position[0], y=starting_position[1], theta=0.),	 # todo: determine current theta
+					planning_mode=2
 				)
 				self.room_explorer_.executeBehavior()
-				if (self.room_explorer_.exploration_result_ == None):
+				if len(self.room_explorer_.exploration_result_.coverage_path_pose_stamped) == 0:
 					continue
 				
 				# Interruption opportunity
@@ -234,8 +239,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					0.5
 				)
 				self.wall_follower_.executeBehavior()
-				
-				
+
 				# Interruption opportunity
 				if self.handleInterrupt() >= 1:
 					return
@@ -270,7 +274,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 		tmp_map_opencv = np.zeros((image_height, image_width), np.uint8)
 		for x in range(image_width):
 			for y in range(image_height):
-				if (opencv_segmented_map[y, x] == current_room_index + 1):
+				if opencv_segmented_map[y, x] == current_room_index + 1:
 					tmp_map_opencv[y, x] = 255
 					# print "%i %i %i" % (self.opencv_segmented_map_[y, x], x, y)
 		return self.bridge_.cv2_to_imgmsg(tmp_map_opencv, encoding = "mono8")
