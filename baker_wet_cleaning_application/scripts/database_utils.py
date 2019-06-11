@@ -41,6 +41,7 @@ def getRoomIds(database_location=DATABASE_LOCATION):
 	rooms_data = loadJsonDatabase(database_location + 'rooms.json')
 	return [str(key) for key in rooms_data.keys()]
 
+
 def updateRooms(data, methods, reset_opened_tasks=False, reset_timestamps=False):
 	today_index = getTodayIndex()
 

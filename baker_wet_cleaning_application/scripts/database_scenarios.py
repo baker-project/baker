@@ -36,6 +36,7 @@ if __name__ == '__main__':
 
 	parser.add_argument("--start_application", action='store_true',
 						help="If you want to start the application (must be launched and connected to mira)")
+
 	parser.add_argument("--stop_application", action='store_true',
 						help="If you want to stop the application (all other arguments are ignored)")
 
@@ -45,7 +46,7 @@ if __name__ == '__main__':
 							help='Cleaning method of room {} (-1: nothing, 0: dry, 1: wet, 2: both). Default -1'.format(key))
 	args = vars(parser.parse_args())
 
-	cleaning_methods = { key: args.get('room{}'.format(key)) for key in keys }
+	cleaning_methods = {key: args.get('room{}'.format(key)) for key in keys}
 
 	if args['stop_application']:
 		import subprocess

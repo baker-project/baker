@@ -176,6 +176,7 @@ class DatabaseHandler:
 	# USAGE: Run at the beginning of computeAllDueRooms
 	def restoreDueRooms(self):
 		print "[DatabaseHandler]: Restoring due rooms from earlier runs..."
+		self.due_rooms_ = []
 		for room in self.database_.rooms_:
 			if len(room.open_cleaning_tasks_) != 0:
 				self.due_rooms_.append(room)
@@ -184,6 +185,7 @@ class DatabaseHandler:
 	# CASE: Some cleaning subtasks were not completed in the past (i.e. a scheduled one was missed)
 	# USAGE: Run after all the due rooms are done
 	def computeAllOverdueRooms(self):
+		print("[DatabaseHandler] computeAllOverdueRooms")
 		today_index = self.getTodaysScheduleIndex()
 		today = datetime.now()
 
@@ -309,7 +311,9 @@ class DatabaseHandler:
 
 	# Method to run if a change in the database shall be applied (i.e. writes the temporary files). Applied changes can be discarded
 	def applyChangesToDatabase(self):
-		self.database_.saveCompleteDatabase(temporal_file=True)
+		#  self.database_.saveCompleteDatabase(temporal_file=False)
+		self.database_.saveCompleteDatabase(temporal_file=False)
+		# todo (rmb-ma) WARNING is it still useful to use temporary files and not the real database
 
 	# Method to run after all cleaning operations were performed
 	def cleaningFinished(self):

@@ -259,7 +259,6 @@ class Database:
 			current_room.room_scheduled_days_ = dict_settings.get(room_key).get("room_scheduled_days")
 			# Get the yet open cleaning tasks
 			current_room.open_cleaning_tasks_ = dict_settings.get(room_key).get("open_cleaning_tasks")
-			
 			# Get the list with the datestamps
 			string_datestamp_list = dict_settings.get(room_key).get("room_cleaning_datestamps")
 			datestamps = []

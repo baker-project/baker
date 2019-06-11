@@ -77,7 +77,7 @@ if __name__ == "__main__":
         rospy.init_node('fake_trash_dirt_detector', anonymous=True)
         dirt_detector = Detector('dirt_detector', 2)
         #dirt_detector.handleStartService(0)
-        trash_detector = Detector('trash_detector', 3)
+        trash_detector = Detector('trash_detector', 2)
         #trash_detector.handleStartService(0)
         rospy.spin()
 
