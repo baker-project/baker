@@ -3,6 +3,7 @@
 import json
 from datetime import datetime, timedelta
 from utils import getTodayIndex
+import os
 
 # =========================================================
 # Contains some functions to manipulate the json database
@@ -22,7 +23,9 @@ def saveJsonDatabase(filename, data):
 	json.dump(data, f, indent=4, sort_keys=True)
 
 
-def reset(data, reset_opened_tasks=False, reset_timestamps=False, reset_scheduled_tasks=False):
+def reset(data, reset_opened_tasks=False, reset_timestamps=False, reset_scheduled_tasks=False, reset_tmp_database=False):
+	if reset_tmp_database:
+		removeTmpDatabase(DATABASE_LOCATION)
 	previous_date = datetime.now() - timedelta(days=3)
 
 	keys = [str(k) for k in data.keys()]
@@ -42,7 +45,10 @@ def getRoomIds(database_location=DATABASE_LOCATION):
 	return [str(key) for key in rooms_data.keys()]
 
 
-def updateRooms(data, methods, reset_opened_tasks=False, reset_timestamps=False):
+def updateRooms(data, methods, reset_opened_tasks=False, reset_timestamps=False, reset_tmp_database=False):
+	if reset_tmp_database:
+		removeTmpDatabase(database_location=DATABASE_LOCATION)
+
 	today_index = getTodayIndex()
 
 	previous_date = datetime.now() - timedelta(days=3)
@@ -61,6 +67,14 @@ def updateRooms(data, methods, reset_opened_tasks=False, reset_timestamps=False)
 
 	return data
 
+def removeTmpDatabase(database_location):
+	filenames = ['tmp_application_data.json', 'tmp_rooms.json']
+	for filename in filenames:
+		try:
+			os.remove(database_location + '/' + filename)
+		except OSError as error:
+			print(error)
+			pass
 
 def updateDatabaseToScenario(scenario, database_location=DATABASE_LOCATION):
 	rooms_data = loadJsonDatabase(database_location + 'rooms.json')

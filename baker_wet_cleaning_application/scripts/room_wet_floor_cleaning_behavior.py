@@ -178,7 +178,8 @@ class RoomWetFloorCleaningBehavior(behavior_container.BehaviorContainer):
 			goal_position_tolerance=0.5,
 			goal_angle_tolerance=1.57
 		)
-		self.path_follower_.executeBehavior()
+		# todo (rmb-ma) uncomment
+		#self.path_follower_.executeBehavior()
 
 		# Interruption opportunity
 		if self.handleInterrupt() >= 1:

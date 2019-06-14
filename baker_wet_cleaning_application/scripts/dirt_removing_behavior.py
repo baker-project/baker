@@ -3,6 +3,7 @@
 import rospy
 from cob_map_accessibility_analysis.srv import CheckPerimeterAccessibility, CheckPerimeterAccessibilityRequest
 from geometry_msgs.msg import Pose2D, Pose
+from math import pi
 
 from move_base_behavior import MoveBaseBehavior
 import behavior_container
@@ -59,16 +60,16 @@ class DirtRemovingBehavior(behavior_container.BehaviorContainer):
 		best_pose2d = accessible_locations[0]
 		best_pose3d = Pose()
 		(best_pose3d.position.x, best_pose3d.position.y) = (best_pose2d.x, best_pose2d.y)
-		best_pose3d.orientation.w = best_pose2d.theta
+		best_pose3d.orientation.z = best_pose2d.theta
 		return best_pose3d
 
 	def removeDirt(self):
 		# todo (rmb-ma)
-		pass
+		rospy.sleep(2.)
 
 	def checkoutDirt(self):
 		# todo (rmb-ma)
-		pass
+		rospy.sleep(2.)
 
 	# Implemented Behavior
 	def executeCustomBehavior(self):

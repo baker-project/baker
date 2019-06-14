@@ -38,7 +38,7 @@ class Detector:
             self.mutex_.release()
 
             rate.sleep()
-            if random.random() > 0.1:
+            if random.random() > 0.001:
                 continue
 
             detection = Detection()
@@ -46,8 +46,8 @@ class Detector:
             (translation, _, _) = getCurrentRobotPosition()
             (x, y) = (translation[0], translation[1]) if translation is not None else (0, 0)
 
-            detection.pose.pose.position.x = round(x + random.random()*0.02 - 0.01, 0)
-            detection.pose.pose.position.y = round(y + random.random()*0.02 - 0.01, 0)
+            detection.pose.pose.position.x = round(x + random.random()*0.02 - 0.01, 2)
+            detection.pose.pose.position.y = round(y + random.random()*0.02 - 0.01, 2)
 
             detections = DetectionArray()
             detections.detections = [detection]
@@ -75,9 +75,9 @@ class Detector:
 if __name__ == "__main__":
     try:
         rospy.init_node('fake_trash_dirt_detector', anonymous=True)
-        dirt_detector = Detector('dirt_detector', 2)
+        dirt_detector = Detector('dirt_detector', 20)
         #dirt_detector.handleStartService(0)
-        trash_detector = Detector('trash_detector', 2)
+        trash_detector = Detector('trash_detector', 10)
         #trash_detector.handleStartService(0)
         rospy.spin()
 

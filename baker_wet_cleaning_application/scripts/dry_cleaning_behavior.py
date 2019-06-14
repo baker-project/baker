@@ -236,8 +236,8 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 														   self.dirtDetectionCallback)
 
 		# todo (rmb-ma). Hack to display computed path
-		with open('/home/rmb/Desktop/rmb-ma_notes/path_visualizer/path.txt', 'w') as f:
-			f.write(str(path))
+		#with open('/home/rmb/Desktop/rmb-ma_notes/path_visualizer/path.txt', 'w') as f:
+		#	f.write(str(path))
 
 		thread_move_to_the_room.join()  # don't start the detections before
 		if self.move_base_handler_.failed():

@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-from geometry_msgs.msg import Quaternion
-
-from move_base_behavior import MoveBaseBehavior
 import behavior_container
+import rospy
 
+from geometry_msgs.msg import Quaternion
+from move_base_behavior import MoveBaseBehavior
 
 class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 
@@ -47,15 +47,15 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 
 	def takeTrashcan(self):
 		# todo (rmb-ma)
-		pass
+		rospy.sleep(2.)
 
 	def emptyTrashcan(self):
 		# todo (rmb-ma)
-		pass
+		rospy.sleep(2)
 
 	def leaveTrashcan(self):
 		# todo (rmb-ma)
-		pass
+		rospy.sleep(2)
 
 	# Implemented Behavior
 	def executeCustomBehavior(self):

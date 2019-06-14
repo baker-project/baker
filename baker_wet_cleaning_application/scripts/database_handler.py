@@ -311,9 +311,7 @@ class DatabaseHandler:
 
 	# Method to run if a change in the database shall be applied (i.e. writes the temporary files). Applied changes can be discarded
 	def applyChangesToDatabase(self):
-		#  self.database_.saveCompleteDatabase(temporal_file=False)
-		self.database_.saveCompleteDatabase(temporal_file=False)
-		# todo (rmb-ma) WARNING is it still useful to use temporary files and not the real database
+		self.database_.saveCompleteDatabase(temporal_file=True)
 
 	# Method to run after all cleaning operations were performed
 	def cleaningFinished(self):
