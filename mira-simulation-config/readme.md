@@ -1,11 +1,21 @@
 ##Start Miracenter:
-miracenter ~/git/care-o-bot-indigo/src/baker/mira-simulation-config/application.xml -p1234
+miracenter ~/git/care-o-bot-indigo/src/baker/mira-simulation-config/application.xml -p1234 
+
+or for ROS kinetic:
+miracenter ~/git/care-o-bot-kinetic/src/baker/mira-simulation-config/application.xml -p1234 -v rosVersion="kinetic"
+
+or general:
 miracenter application.xml -p1234
 
 
 mirainspect channel echo /navigation/PilotEvent -k127.0.0.1:1234
 
 in MiraCenter - Channels View -> show type of messages
+
+
+### mapping
+for ROS kinetic:
+miracenter ~/git/care-o-bot-kinetic/src/baker/mira-simulation-config/baker-setup.xml -p1234 -v rosVersion="kinetic"
 
 
 ## Run remaining software
