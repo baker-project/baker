@@ -89,7 +89,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.wet_cleaner_.setParameters(
 			database_handler=self.database_handler_,
 			room_information_in_meter=self.database_handler_.getRoomInformationInMeter(rooms_wet_cleaning),
-			sequence_data=self.map_handler_.room_sequencing_data_,
+			sequencing_result=self.map_handler_.room_sequencing_data_,
 			mapping=self.map_handler_.mapping_,
 			robot_frame_id=self.robot_frame_id_,
 			robot_radius=self.robot_radius_,
