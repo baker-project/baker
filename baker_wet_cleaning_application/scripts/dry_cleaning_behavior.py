@@ -16,11 +16,12 @@ import services_params as srv
 
 class DryCleaningBehavior(AbstractCleaningBehavior):
 
-	#========================================================================
+	# ========================================================================
 	# Description:
 	# Handles the dry cleaning process (i.e. Exploring, Dirt removal, Trashcan)
 	# for all rooms provided in a given list
-	#========================================================================
+	# ========================================================================
+
 	@staticmethod
 	def containsTrashcanTask(tasks):
 		return -1 in tasks
@@ -229,4 +230,4 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 			self.trash_topic_subscriber_.unregister()
 
 		# Checkout the completed room
-		self.checkoutRoom(room_id=room_id, nb_found_dirtspots=len(self.found_dirtspots_), nb_found_trahcans=len(self.found_trashcans_))
+		self.checkoutRoom(room_id=room_id, nb_found_dirtspots=len(self.found_dirtspots_), nb_found_trashcans=len(self.found_trashcans_))

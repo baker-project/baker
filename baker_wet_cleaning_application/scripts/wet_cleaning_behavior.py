@@ -173,7 +173,7 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		)
 
 		path_follower.setInterruptVar(self.interrupt_var_)
-		#path_follower.executeBehavior()
+		path_follower.executeBehavior()
 
 		if self.handleInterrupt() >= 1:
 			return
@@ -206,7 +206,8 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		if self.handleInterrupt() >= 1:
 			return
 
-		self.stopCleaningDevice()
+		if self.use_cleaning_device_:
+			self.stopCleaningDevice()
 
 		# Checkout the completed room
 		self.checkoutRoom(room_id=room_id)

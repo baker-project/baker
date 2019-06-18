@@ -10,6 +10,7 @@ from utils import getCurrentRobotPosition
 from geometry_msgs.msg import Pose2D, Quaternion
 from copy import copy
 import services_params as srv
+from math import pi
 
 
 class AbstractCleaningBehavior(BehaviorContainer):
@@ -23,6 +24,9 @@ class AbstractCleaningBehavior(BehaviorContainer):
 	def __init__(self, behavior_name, interrupt_var):
 		super(AbstractCleaningBehavior, self).__init__(behavior_name, interrupt_var)
 		(self.move_base_handler_, self.tool_changer_, self.trolley_mover_) = (None, None, None)
+
+
+	# todo (rmb-ma) = common set parameters
 
 	# Method for returning to the standard state of the robot
 	def returnToRobotStandardState(self):
@@ -112,10 +116,11 @@ class AbstractCleaningBehavior(BehaviorContainer):
 			self.move_base_handler_.setParameters(
 				goal_position=checkpoint.checkpoint_position_in_meter,
 				goal_orientation=Quaternion(x=0., y=0., z=0., w=1.),
-				header_frame_id='base_link'
+				header_frame_id='base_link',
+				goal_position_tolerance=0.5,
+				goal_angle_tolerance=2*pi
 			)
 			self.move_base_handler_.executeBehavior()
-
 			for _ in checkpoint.room_indices:
 				current_room_id = self.mapping_[room_counter]
 				self.executeCustomBehaviorInRoomId(room_id=current_room_id)
