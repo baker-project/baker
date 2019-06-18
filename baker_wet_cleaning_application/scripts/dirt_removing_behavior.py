@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
 import rospy
+import tf
 from cob_map_accessibility_analysis.srv import CheckPerimeterAccessibility, CheckPerimeterAccessibilityRequest
-from geometry_msgs.msg import Pose2D, Pose
-from math import pi
+from geometry_msgs.msg import Pose2D, Pose, Quaternion
+from utils import getCurrentRobotPosition
 
 from move_base_behavior import MoveBaseBehavior
 import behavior_container
@@ -57,19 +58,31 @@ class DirtRemovingBehavior(behavior_container.BehaviorContainer):
 	@staticmethod
 	def computeBestPose(accessible_locations):
 		assert(len(accessible_locations) > 0)
-		best_pose2d = accessible_locations[0]
+
+		(robot_position, robot_rotation, _) = getCurrentRobotPosition()
+		(x_robot, y_robot) = (robot_position[0], robot_position[1])
+
+		min_dist = float('inf')
+		for pose in accessible_locations:
+			(x, y) = (pose.x, pose.y)
+			current_dist = (x - x_robot)**2 + (y - y_robot)**2
+			if current_dist < min_dist:
+				min_dist = current_dist
+				best_pose2d = pose
+
+
 		best_pose3d = Pose()
 		(best_pose3d.position.x, best_pose3d.position.y) = (best_pose2d.x, best_pose2d.y)
-		best_pose3d.orientation.z = best_pose2d.theta
+		best_pose3d.orientation = Quaternion(*tf.transformations.quaternion_from_euler(0, 0, best_pose2d.theta))
 		return best_pose3d
 
 	def removeDirt(self):
 		# todo (rmb-ma)
-		rospy.sleep(2.)
+		rospy.sleep(4.)
 
 	def checkoutDirt(self):
 		# todo (rmb-ma)
-		rospy.sleep(2.)
+		rospy.sleep(4.)
 
 	# Implemented Behavior
 	def executeCustomBehavior(self):

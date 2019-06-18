@@ -13,6 +13,7 @@ from trashcan_emptying_behavior import TrashcanEmptyingBehavior
 
 from threading import Lock, Thread
 import services_params as srv
+from math import pi
 
 class DryCleaningBehavior(AbstractCleaningBehavior):
 
@@ -150,7 +151,9 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 		self.move_base_handler_.setParameters(
 			goal_position=starting_position,
 			goal_orientation=Quaternion(x=0., y=0., z=0., w=1.),
-			header_frame_id='base_link'
+			header_frame_id='base_link',
+			goal_position_tolerance=0.5,
+			goal_angle_tolerance=2 * pi
 		)
 
 		thread_move_to_the_room = Thread(target=self.move_base_handler_.executeBehavior)

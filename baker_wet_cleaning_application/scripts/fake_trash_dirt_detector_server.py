@@ -17,7 +17,7 @@ class Detector:
         self.name_ = name
         self.rate_ = frequency
         self.mutex_ = Lock()
-        random.seed(0)  # todo (rmb-ma): deterministic random (not really because of time)
+        random.seed(0)
 
         rospy.Service(self.name_ + '/start_detection', Empty, self.handleStartService)
         rospy.Service(self.name_ + '/stop_detection', Empty, self.handleStopService)
@@ -75,9 +75,9 @@ class Detector:
 if __name__ == "__main__":
     try:
         rospy.init_node('fake_trash_dirt_detector', anonymous=True)
-        dirt_detector = Detector('dirt_detector', 20)
+        dirt_detector = Detector('dirt_detector', 100)
         #dirt_detector.handleStartService(0)
-        trash_detector = Detector('trash_detector', 10)
+        trash_detector = Detector('trash_detector', 0.1)
         #trash_detector.handleStartService(0)
         rospy.spin()
 

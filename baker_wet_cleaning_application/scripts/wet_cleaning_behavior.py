@@ -20,30 +20,8 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 	# for all rooms provided in a given list
 	# ========================================================================
 
-	# Method for setting parameters for the behavior
-	def setParameters(self, database_handler, sequencing_result, room_information_in_meter, mapping, robot_frame_id,
-					  robot_radius, coverage_radius, field_of_view, field_of_view_origin, use_cleaning_device):
-		# Parameters set from the outside
-		self.sequencing_result_ = sequencing_result
-		self.database_handler_= database_handler
-		self.room_information_in_meter_ = room_information_in_meter
-		self.sequencing_result_ = sequencing_result
-		self.mapping_ = mapping
-		self.robot_frame_id_ = robot_frame_id
-		self.robot_radius_ = robot_radius
-		self.coverage_radius_ = coverage_radius
-		self.field_of_view_ = field_of_view
-		self.field_of_view_origin_ = field_of_view_origin
-		self.use_cleaning_device_ = use_cleaning_device  # hack: cleaning device can be turned off for trade fair show
-
-		self.map_data_ = self.database_handler_.database_.global_map_data_.map_image_
-		self.map_resolution_ = self.database_handler_.database_.global_map_data_.map_resolution_
-		self.map_origin_ = self.database_handler_.database_.global_map_data_.map_origin_
-		self.map_header_frame_id_ = self.database_handler_.database_.global_map_data_.map_header_frame_id_
-
-		self.move_base_path_service_str_ = srv.MOVE_BASE_PATH_SERVICE_STR
-		self.room_exploration_service_str_ = srv.ROOM_EXPLORATION_SERVICE_STR
-
+	def __init__(self, behavior_name, interrupt_var):
+		super(WetCleaningBehavior, self).__init__(behavior_name, interrupt_var)
 		self.start_cleaning_service_str_ = srv.START_CLEANING_SERVICE_STR
 		self.stop_cleaning_service_str_ = srv.STOP_CLEANING_SERVICE_STR
 
@@ -52,6 +30,28 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		self.stop_coverage_monitoring_service_str_ = srv.STOP_COVERAGE_MONITORING_SERVICE_STR
 
 		self.move_base_wall_follow_service_str_ = srv.MOVE_BASE_WALL_FOLLOW_SERVICE_STR
+
+	# Method for setting parameters for the behavior
+	def setParameters(self, database_handler, sequencing_result, room_information_in_meter, mapping, robot_frame_id,
+					  robot_radius, coverage_radius, field_of_view, field_of_view_origin, use_cleaning_device):
+		self.setCommonParameters(
+			database_handler=database_handler,
+			sequencing_result=sequencing_result,
+			room_information_in_meter=room_information_in_meter,
+			mapping=mapping,
+			robot_radius=robot_radius,
+			coverage_radius=coverage_radius,
+			field_of_view_origin=field_of_view_origin,
+			field_of_view=field_of_view
+		)
+		# Parameters set from the outside
+		self.robot_frame_id_ = robot_frame_id
+		self.use_cleaning_device_ = use_cleaning_device  # hack: cleaning device can be turned off for trade fair show
+
+		self.map_data_ = self.database_handler_.database_.global_map_data_.map_image_
+		self.map_resolution_ = self.database_handler_.database_.global_map_data_.map_resolution_
+		self.map_origin_ = self.database_handler_.database_.global_map_data_.map_origin_
+		self.map_header_frame_id_ = self.database_handler_.database_.global_map_data_.map_header_frame_id_
 
 	def returnToRobotStandardState(self):
 		if self.use_cleaning_device_:

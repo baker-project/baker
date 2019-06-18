@@ -25,7 +25,7 @@ class MoveBaseBehavior(BehaviorContainer):
 
 	# Method for returning to the standard pose of the robot
 	def setParameters(self, goal_position, goal_orientation, header_frame_id,
-					  goal_position_tolerance=0.5, goal_angle_tolerance=1.57):
+					  goal_position_tolerance=0.2, goal_angle_tolerance=0.2):
 		self.goal_position_ = goal_position
 		self.goal_orientation_ = goal_orientation
 		self.header_frame_id_ = header_frame_id
@@ -49,7 +49,7 @@ class MoveBaseBehavior(BehaviorContainer):
 		move_base_goal.target_pose.header.frame_id = self.header_frame_id_
 		move_base_goal.target_pose.header.stamp = rospy.Time.now()
 		move_base_goal.goal_position_tolerance = self.goal_position_tolerance_
-		move_base_goal.goal_angle_tolerance = self.goal_angle_tolerance_*180./pi
+		move_base_goal.goal_angle_tolerance = self.goal_angle_tolerance_
 		move_base_client = actionlib.SimpleActionClient(self.service_str_, MoveBaseAction)
 		self.printMsg("Running move_base action...")
 		self.move_base_result_ = self.runAction(move_base_client, move_base_goal)['result']

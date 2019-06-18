@@ -24,7 +24,19 @@ class AbstractCleaningBehavior(BehaviorContainer):
 	def __init__(self, behavior_name, interrupt_var):
 		super(AbstractCleaningBehavior, self).__init__(behavior_name, interrupt_var)
 		(self.move_base_handler_, self.tool_changer_, self.trolley_mover_) = (None, None, None)
+		self.room_exploration_service_str_ = srv.ROOM_EXPLORATION_SERVICE_STR
+		self.move_base_path_service_str_ = srv.MOVE_BASE_PATH_SERVICE_STR
 
+	def setCommonParameters(self, database_handler, sequencing_result, mapping, coverage_radius, field_of_view,
+					   field_of_view_origin, room_information_in_meter, robot_radius):
+		self.database_handler_ = database_handler
+		self.sequencing_result_ = sequencing_result
+		self.mapping_ = mapping
+		self.coverage_radius_ = coverage_radius
+		self.field_of_view_ = field_of_view
+		self.room_information_in_meter_ = room_information_in_meter
+		self.field_of_view_origin_ = field_of_view_origin
+		self.robot_radius_ = robot_radius
 
 	# todo (rmb-ma) = common set parameters
 
