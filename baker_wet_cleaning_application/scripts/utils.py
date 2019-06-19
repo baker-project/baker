@@ -33,11 +33,3 @@ def getCurrentRobotPosition():
 																		 'rzyx')  # yields yaw, pitch, roll
 
 	return robot_pose_translation, robot_pose_rotation, robot_pose_rotation_euler
-
-def getTodayIndex():
-	today = datetime.now()
-	week_type = today.isocalendar()[1] % 2
-	week_day = today.weekday()
-	today_index = week_type * 7 + week_day
-	return today_index
-

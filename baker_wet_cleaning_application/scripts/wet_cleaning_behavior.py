@@ -57,29 +57,26 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		if self.use_cleaning_device_:
 			self.stopCleaningDevice()
 
+	def callTriggerService(self, service_name):
+		print("Call for service {}".format(service_name))
+		rospy.wait_for_service(service_name)
+		try:
+			req = rospy.ServiceProxy(service_name, std_srvs.srv.Trigger)
+			req()
+		except rospy.ServiceException, e:
+			print("Service call to {} failed: {}".format(service_name, e))
+
 	def startCleaningDevice(self):
 		assert self.use_cleaning_device_
+		self.callTriggerService(self.start_cleaning_service_str_)
 
-		self.printMsg("Start cleaning with " + self.start_cleaning_service_str_)
-		rospy.wait_for_service(self.start_cleaning_service_str_)
-		try:
-			req = rospy.ServiceProxy(self.start_cleaning_service_str_, std_srvs.srv.Trigger)
-			resp = req()
-			print("Start cleaning returned with success status " + str(resp.success))
-		except rospy.ServiceException, e:
-			print("Service call to " + self.start_cleaning_service_str_ + " failed: %s" % e)
 
 	def stopCleaningDevice(self):
 		assert self.use_cleaning_device_
+		self.callTriggerService(self.stop_cleaning_service_str_)
 
-		self.printMsg("Stop cleaning with " + self.stop_cleaning_service_str_)
-		rospy.wait_for_service(self.stop_cleaning_service_str_)
-		try:
-			req = rospy.ServiceProxy(self.stop_cleaning_service_str_, std_srvs.srv.Trigger)
-			resp = req()
-			print("Stop cleaning returned with success status " + str(resp.success))
-		except rospy.ServiceException, e:
-			print("Service call to " + self.stop_cleaning_service_str_ + " failed: %s" % e)
+	def stopCoverageMonitoring(self):
+		self.callTriggerService(self.stop_coverage_monitoring_service_str_)
 
 	def requestCoverageMapResponse(self, room_map_data):
 		self.printMsg("Receive coverage image from coverage monitor " + self.receive_coverage_image_service_str_)
@@ -95,9 +92,9 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 			req.check_for_footprint = False
 			req.check_number_of_coverages = False
 			self.coverage_map_response_ = req()
-			print "Receive coverage image returned with success status " + str(resp.success)
+			print ("Receive coverage image returned with success status " + str(self.coverage_map_response_.success))
 		except rospy.ServiceException, e:
-			print "Service call to " + self.receive_coverage_image_service_str_ + " failed: %s" % e
+			print ("Service call to " + self.receive_coverage_image_service_str_ + " failed: %s" % e)
 
 	# coverage_monitor_server: set the robot configuration (robot_radius, coverage_radius, coverage_offset)
 	# with dynamic reconfigure and turn on logging of the cleaned path (service "start_coverage_monitoring")
@@ -120,16 +117,6 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 
 		except rospy.ServiceException, e:
 			print("Dynamic reconfigure request to " + self.coverage_monitor_dynamic_reconfigure_service_str_ + " failed: %s" % e)
-
-	def stopCoverageMonitoring(self):
-		self.printMsg("Stop coverage monitoring with " + self.stop_coverage_monitoring_service_str_)
-		rospy.wait_for_service(self.stop_coverage_monitoring_service_str_)
-		try:
-			req = rospy.ServiceProxy(self.stop_coverage_monitoring_service_str_, std_srvs.srv.Trigger)
-			resp = req()
-			print("Stop coverage monitoring returned with success status " + str(resp.success))
-		except rospy.ServiceException, e:
-			print("Service call to " + self.stop_coverage_monitoring_service_str_ + " failed: %s" % e)
 
 	def executeCustomBehaviorInRoomId(self, room_id):
 

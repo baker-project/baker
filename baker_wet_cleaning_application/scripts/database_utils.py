@@ -2,7 +2,6 @@
 
 import json
 from datetime import datetime, timedelta
-from utils import getTodayIndex
 import os
 
 # =========================================================
@@ -11,6 +10,14 @@ import os
 
 DATE_FORMAT = '%Y-%m-%d_%H:%M'
 DATABASE_LOCATION = '../resources/json'
+
+
+def getTodayIndex():
+	today = datetime.now()
+	week_type = today.isocalendar()[1] % 2
+	week_day = today.weekday()
+	today_index = week_type * 7 + week_day
+	return today_index
 
 
 def loadJsonDatabase(filename):

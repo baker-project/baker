@@ -17,10 +17,10 @@ from baker_wet_cleaning_application.msg import InterruptActionResult
 
 class ApplicationContainer:
 
-	#========================================================================
+	# ========================================================================
 	# Description:
 	# Abstract class which contains the overall application
-	#========================================================================
+	# ========================================================================
 
 	__metaclass__ = ABCMeta
 	# Arbitrary application name. Only used for debug.
@@ -33,7 +33,7 @@ class ApplicationContainer:
 
 	# needs to be set to true after a pause for continuing the application
 	application_resumed_after_pause = False
-	 
+
 	def publishApplicationStatus(self):
 		self.application_status_pub_ = rospy.Publisher(str(self.application_name_) + '_status', std_msgs.msg.Int32, queue_size=1)
 		rate = rospy.Rate(5) # 5hz
@@ -45,7 +45,6 @@ class ApplicationContainer:
 	def printMsg(self, text):
 		print "[Application '" + str(self.application_name_) + "']: " + str(text)
 
-	# Constructor
 	def __init__(self, application_name, interrupt_action_name):
 		self.application_name_ = application_name
 		# Initialize the interruption action server

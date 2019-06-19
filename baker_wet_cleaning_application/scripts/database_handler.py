@@ -32,18 +32,18 @@ class DatabaseHandler:
 	# STATIC METHODS
 	# ===============================================================================
 
-	@staticmethod
-	def getTodaysWeekType():
-		weekNumber = date.today().isocalendar()[1]
+	def robotToday(self):
+		return self.realToRobotDate(datetime.now())
+
+	def getTodaysWeekType(self):
+		weekNumber = self.robotToday().date().isocalendar()[1]
 		return weekNumber % 2
 
-	@staticmethod
-	def getTodaysWeekDay():
-		return date.today().weekday()
+	def getTodaysWeekDay(self):
+		return self.robotToday().date().weekday()
 
-	@staticmethod
-	def getTodaysScheduleIndex():
-		return DatabaseHandler.getTodaysWeekType() * 7 + DatabaseHandler.getTodaysWeekDay()
+	def getTodaysScheduleIndex(self):
+		return self.getTodaysWeekType() * 7 + self.getTodaysWeekDay()
 
 	@staticmethod
 	def isCleaningDay(schedule_char):
@@ -71,6 +71,14 @@ class DatabaseHandler:
 
 	def __init__(self, database):
 		self.database_ = database
+
+	def realToRobotDate(self, real_date):
+		robot_date = real_date - timedelta(minutes=self.database_.time_offset_)
+		return robot_date
+
+	def robotToRealDate(self, robot_date):
+		real_date = robot_date + timedelta(minutes=self.database_.time_offset_)
+		return real_date
 
 	# Get the room information in pixel
 	def getMapAndRoomInformationInPixel(self, rooms_array):
@@ -123,7 +131,11 @@ class DatabaseHandler:
 
 		# If the application ran already today and the due rooms list is not empty, this should not run
 		last_planning_dates = self.database_.application_data_.last_planning_date_
-		if last_planning_dates[0] is not None and date.today() == last_planning_dates[0].date() and len(self.due_rooms_) != 0:
+		# todo rmb-ma date
+		today = self.robotToday().date()
+
+		if last_planning_dates[0] is not None and today == self.realToRobotDate(last_planning_dates[0]).date()\
+			and len(self.due_rooms_) != 0:
 			print "[DatabaseHandler]: Earlier run detected!"
 			return False
 
@@ -139,12 +151,11 @@ class DatabaseHandler:
 
 			# Find out if the timestamps indicate that the room has been handled already today
 			date_stamps = room.room_cleaning_datestamps_
-			today = date.today()
 
 			already_done = {
-				'TRASH': date_stamps[0] is not None and date_stamps[0].date() == today,
-				'DRY': date_stamps[1] is not None and date_stamps[1].date() == today,
-				'WET': date_stamps[2] is not None and date_stamps[2].date() == today
+				'TRASH': date_stamps[0] is not None and self.realToRobotDate(date_stamps[0]).date() == today,
+				'DRY': date_stamps[1] is not None and self.realToRobotDate(date_stamps[1]).date() == today,
+				'WET': date_stamps[2] is not None and self.realToRobotDate(date_stamps[2]).date() == today
 			}
 
 			# If today is a cleaning day
@@ -187,7 +198,7 @@ class DatabaseHandler:
 	def computeAllOverdueRooms(self):
 		print("[DatabaseHandler] computeAllOverdueRooms")
 		today_index = self.getTodaysScheduleIndex()
-		today = datetime.now()
+		today = self.robotToday()
 
 		overdue_rooms = set()
 
@@ -204,9 +215,9 @@ class DatabaseHandler:
 				cleaning_method = room.room_cleaning_method_
 				# Room floor cleaning with trashcan was scheduled
 				if self.isCleaningDay(schedule_char):
-					trashcan_date = room.room_cleaning_datestamps_[0]
-					dry_date = room.room_cleaning_datestamps_[1]
-					wet_date = room.room_cleaning_datestamps_[2]
+					trashcan_date = self.realToRobotDate(room.room_cleaning_datestamps_[0])
+					dry_date = self.realToRobotDate(room.room_cleaning_datestamps_[1])
+					wet_date = self.realToRobotDate(room.room_cleaning_datestamps_[2])
 					# Room's trashcan was to be emptied and that did not happen
 					if self.isTrashCleaningMethod(cleaning_method) and (trashcan_date is None or trashcan_date < current_schedule_date):
 						cleaning_tasks.add(self.TRASH_TASK)
@@ -236,8 +247,8 @@ class DatabaseHandler:
 
 	# Method for figuring out whether the application had been started today already
 	def noPlanningHappenedToday(self):
-		last_start = self.database_.application_data_.last_planning_date_[0]
-		today_date = datetime.now()
+		last_start = self.realToRobotDate(self.database_.application_data_.last_planning_date_[0])
+		today_date = self.robotToday()
 		if last_start is not None:
 			delta = today_date - last_start
 			return delta.days >= 1

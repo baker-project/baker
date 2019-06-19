@@ -14,10 +14,10 @@ from geometry_msgs.msg import Point32
 import datetime
 
 class WetCleaningApplication(application_container.ApplicationContainer):
-	#========================================================================
+	# ========================================================================
 	# Description:
 	# Highest element in the hierarchy of the cleaning application
-	#========================================================================
+	# ========================================================================
 
 	# Dry cleaning routine, to be called from inside executeCustomBehavior()
 	def processDryCleaning(self, rooms_dry_cleaning, is_overdue=False):
@@ -163,26 +163,23 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		# ==========================================
 
 		# Initialize and load database
-		#try:
 		self.printMsg("Loading database from files...")
 		rospack = rospkg.RosPack()
 		print str(rospack.get_path('baker_wet_cleaning_application'))
 		self.database_ = database.Database(extracted_file_path=str(rospack.get_path('baker_wet_cleaning_application') + "/resources"))
 		self.database_handler_ = database_handler.DatabaseHandler(self.database_)
 
-		shall_continue_old_cleaning = False
 		if self.database_.application_data_.last_execution_date_ is None:
 			self.database_.application_data_.last_execution_date_ = datetime.datetime(datetime.MINYEAR, 1, 1)
 		days_delta = datetime.datetime.now() - self.database_.application_data_.last_execution_date_
 		print "------------ CURRENT_DATE: " + str(datetime.datetime.now())
 		print "------------ LAST_DATE: " + str(self.database_.application_data_.last_execution_date_)
 		print "------------ DAYS_DELTA: " + str(days_delta) + " " + str(days_delta.days)
-		if self.database_.application_data_.progress_[0] == 1:
-			if days_delta.days == 0:
-				shall_continue_old_cleaning = True
-			else:
-				self.printMsg("ERROR: Dates do not match! Shall the old progress be discarded?")
-				# TODO: Programm needs to pause here. Then the user must be asked if the old cleaning state shall be overwritten.
+
+		shall_continue_old_cleaning = self.database_.application_data.progress_[0] == 1 and days_delta.days == 0
+		if self.database_.application_data_.progress_[0] == 1 and days_delta.days != 0:
+			self.printMsg("ERROR: Dates do not match! Shall the old progress be discarded?")
+			# TODO: Programm needs to pause here. Then the user must be asked if the old cleaning state shall be overwritten.
 		else:
 			self.database_.application_data_.progress_ = [1, datetime.datetime.now()]
 		self.database_handler_.applyChangesToDatabase()
