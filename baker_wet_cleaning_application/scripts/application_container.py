@@ -54,7 +54,7 @@ class ApplicationContainer:
 		#self.interrupt_server_.start()
 		self.interrupt_server_ = rospy.Service(interrupt_action_name, SetInt, self.interruptCallback)
 		
-		thread = threading.Thread(target = self.publishApplicationStatus)
+		thread = threading.Thread(target=self.publishApplicationStatus)
 		thread.start()
 
 	# Callback function for interrupt

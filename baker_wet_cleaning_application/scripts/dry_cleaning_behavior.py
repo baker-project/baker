@@ -96,6 +96,7 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 
 	@staticmethod
 	def isAlreadyDetected(detections, new_detection):
+		# todo (rmb-ma). if already detected add an issue / ask for the picture?
 		new_position = new_detection.pose.pose.position
 		for detection in detections:
 			position = detection.pose.pose.position
@@ -225,7 +226,7 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 			self.printMsg("Result is {}".format(path_follower.move_base_path_result_))
 			last_visited_index = path_follower.move_base_path_result_.last_visited_index
 			self.printMsg('Move stopped at position {}'.format(last_visited_index))
-			path = path[last_visited_index:]
+			path = path[last_visited_index:] # todo rmb-ma -1
 
 		if self.dirt_topic_subscriber_ is not None:
 			self.dirt_topic_subscriber_.unregister()

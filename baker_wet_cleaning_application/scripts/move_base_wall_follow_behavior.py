@@ -3,17 +3,16 @@
 import actionlib
 from scitos_msgs.msg import MoveBaseWallFollowAction
 from scitos_msgs.msg import MoveBaseWallFollowGoal
-
 import behavior_container
 
 
 class MoveBaseWallFollowBehavior(behavior_container.BehaviorContainer):
 
-	#========================================================================
+	#  ========================================================================
 	# Description:
 	# Class which contains the behavior for making the robot follow along
 	# the walls
-	#========================================================================
+	#  ========================================================================
 
 	def __init__(self, behavior_name, interrupt_var, service_str):
 		super(MoveBaseWallFollowBehavior, self).__init__(behavior_name, interrupt_var)
@@ -26,7 +25,8 @@ class MoveBaseWallFollowBehavior(behavior_container.BehaviorContainer):
 		pass
 
 	# Method for setting parameters for the behavior
-	def setParameters(self, map, area_map, coverage_map, map_resolution, map_origin, path_tolerance, goal_position_tolerance, goal_angle_tolerance, target_wall_distance, wall_following_off_traveling_distance_threshold):
+	def setParameters(self, map, area_map, coverage_map, map_resolution, map_origin, path_tolerance,
+					  goal_position_tolerance, goal_angle_tolerance, target_wall_distance, wall_following_off_traveling_distance_threshold):
 		self.map_ = map		# contains map, map_resolution, map_origin
 		self.area_map_ = area_map
 		self.coverage_map_ = coverage_map

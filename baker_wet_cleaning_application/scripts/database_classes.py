@@ -145,7 +145,7 @@ class RoomIssue():
 	issue_type_ = 0
 	# File names of the pictures "<NameOfRoom>_<Date>_<IssueNumber>_<Number>.<jpg or whatever>" 
 	# (ARRAY OF STRING)
-	issue_images_ = []
+	issue_images_ = [] # todo rmb-ma check
 	# Issue coordinates 
 	# (POINT32)
 	issue_coords_ = None

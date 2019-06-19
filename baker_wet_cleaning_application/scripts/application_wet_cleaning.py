@@ -44,9 +44,6 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		if self.handleInterrupt() >= 1:
 			return
 
-		print("GET ROOM INFORMATION IN METER")
-		print([rooms_dry_cleaning[k].room_id_ for k in range(len(rooms_dry_cleaning))])
-
 		# Run Dry Cleaning Behavior
 		self.dry_cleaner_.setParameters(
 			database_handler=self.database_handler_,
@@ -59,7 +56,6 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			room_information_in_meter=self.database_handler_.getRoomInformationInMeter(rooms_dry_cleaning)
 		)
 		self.dry_cleaner_.executeBehavior()
-
 
 	# Wet cleaning routine, to be called from inside executeCustomBehavior()
 	def processWetCleaning(self, rooms_wet_cleaning, is_overdue=False):
@@ -100,6 +96,30 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		)
 		self.wet_cleaner_.executeBehavior()
 
+	def computeAndSortDueRooms(self, shall_continue_old_cleaning):
+		self.printMsg("Collecting due rooms...")
+		self.database_handler_.due_rooms_ = []
+		if self.database_handler_.noPlanningHappenedToday() and not shall_continue_old_cleaning:
+			self.database_handler_.computeAllDueRooms()
+			print "len(self.database_.rooms_):", len(self.database_.rooms_), "\ndue rooms:"
+			for room in self.database_handler_.due_rooms_:
+				print room.room_name_
+		else:
+			self.database_handler_.restoreDueRooms()
+
+		# Sort the due rooms with respect to cleaning method
+		self.printMsg("Sorting the found rooms with respect to cleaning method...")
+		(rooms_dry_cleaning, rooms_wet_cleaning) = self.database_handler_.sortRoomsList(self.database_handler_.due_rooms_)
+		for room in rooms_dry_cleaning:
+			self.printMsg(str(room.room_name_) + " ---> DRY")
+		for room in rooms_wet_cleaning:
+			self.printMsg(str(room.room_name_) + " ---> WET")
+
+		# Document completed due rooms planning in the database
+		self.database_.application_data_.last_planning_date_[0] = datetime.datetime.now()
+		self.database_handler_.applyChangesToDatabase()
+
+		return rooms_dry_cleaning, rooms_wet_cleaning
 
 	# Implement application procedures of inherited classes here.
 	def executeCustomBehavior(self, last_execution_date_override=None):
@@ -131,7 +151,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		#self.coverage_radius_ = 0.233655  #0.25	# todo: read from MIRA
 		self.field_of_view_ = [Point32(x=0.04035, y=0.136), Point32(x=0.04035, y=-0.364),
 							   Point32(x=0.54035, y=-0.364), Point32(x=0.54035, y=0.136)]	# todo: read from MIRA
-		self.field_of_view_origin_ = Point32(x=0.0, y=0.0)	# todo: read from MIRA
+		self.field_of_view_origin_ = Point32(x=0.0, y=0.0) # todo: read from MIRA
 
 		# todo: hack: cleaning device can be turned off for trade fair show
 		self.use_cleaning_device_ = False
@@ -148,19 +168,10 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		rospack = rospkg.RosPack()
 		print str(rospack.get_path('baker_wet_cleaning_application'))
 		self.database_ = database.Database(extracted_file_path=str(rospack.get_path('baker_wet_cleaning_application') + "/resources"))
-		#except:
-		#	self.printMsg("Fatal: Loading of database failed! Stopping application.")
-		#	exit(1)
-
-		# Initialize database handler
-		#try:
 		self.database_handler_ = database_handler.DatabaseHandler(self.database_)
-		#except:
-		#	self.printMsg("Fatal: Initialization of database handler failed!")
-		#	exit(1)
 
 		shall_continue_old_cleaning = False
-		if self.database_.application_data_.last_execution_date_ == None:
+		if self.database_.application_data_.last_execution_date_ is None:
 			self.database_.application_data_.last_execution_date_ = datetime.datetime(datetime.MINYEAR, 1, 1)
 		days_delta = datetime.datetime.now() - self.database_.application_data_.last_execution_date_
 		print "------------ CURRENT_DATE: " + str(datetime.datetime.now())
@@ -183,127 +194,45 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			self.database_.application_data_.last_execution_date_ = datetime.datetime.now()
 		else:
 			self.database_.application_data_.last_execution_date_ = last_execution_date_override
-		
 
-		# Interruption opportunity
 		if self.handleInterrupt() >= 1:
 			return
 
+		(rooms_dry_cleaning, rooms_wet_cleaning) = self.computeAndSortDueRooms(shall_continue_old_cleaning)
 
-		# Find and sort all due rooms
-		# ===========================
-
-		# Find due rooms
-		self.printMsg("Collecting due rooms...")
-		self.database_handler_.due_rooms_ = []
-		if self.database_handler_.noPlanningHappenedToday() and not shall_continue_old_cleaning:
-			#try:
-			self.database_handler_.computeAllDueRooms()
-			print "len(self.database_.rooms_):", len(self.database_.rooms_), "\ndue rooms:"
-			for room in self.database_handler_.due_rooms_:
-				print room.room_name_
-			#except:
-			#	self.printMsg("Fatal: Collecting of the due rooms failed!")
-			#	exit(1)
-		else:
-			#try:
-			self.database_handler_.restoreDueRooms()
-			#except:
-			#	self.printMsg("Fatal: Restoring of the due rooms failed!")
-			#	exit(1)
-
-		# Sort the due rooms with respect to cleaning method
-		self.printMsg("Sorting the found rooms with respect to cleaning method...")
-		#try:
-		rooms_dry_cleaning, rooms_wet_cleaning = self.database_handler_.sortRoomsList(self.database_handler_.due_rooms_)
-		for room in rooms_dry_cleaning:
-			self.printMsg(str(room.room_name_) + " ---> DRY")
-		for room in rooms_wet_cleaning:
-			self.printMsg(str(room.room_name_) + " ---> WET")
-
-		#except:
-		#	self.printMsg("Fatal: Sorting after the cleaning method failed!")
-		#	exit(1)
-
-		# Document completed due rooms planning in the database
-		self.database_.application_data_.last_planning_date_[0] = datetime.datetime.now()
-		self.database_handler_.applyChangesToDatabase()
-
-		# Interruption opportunity
 		if self.handleInterrupt() >= 1:
 			return
 
-		# Dry cleaning of the due rooms
-		# =============================
 		self.processDryCleaning(rooms_dry_cleaning, is_overdue=False)
 
-
-		# Interruption opportunity
 		if self.handleInterrupt() >= 1:
 			return
 
-
-		# Wet cleaning of the due rooms
-		# =============================
 		self.processWetCleaning(rooms_wet_cleaning, is_overdue=False)
 		
-		#self.printMsg("self.map_handler_.room_sequencing_data_.checkpoints=" + str(self.map_handler_.room_sequencing_data_.checkpoints))
-		
-		# Interruption opportunity
 		if self.handleInterrupt() >= 1:
 			return
 
-		# Find and sort all overdue rooms
-		# ===============================
-
-		# Find overdue rooms
-		self.printMsg("Collecting overdue rooms...")
-		#try:
 		self.database_handler_.computeAllOverdueRooms()
-		#except:
-		#	self.printMsg("Fatal: Collecting of the over rooms failed!")
-		#	exit(1)
-
-		# Sort the overdue rooms after cleaning method
-		self.printMsg("Sorting the found rooms after cleaning method...")
-		#try:
-		rooms_dry_cleaning, rooms_wet_cleaning = self.database_handler_.sortRoomsList(self.database_handler_.overdue_rooms_)
-		#except:
-		#	self.printMsg("Fatal: Sorting after the cleaning method failed!")
-		#	exit(1)
+		(rooms_dry_cleaning, rooms_wet_cleaning) = self.database_handler_.sortRoomsList(self.database_handler_.overdue_rooms_)
 
 		# Document completed due rooms planning in the database
 		self.database_.application_data_.last_planning_date_[1] = datetime.datetime.now()
 		self.database_handler_.applyChangesToDatabase()
 
-		# Dry cleaning of the overdue rooms
-		# =================================
-
 		self.processDryCleaning(rooms_dry_cleaning, True)
 
-		# Interruption opportunity
 		if self.handleInterrupt() >= 1:
 			return
-
-		# Wet cleaning of the overdue rooms
-		# =================================
 
 		self.processWetCleaning(rooms_wet_cleaning, True)
 		
-		# Interruption opportunity
 		if self.handleInterrupt() >= 1:
 			return
 
-		# COMPLETE APPLICATION
-		# ====================
-
 		self.printMsg("Cleaning completed. Overwriting database...")
-		#try:
 		self.database_.application_data_.progress_ = [0, datetime.datetime.now()]
 		self.database_handler_.cleaningFinished()
-		#except:
-		#	self.printMsg("Fatal: Database overwriting failed!")
-		#	exit(1)
 
 	# Abstract method that contains the procedure to be done immediately after the application is paused.
 	def prePauseProcedure(self):

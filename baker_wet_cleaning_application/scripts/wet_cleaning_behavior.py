@@ -193,7 +193,7 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 			path_tolerance=0.2,
 			goal_position_tolerance=0.3,
 			goal_angle_tolerance=1.57,
-			target_wall_distance=0.1,
+			target_wall_distance=0.15,
 			wall_following_off_traveling_distance_threshold=0.8
 		)
 		wall_follower.executeBehavior()
