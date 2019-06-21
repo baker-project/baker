@@ -176,7 +176,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		print "------------ LAST_DATE: " + str(self.database_.application_data_.last_execution_date_)
 		print "------------ DAYS_DELTA: " + str(days_delta) + " " + str(days_delta.days)
 
-		shall_continue_old_cleaning = self.database_.application_data.progress_[0] == 1 and days_delta.days == 0
+		shall_continue_old_cleaning = self.database_.application_data_.progress_[0] == 1 and days_delta.days == 0
 		if self.database_.application_data_.progress_[0] == 1 and days_delta.days != 0:
 			self.printMsg("ERROR: Dates do not match! Shall the old progress be discarded?")
 			# TODO: Programm needs to pause here. Then the user must be asked if the old cleaning state shall be overwritten.

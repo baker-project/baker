@@ -10,10 +10,19 @@ import os
 
 DATE_FORMAT = '%Y-%m-%d_%H:%M'
 DATABASE_LOCATION = '../resources/json'
+OFFSET = 600 # todo (rmb-ma) read from database
 
 
-def getTodayIndex():
-	today = datetime.now()
+def updateAndReturnPreviousPlanningOffset(planning_offset, database_location=DATABASE_LOCATION):
+	filename = database_location + '/application_data.json'
+	data = loadJsonDatabase(filename)
+	previous_planning_offset = data['planning_offset']
+	data['planning_offset'] = planning_offset
+	saveJsonDatabase(filename, data)
+	return previous_planning_offset
+
+def getRobotTodayIndex():
+	today = datetime.now() - timedelta(minutes=OFFSET)
 	week_type = today.isocalendar()[1] % 2
 	week_day = today.weekday()
 	today_index = week_type * 7 + week_day
@@ -56,7 +65,7 @@ def updateRooms(data, methods, reset_opened_tasks=False, reset_timestamps=False,
 	if reset_tmp_database:
 		removeTmpDatabase(database_location=DATABASE_LOCATION)
 
-	today_index = getTodayIndex()
+	today_index = getRobotTodayIndex()
 
 	previous_date = datetime.now() - timedelta(days=3)
 
@@ -83,11 +92,13 @@ def removeTmpDatabase(database_location):
 			print(error)
 			pass
 
-def updateDatabaseToScenario(scenario, database_location=DATABASE_LOCATION):
+
+def updateDatabaseToScenario(scenario, database_location=DATABASE_LOCATION, planning_offset=0):
+	removeTmpDatabase(database_location)
 	rooms_data = loadJsonDatabase(database_location + 'rooms.json')
 	rooms_data = reset(rooms_data, reset_opened_tasks=True, reset_timestamps=True, reset_scheduled_tasks=True)
 
-	today = datetime.now()
+	today = datetime.now() - timedelta(minutes=planning_offset)
 	week_type = today.isocalendar()[1] % 2
 	week_day = today.weekday()
 	today_index = week_type * 7 + week_day

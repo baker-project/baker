@@ -46,8 +46,6 @@ class Database:
 	global_map_image_filename_ = ""
 	global_map_segmented_image_filename_ = ""
 
-	time_offset_ = 180
-
 # =========================================================================================
 # Private methods
 # =========================================================================================
@@ -68,31 +66,34 @@ class Database:
 	def arrayToPoint32(array_point):
 		return Point32(x=array_point[0], y=array_point[1], z=array_point[2])
 
-	def updateGlobalApplicationData(self, dict):
+	def updateGlobalApplicationData(self, dict_application_data):
 		self.application_data_ = database_classes.GlobalApplicationData()
-		# Get the datetime of the last recorded start of the application
-		last_execution_date_str = dict.get("last_execution_date")
+
+		last_execution_date_str = dict_application_data.get("last_execution_date")
 		if last_execution_date_str is not None:
 			self.application_data_.last_execution_date_ = self.stringToDatetime(last_execution_date_str)
 		else:
 			self.application_data_.last_execution_date_ = None
-		# Get the last planning dates (see database_classes.py for further explanation)
-		last_planning_date_str = dict.get("last_planning_date")
+
+		last_planning_date_str = dict_application_data.get("last_planning_date")
 		if (last_planning_date_str[0] is not None) and (last_planning_date_str[1] is not None):
 			self.application_data_.last_planning_date_ = [self.stringToDatetime(last_planning_date_str[0]), self.stringToDatetime(last_planning_date_str[1])]
 		else:
 			self.application_data_.last_planning_date_ = [None, None]
-		# Get if the last database saving routine completed without error
-		self.application_data_.last_database_save_successful_ = dict.get("last_database_save_successful")
-		# Get the amount of executions of the application on the current day. Increment by one.
-		self.application_data_.run_count_ = dict.get("run_count")
-		# Get the progress variable
-		progress_str = dict.get("progress")
+		self.application_data_.last_database_save_successful_ = dict_application_data.get("last_database_save_successful")
+
+		self.application_data_.run_count_ = dict_application_data.get("run_count")
+
+		progress_str = dict_application_data.get("progress")
 		self.application_data_.progress_[0] = progress_str[0]
-		if progress_str[1] is not None:
-			self.application_data_.progress_[1] = self.stringToDatetime(progress_str[1])
-		else:
-			self.application_data_.progress_[1] = None
+		self.application_data_.progress_[1] = self.stringToDatetime((progress_str[1])) if progress_str[1] is not None else None
+
+		if not dict_application_data.get("planning_offset"):
+			dict_application_data["planning_offset"] = 0
+			print("Warning. Planning_offset set to 0")
+
+		self.application_data_.planning_offset_ = dict_application_data["planning_offset"]
+
 
 	def getGlobalApplicationDataDictFromGlobalApplicationData(self):
 		application_data_dict = {}

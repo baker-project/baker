@@ -32,19 +32,6 @@ class DatabaseHandler:
 	# STATIC METHODS
 	# ===============================================================================
 
-	def robotToday(self):
-		return self.realToRobotDate(datetime.now())
-
-	def getTodaysWeekType(self):
-		weekNumber = self.robotToday().date().isocalendar()[1]
-		return weekNumber % 2
-
-	def getTodaysWeekDay(self):
-		return self.robotToday().date().weekday()
-
-	def getTodaysScheduleIndex(self):
-		return self.getTodaysWeekType() * 7 + self.getTodaysWeekDay()
-
 	@staticmethod
 	def isCleaningDay(schedule_char):
 		return schedule_char == "x" or schedule_char == "X"
@@ -72,12 +59,25 @@ class DatabaseHandler:
 	def __init__(self, database):
 		self.database_ = database
 
+	def robotToday(self):
+		return self.realToRobotDate(datetime.now())
+
+	def getTodaysWeekType(self):
+		weekNumber = self.robotToday().date().isocalendar()[1]
+		return weekNumber % 2
+
+	def getTodaysWeekDay(self):
+		return self.robotToday().date().weekday()
+
+	def getTodaysScheduleIndex(self):
+		return self.getTodaysWeekType() * 7 + self.getTodaysWeekDay()
+
 	def realToRobotDate(self, real_date):
-		robot_date = real_date - timedelta(minutes=self.database_.time_offset_)
+		robot_date = real_date - timedelta(minutes=self.database_.application_data_.planning_offset_)
 		return robot_date
 
 	def robotToRealDate(self, robot_date):
-		real_date = robot_date + timedelta(minutes=self.database_.time_offset_)
+		real_date = robot_date + timedelta(minutes=self.database_.application_data_.planning_offset_)
 		return real_date
 
 	# Get the room information in pixel

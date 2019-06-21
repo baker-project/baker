@@ -6,7 +6,7 @@ import rospkg
 
 from database_handler import DatabaseHandler as DH
 from database import Database
-from datetime import datetime
+from random import randint
 
 PKG = 'baker_wet_cleaning_application'
 NAME = 'database_handler_test'
@@ -50,13 +50,16 @@ class TestDatabaseHandler(unittest.TestCase):
         self.assertTrue(DH.isTrashCleaningMethod(1))
         self.assertTrue(DH.isTrashCleaningMethod(2))
 
-    def applyScenarios(self, scenarios, expected_outputs, evaluator):
+    def applyScenarios(self, scenarios, expected_outputs, evaluator, planning_offset=0):
         database_location = self.getDatabaseLocation()
         for k in range(len(scenarios)):
-            database_utils.updateDatabaseToScenario(scenarios[k], database_location=database_location + '/json/')
+            previous_planning_offset = database_utils.updateAndReturnPreviousPlanningOffset(planning_offset,
+                                                                                            database_location=database_location + '/json/')
+            database_utils.updateDatabaseToScenario(scenarios[k], database_location=database_location + '/json/', planning_offset=planning_offset)
             database = Database(extracted_file_path=database_location)
             database_handler = DH(database)
             computed_output = evaluator(database_handler)
+            database_utils.updateAndReturnPreviousPlanningOffset(previous_planning_offset, database_location=database_location + '/json/')
             self.assertEqual(computed_output, expected_outputs[k],
                              msg='Test index {} failed computed {} != expected {}'.format(k, computed_output, expected_outputs[k]))
 
@@ -91,7 +94,8 @@ class TestDatabaseHandler(unittest.TestCase):
                             {
                                 '10': {WET_TASK}
                             }]
-        self.applyScenarios(scenarios=scenarios, expected_outputs=expected_outputs, evaluator=self.dueRoomsEvaluator)
+        self.applyScenarios(scenarios=scenarios, expected_outputs=expected_outputs,
+                            evaluator=self.dueRoomsEvaluator, planning_offset=randint(0, 3000))
 
     def testComputeAllDueRoomsEarlierRun(self):
         def evaluator(database_handler):
@@ -107,7 +111,8 @@ class TestDatabaseHandler(unittest.TestCase):
                          'last_planning_date': ['YESTERDAY', 'YESTERDAY']
                      }]
         expected_outputs = [True, False, True]
-        self.applyScenarios(scenarios=scenarios, expected_outputs=expected_outputs, evaluator=evaluator)
+        self.applyScenarios(scenarios=scenarios, expected_outputs=expected_outputs,
+                            evaluator=evaluator, planning_offset=randint(0, 3000))
 
     def testComputeAllDueRooms(self):
         scenarios = [{
@@ -121,7 +126,8 @@ class TestDatabaseHandler(unittest.TestCase):
             '7': {DRY_TASK, TRASH_TASK, WET_TASK}
         }]
 
-        self.applyScenarios(scenarios=scenarios, expected_outputs=expected_outputs, evaluator=self.dueRoomsEvaluator)
+        self.applyScenarios(scenarios=scenarios, expected_outputs=expected_outputs,
+                            evaluator=self.dueRoomsEvaluator, planning_offset=randint(0, 3000))
 
     @staticmethod
     def overdueRoomsEvaluator(database_handler):
@@ -152,11 +158,8 @@ class TestDatabaseHandler(unittest.TestCase):
             '7': {DRY_TASK, TRASH_TASK}
         }]
 
-        self.applyScenarios(scenarios=scenarios, expected_outputs=expected_outputs, evaluator=self.overdueRoomsEvaluator)
-
-    def testComputeAllRooms(self):
-        # test both due and overdue rooms
-        pass
+        self.applyScenarios(scenarios=scenarios, expected_outputs=expected_outputs,
+                            evaluator=self.overdueRoomsEvaluator, planning_offset=randint(0, 3000))
 
 if __name__ == '__main__':
     import rostest

@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-#========================================================================
+# ========================================================================
 # Description:
 # Contains all classes whose instances are stored in the database
-#========================================================================
+# ========================================================================
 
 
 # Class which contains all the properties of the robot
@@ -39,13 +39,13 @@ class RobotProperties():
 class GlobalSettings():
 	# Should incomplete assignments be completed in the next opportunity?
 	# (BOOLEAN)
-	shall_auto_complete_ = True
+	shall_auto_complete_ = True  # todo (rmb-ma) check if used
 	# Maximum time the robot has for completing missed cleanups
 	# (FLOAT)
-	max_aux_time_ = 0
+	max_aux_time_ = 0  # todo (rmb-ma) check if used
 	# Amount of days between two executions of the same assignment. Default is two weeks (14)
 	# (INTEGER)
-	assignment_timedelta_ = 14
+	assignment_timedelta_ = 14  # todo (rmb-ma) check if it's not hardcoded somewhere
 
 	def __str__(self):
 		return "[GlobalSettings]: autocomplete {} | maxAuxTime {} | timeDelta {}".format(self.shall_auto_complete_,
@@ -73,6 +73,13 @@ class GlobalMapData():
 
 # Class which contains all application-wide data to be recorded
 class GlobalApplicationData():
+
+	PROGRESS_COMPLETED = 0
+	PROGRESS_RUNNING = 1
+	PROGRESS_PAUSED = 2
+	PROGRESS_STOPPED = 3
+	PROGRESS_DISCARDED = 4
+
 	# Last date the application was started
 	# (DATETIME)
 	last_execution_date_ = None
@@ -87,12 +94,15 @@ class GlobalApplicationData():
 	last_database_save_successful_ = True
 	# Progress status of the application [0=Completed, 1=Running, 2=Paused, 3=Stopped, 4=Discarded] and date the progress belongs to
 	# ([INTEGER, DATETIME])
-	progress_ = [0, None]
+	progress_ = [PROGRESS_COMPLETED, None]
+
+	planning_offset_ = 0
 
 
 
 # Class which resembles a log item, documenting a specific event
 class LogItem():
+
 	# Week and day flag [week, day]
 	# ([INTEGER, INTEGER])
 	log_week_and_day_ = [0, 0]
@@ -154,7 +164,6 @@ class RoomIssue():
 	issue_date_ = None
 
 
-
 # Item that contains information on a room
 class RoomItem():
 
@@ -195,7 +204,7 @@ class RoomItem():
 	# (ARRAY OF STRING)
 	room_scheduled_days_ = []
 
-	# DATA CALCULATED OR AQUIRED FROM OTHER SOURCES
+	# DATA CALCULATED OR ACQUIRED FROM OTHER SOURCES
 	# =============================================
 
 	# List of all last successful cleaning dates. [Trashcan, Dry, Wet]
