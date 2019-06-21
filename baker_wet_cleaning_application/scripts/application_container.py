@@ -122,13 +122,11 @@ class ApplicationContainer:
 	def executeApplication(self):
 		self.printMsg("Application server started.")
 		while not rospy.is_shutdown():
-			#if self.handleInterrupt() != 0:
-			#	pass
 			if self.isOk():
 				self.printMsg("Application started.")
 				self.executeCustomBehavior()
 				if self.isOk() and not self.application_resumed_after_pause:
-					self.cancelApplication()	# set back to 2=Cancelled after successful, uninterrupted execution to avoid automatic restart
+					self.cancelApplication()
 				if not self.application_resumed_after_pause:
 					self.printMsg("Application completed with code " + str(self.application_status_[0]))
 			elif self.isTerminated():

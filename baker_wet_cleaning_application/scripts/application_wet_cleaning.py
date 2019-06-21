@@ -4,9 +4,9 @@ import rospy
 import rospkg
 import actionlib
 import application_container
-import map_handling_behavior
-import dry_cleaning_behavior
-import wet_cleaning_behavior
+from map_handling_behavior import MapHandlingBehavior
+from dry_cleaning_behavior import DryCleaningBehavior
+from wet_cleaning_behavior import WetCleaningBehavior
 import database
 import database_handler
 
@@ -92,7 +92,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			coverage_radius=self.coverage_radius_,
 			field_of_view=self.field_of_view_,
 			field_of_view_origin=self.field_of_view_origin_,
-			use_cleaning_device=self.use_cleaning_device_	# todo: hack: cleaning device can be turned off for trade fair show
+			use_cleaning_device=self.use_cleaning_device_  # hack: cleaning device can be turned off for trade fair show
 		)
 		self.wet_cleaner_.executeBehavior()
 
@@ -126,9 +126,9 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 
 		# Initialize behaviors
 		# ====================
-		self.map_handler_ = map_handling_behavior.MapHandlingBehavior("MapHandlingBehavior", self.application_status_)
-		self.dry_cleaner_ = dry_cleaning_behavior.DryCleaningBehavior("DryCleaningBehavior", self.application_status_)
-		self.wet_cleaner_ = wet_cleaning_behavior.WetCleaningBehavior("WetCleaningBehavior", self.application_status_)
+		self.map_handler_ = MapHandlingBehavior("MapHandlingBehavior", self.application_status_)
+		self.dry_cleaner_ = DryCleaningBehavior("DryCleaningBehavior", self.application_status_)
+		self.wet_cleaner_ = WetCleaningBehavior("WetCleaningBehavior", self.application_status_)
 
 		# Load data from the robot device
 		# ===============================
@@ -137,13 +137,25 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		if rospy.has_param('robot_frame'):
 			self.robot_frame_id_ = rospy.get_param("robot_frame")
 			self.printMsg("Imported parameter robot_frame = " + str(self.robot_frame_id_))
-			# todo: write into database
+			# todo: write into database ??? (rmb-ma)
+		else:
+			self.robot_frame_id_ = 'base_link'
+			self.printMsg("Parameter robot_frame_id assigned to default value '{}'".format(self.robot_frame_id_))
+
 		if rospy.has_param('robot_radius'):
 			self.robot_radius_ = rospy.get_param("robot_radius")
 			self.printMsg("Imported parameter robot_radius = " + str(self.robot_radius_))
+		else:
+			self.robot_radius_ = 0.325
+			self.printMsg("Parameter robot_radius assigned to default value '{}'".format(self.robot_radius_))
+
 		if rospy.has_param('coverage_radius'):
 			self.coverage_radius_ = rospy.get_param("coverage_radius")
 			self.printMsg("Imported parameter robot_radius = " + str(self.coverage_radius_))
+		else:
+			self.printMsg("Parameter coverage radius doesn't exist")
+			return
+
 		# todo: get field_of_view
 
 		#self.robot_frame_id_ = 'base_link'
