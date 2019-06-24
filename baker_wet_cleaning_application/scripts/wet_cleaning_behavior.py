@@ -6,11 +6,11 @@ from move_base_wall_follow_behavior import MoveBaseWallFollowBehavior
 
 import rospy
 from geometry_msgs.msg import Quaternion
-import ipa_building_msgs.srv
 import std_srvs.srv
 from threading import Thread
 import services_params as srv
 import dynamic_reconfigure.client
+from math import pi
 
 class WetCleaningBehavior(AbstractCleaningBehavior):
 
@@ -70,31 +70,12 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		assert self.use_cleaning_device_
 		self.callTriggerService(self.start_cleaning_service_str_)
 
-
 	def stopCleaningDevice(self):
 		assert self.use_cleaning_device_
 		self.callTriggerService(self.stop_cleaning_service_str_)
 
 	def stopCoverageMonitoring(self):
 		self.callTriggerService(self.stop_coverage_monitoring_service_str_)
-
-	def requestCoverageMapResponse(self, room_map_data):
-		self.printMsg("Receive coverage image from coverage monitor " + self.receive_coverage_image_service_str_)
-		rospy.wait_for_service(self.receive_coverage_image_service_str_)
-		try:
-			req = rospy.ServiceProxy(self.receive_coverage_image_service_str_, ipa_building_msgs.srv.CheckCoverage)
-			req.input_map = room_map_data
-			req.map_resolution = self.map_resolution_
-			req.map_origin = self.map_origin_
-			req.field_of_view = self.field_of_view_
-			req.field_of_view_origin = self.field_of_view_origin_
-			req.coverage_radius = self.coverage_radius_
-			req.check_for_footprint = False
-			req.check_number_of_coverages = False
-			self.coverage_map_response_ = req()
-			print ("Receive coverage image returned with success status " + str(self.coverage_map_response_.success))
-		except rospy.ServiceException, e:
-			print ("Service call to " + self.receive_coverage_image_service_str_ + " failed: %s" % e)
 
 	# coverage_monitor_server: set the robot configuration (robot_radius, coverage_radius, coverage_offset)
 	# with dynamic reconfigure and turn on logging of the cleaned path (service "start_coverage_monitoring")
@@ -108,12 +89,14 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 			client = dynamic_reconfigure.client.Client(self.coverage_monitor_dynamic_reconfigure_service_str_, timeout=5)
 
 			rospy.wait_for_service(self.coverage_monitor_dynamic_reconfigure_service_str_ + "/set_parameters")
-			client.update_configuration({"map_frame": self.map_header_frame_id_, "robot_frame": self.robot_frame_id_,
-										 "coverage_radius": self.coverage_radius_,
-										 "coverage_circle_offset_transform_x": coverage_circle_offset_transform_x,
-										 "coverage_circle_offset_transform_y": coverage_circle_offset_transform_y,
-										 "coverage_circle_offset_transform_z": 0.0,
-										 "robot_trajectory_recording_active": True})
+			client.update_configuration({
+				"map_frame": self.map_header_frame_id_, "robot_frame": self.robot_frame_id_,
+				"coverage_radius": self.coverage_radius_,
+				"coverage_circle_offset_transform_x": coverage_circle_offset_transform_x,
+				"coverage_circle_offset_transform_y": coverage_circle_offset_transform_y,
+				"coverage_circle_offset_transform_z": 0.0,
+				"robot_trajectory_recording_active": True
+			})
 
 		except rospy.ServiceException, e:
 			print("Dynamic reconfigure request to " + self.coverage_monitor_dynamic_reconfigure_service_str_ + " failed: %s" % e)
@@ -121,12 +104,13 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 	def executeCustomBehaviorInRoomId(self, room_id):
 
 		self.printMsg('Starting Wet Cleaning of room ID {}'.format(room_id))
-
 		starting_position = self.room_information_in_meter_[room_id].room_center
 		self.move_base_handler_.setParameters(
 			goal_position=starting_position,
 			goal_orientation=Quaternion(x=0., y=0., z=0., w=1.),
-			header_frame_id='base_link'
+			header_frame_id='base_link',
+			goal_angle_tolerance=2*pi,
+			goal_position_tolerance=0.5
 		)
 
 		thread_move_to_the_room = Thread(target=self.move_base_handler_.executeBehavior)
@@ -160,28 +144,27 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		)
 
 		path_follower.setInterruptVar(self.interrupt_var_)
-		path_follower.executeBehavior()
-
-		if self.handleInterrupt() >= 1:
-			return
-
-		self.requestCoverageMapResponse(room_map_data)
-
+		#path_follower.executeBehavior() todo rmb-ma
 		if self.handleInterrupt() >= 1:
 			return
 
 		wall_follower = MoveBaseWallFollowBehavior("MoveBaseWallFollowBehavior", self.interrupt_var_, self.move_base_wall_follow_service_str_)
+		# todo rmb-ma: self.coverage_map_response_.coverage_map, before room_map_data
+
 		wall_follower.setParameters(
 			map=self.map_data_,
 			area_map=room_map_data,
-			coverage_map=room_map_data,  # todo: self.coverage_map_response_.coverage_map,
+			coverage_map_service=self.receive_coverage_image_service_str_,
 			map_resolution=self.map_resolution_,
 			map_origin=self.map_origin_,
 			path_tolerance=0.2,
 			goal_position_tolerance=0.3,
 			goal_angle_tolerance=1.57,
 			target_wall_distance=0.15,
-			wall_following_off_traveling_distance_threshold=0.8
+			wall_following_off_traveling_distance_threshold=0.8,
+			field_of_view_origin=self.field_of_view_origin_,
+			field_of_view=self.field_of_view_,
+			coverage_radius=self.coverage_radius_
 		)
 		wall_follower.executeBehavior()
 

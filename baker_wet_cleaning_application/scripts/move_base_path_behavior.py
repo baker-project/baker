@@ -35,7 +35,6 @@ class MoveBasePathBehavior(behavior_container.BehaviorContainer):
 
 	def computeNewGoalFromPausedResult(self, prev_action_goal, result):
 		last_visited_index = result.last_visited_index
-		# todo warning check last_visited_index
 		prev_action_goal.target_poses = prev_action_goal.target_poses[last_visited_index:]
 		return prev_action_goal
 
