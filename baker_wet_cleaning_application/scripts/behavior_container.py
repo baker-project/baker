@@ -79,7 +79,6 @@ class BehaviorContainer:
 	def failed(self):
 		return self.state_ != 3
 
-	# todo @abstractmethod
 	def computeNewGoalFromPausedResult(self, prev_action_goal, result):
 		return prev_action_goal
 
@@ -88,11 +87,11 @@ class BehaviorContainer:
 	def runAction(self, action_client, action_goal):
 
 		self.is_finished = False
-		resumed_after_pause = False
 
 		self.printMsg("Waiting for action " + str(action_client.action_client.ns) + " to become available...")
 		action_client.wait_for_server()
 		while not self.is_finished:
+			resumed_after_pause = False
 			# action client --> call external functionality but do not wait for finishing
 			self.printMsg("Sending goal...")
 			action_client.send_goal(action_goal)

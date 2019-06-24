@@ -226,7 +226,7 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 			self.printMsg("Result is {}".format(path_follower.move_base_path_result_))
 			last_visited_index = path_follower.move_base_path_result_.last_visited_index
 			self.printMsg('Move stopped at position {}'.format(last_visited_index))
-			path = path[last_visited_index:] # todo rmb-ma -1
+			path = path[last_visited_index:]
 
 		if self.dirt_topic_subscriber_ is not None:
 			self.dirt_topic_subscriber_.unregister()
