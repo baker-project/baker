@@ -118,7 +118,9 @@ class Database:
 			application_data_dict["progress"] = [self.application_data_.progress_[0], self.datetimeToString(self.application_data_.progress_[1])]
 		else:
 			application_data_dict["progress"] = [self.application_data_.progress_[0], None]
-		
+
+		application_data_dict["planning_offset"] = self.application_data_.planning_offset_
+
 		return application_data_dict
 
 	def updateGlobalSettings(self, dict_settings):

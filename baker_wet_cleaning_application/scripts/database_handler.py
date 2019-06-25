@@ -131,7 +131,6 @@ class DatabaseHandler:
 
 		# If the application ran already today and the due rooms list is not empty, this should not run
 		last_planning_dates = self.database_.application_data_.last_planning_date_
-		# todo rmb-ma date
 		today = self.robotToday().date()
 
 		if last_planning_dates[0] is not None and today == self.realToRobotDate(last_planning_dates[0]).date()\
