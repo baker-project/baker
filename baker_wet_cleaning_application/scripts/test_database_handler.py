@@ -131,7 +131,7 @@ class TestDatabaseHandler(unittest.TestCase):
 
     @staticmethod
     def overdueRoomsEvaluator(database_handler):
-        database_handler.computeAllDueRooms()  # todo (rmb-ma) check if it should be called in computeAllOverdueRooms
+        database_handler.computeAllDueRooms()
         database_handler.computeAllOverdueRooms()
         overdue_rooms = database_handler.overdue_rooms_
         cleaning_tasks = {}

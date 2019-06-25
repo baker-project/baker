@@ -8,24 +8,33 @@ from behavior_container import BehaviorContainer
 
 from utils import getCurrentRobotPosition
 from geometry_msgs.msg import Pose2D, Quaternion
-from copy import copy
+import ipa_building_msgs.srv
+import std_srvs.srv
+import rospy
 import services_params as srv
 from math import pi
-
+import dynamic_reconfigure.client
+from cv_bridge import CvBridge, CvBridgeError
+import cv2
+import numpy as np
 
 class AbstractCleaningBehavior(BehaviorContainer):
 
-	#========================================================================
+	# ========================================================================
 	# Description:
 	# Hangles a cleaning process (can be a dry or a wet cleaning_behavior)
 	# for all rooms provided in a given list
-	#========================================================================
+	# ========================================================================
 
 	def __init__(self, behavior_name, interrupt_var):
 		super(AbstractCleaningBehavior, self).__init__(behavior_name, interrupt_var)
 		(self.move_base_handler_, self.tool_changer_, self.trolley_mover_) = (None, None, None)
 		self.room_exploration_service_str_ = srv.ROOM_EXPLORATION_SERVICE_STR
 		self.move_base_path_service_str_ = srv.MOVE_BASE_PATH_SERVICE_STR
+
+		self.coverage_monitor_dynamic_reconfigure_service_str_ = srv.COVERAGE_MONITOR_DYNAMIC_RECONFIGURE_SERVICE_STR
+		self.receive_coverage_image_service_str_ = srv.RECEIVE_COVERAGE_IMAGE_SERVICE_STR
+		self.stop_coverage_monitoring_service_str_ = srv.STOP_COVERAGE_MONITORING_SERVICE_STR
 
 	def setCommonParameters(self, database_handler, sequencing_result, mapping, coverage_radius, field_of_view,
 					   field_of_view_origin, room_information_in_meter, robot_radius):
@@ -38,7 +47,95 @@ class AbstractCleaningBehavior(BehaviorContainer):
 		self.field_of_view_origin_ = field_of_view_origin
 		self.robot_radius_ = robot_radius
 
-	# todo (rmb-ma) = common set parameters
+		self.map_data_ = self.database_handler_.database_.global_map_data_.map_image_
+		self.map_resolution_ = self.database_handler_.database_.global_map_data_.map_resolution_
+		self.map_origin_ = self.database_handler_.database_.global_map_data_.map_origin_
+		self.map_header_frame_id_ = self.database_handler_.database_.global_map_data_.map_header_frame_id_
+
+	def callService(self, service_name, service_message):
+		print("Call for service {}".format(service_name))
+		rospy.wait_for_service(service_name)
+		try:
+			req = rospy.ServiceProxy(service_name, service_message)
+			req()
+		except rospy.ServiceException, e:
+			print("Service call to {} failed: {}".format(service_name, e))
+
+	def stopCoverageMonitoring(self):
+		self.callService(self.stop_coverage_monitoring_service_str_, std_srvs.srv.Trigger)
+
+	# coverage_monitor_server: set the robot configuration (robot_radius, coverage_radius, coverage_offset)
+	# with dynamic reconfigure and turn on logging of the cleaned path (service "start_coverage_monitoring")
+	def startCoverageMonitoring(self):
+		try:
+			print("Start coverage monitoring")
+
+			coverage_circle_offset_transform_x = 0.5 * (self.field_of_view_[0].x + self.field_of_view_[2].x)
+			coverage_circle_offset_transform_y = 0.5 * (self.field_of_view_[0].y + self.field_of_view_[1].y)
+
+			client = dynamic_reconfigure.client.Client(self.coverage_monitor_dynamic_reconfigure_service_str_, timeout=5)
+
+			rospy.wait_for_service(self.coverage_monitor_dynamic_reconfigure_service_str_ + "/set_parameters")
+			client.update_configuration({
+				"map_frame": self.map_header_frame_id_, "robot_frame": self.robot_frame_id_,
+				"coverage_radius": self.coverage_radius_,
+				"coverage_circle_offset_transform_x": coverage_circle_offset_transform_x,
+				"coverage_circle_offset_transform_y": coverage_circle_offset_transform_y,
+				"coverage_circle_offset_transform_z": 0.0,
+				"robot_trajectory_recording_active": True
+			})
+
+		except rospy.ServiceException, e:
+			print("Dynamic reconfigure request to " + self.coverage_monitor_dynamic_reconfigure_service_str_ + " failed: %s" % e)
+
+	# todo (rmb-ma) copy past with mose_base_wall_follow_behavior
+	def requestCoverageMapResponse(self, room_id):
+		self.coverage_map_service_ = srv.RECEIVE_COVERAGE_IMAGE_SERVICE_STR
+
+		area_map = self.database_handler_.database_.getRoomById(room_id).room_map_data_
+		self.printMsg("Receive coverage image from coverage monitor " + self.coverage_map_service_)
+		rospy.wait_for_service(self.coverage_map_service_)
+		try:
+			coverage_image_getter = rospy.ServiceProxy(self.coverage_map_service_, ipa_building_msgs.srv.CheckCoverage)
+			request = ipa_building_msgs.srv.CheckCoverageRequest()
+			request.input_map = area_map
+			request.map_resolution = self.map_resolution_
+			request.map_origin = self.map_origin_
+			request.field_of_view = self.field_of_view_
+			request.field_of_view_origin = self.field_of_view_origin_
+			request.coverage_radius = self.coverage_radius_
+			request.check_for_footprint = False
+			request.check_number_of_coverages = False
+			return coverage_image_getter(request).coverage_map
+			print ("Receive coverage image returned")
+		except rospy.ServiceException, e:
+			print ("Service call to " + self.coverage_map_service_ + " failed: %s" % e)
+
+	def checkCoverage(self, room_id):
+		covered_image = self.requestCoverageMapResponse(room_id)
+		covered_image = CvBridge().imgmsg_to_cv2(covered_image, desired_encoding="passthrough")
+
+		map_image = self.database_handler_.database_.getRoomById(room_id).room_map_data_
+		map_image = CvBridge().imgmsg_to_cv2(map_image, desired_encoding="passthrough")
+
+		diff_image = cv2.absdiff(map_image, covered_image)  # useful? todo not absdiff and 0 if negative
+
+		ratio_cleaned = float(np.sum(covered_image))/np.sum(map_image)
+
+		print("CLEANED {}".format(ratio_cleaned))
+
+		import matplotlib.pyplot as plt
+		f, axarr = plt.subplots(1, 3)
+		axarr[0].imshow(map_image)
+		axarr[1].imshow(covered_image)
+		axarr[2].imshow(diff_image)
+		plt.show()
+
+		if 0.9 < ratio_cleaned < 0.5:
+			raise RuntimeWarning('Only {}% of room {} cleaned'.format(100*ratio_cleaned, room_id))
+		if ratio_cleaned < 0.9:
+			raise RuntimeError('Only {}% of room {} cleaned'.format(100*ratio_cleaned, room_id))
+
 
 	# Method for returning to the standard state of the robot
 	def returnToRobotStandardState(self):
@@ -75,14 +172,19 @@ class AbstractCleaningBehavior(BehaviorContainer):
 		return room_explorer.exploration_result_.coverage_path_pose_stamped
 
 	# todo (rmb-ma). dry or wet ??
-	def checkoutRoom(self, room_id, nb_found_dirtspots=0, nb_found_trashcans=0):
+	def checkoutRoom(self, room_id, cleaning_method, nb_found_dirtspots=0, nb_found_trashcans=0):
 		self.printMsg("checkout dry cleaned room: " + str(room_id))
 
-		cleaning_tasks = copy(self.database_handler_.database_.getRoomById(room_id).open_cleaning_tasks_)
-		for task in cleaning_tasks:
+		#cleaning_tasks = copy(self.database_handler_.database_.getRoomById(room_id).open_cleaning_tasks_)
+
+		self.database_handler_.checkoutCompletedRoom(
+			self.database_handler_.database_.getRoomById(room_id),
+			assignment_type=cleaning_method - 1)
+
+		if -1 in self.database_handler_.database_.getRoomById(room_id).open_cleaning_tasks_:  # trash
 			self.database_handler_.checkoutCompletedRoom(
 				self.database_handler_.database_.getRoomById(room_id),
-				assignment_type=task)
+				assignment_type=-1)
 
 		# Adding log entry for dry cleaning (but two  )
 		self.database_handler_.addLogEntry(

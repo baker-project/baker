@@ -4,12 +4,10 @@ from abstract_cleaning_behavior import AbstractCleaningBehavior
 from move_base_path_behavior import MoveBasePathBehavior
 from move_base_wall_follow_behavior import MoveBaseWallFollowBehavior
 
-import rospy
 from geometry_msgs.msg import Quaternion
 import std_srvs.srv
 from threading import Thread
 import services_params as srv
-import dynamic_reconfigure.client
 from math import pi
 
 class WetCleaningBehavior(AbstractCleaningBehavior):
@@ -24,10 +22,6 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		super(WetCleaningBehavior, self).__init__(behavior_name, interrupt_var)
 		self.start_cleaning_service_str_ = srv.START_CLEANING_SERVICE_STR
 		self.stop_cleaning_service_str_ = srv.STOP_CLEANING_SERVICE_STR
-
-		self.coverage_monitor_dynamic_reconfigure_service_str_ = srv.COVERAGE_MONITOR_DYNAMIC_RECONFIGURE_SERVICE_STR
-		self.receive_coverage_image_service_str_ = srv.RECEIVE_COVERAGE_IMAGE_SERVICE_STR
-		self.stop_coverage_monitoring_service_str_ = srv.STOP_COVERAGE_MONITORING_SERVICE_STR
 
 		self.move_base_wall_follow_service_str_ = srv.MOVE_BASE_WALL_FOLLOW_SERVICE_STR
 
@@ -48,23 +42,12 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		self.robot_frame_id_ = robot_frame_id
 		self.use_cleaning_device_ = use_cleaning_device  # hack: cleaning device can be turned off for trade fair show
 
-		self.map_data_ = self.database_handler_.database_.global_map_data_.map_image_
-		self.map_resolution_ = self.database_handler_.database_.global_map_data_.map_resolution_
-		self.map_origin_ = self.database_handler_.database_.global_map_data_.map_origin_
-		self.map_header_frame_id_ = self.database_handler_.database_.global_map_data_.map_header_frame_id_
-
 	def returnToRobotStandardState(self):
 		if self.use_cleaning_device_:
 			self.stopCleaningDevice()
 
 	def callTriggerService(self, service_name):
-		print("Call for service {}".format(service_name))
-		rospy.wait_for_service(service_name)
-		try:
-			req = rospy.ServiceProxy(service_name, std_srvs.srv.Trigger)
-			req()
-		except rospy.ServiceException, e:
-			print("Service call to {} failed: {}".format(service_name, e))
+		self.callService(service_name, service_message=std_srvs.srv.Trigger)
 
 	def startCleaningDevice(self):
 		assert self.use_cleaning_device_
@@ -74,35 +57,9 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		assert self.use_cleaning_device_
 		self.callTriggerService(self.stop_cleaning_service_str_)
 
-	def stopCoverageMonitoring(self):
-		self.callTriggerService(self.stop_coverage_monitoring_service_str_)
-
-	# coverage_monitor_server: set the robot configuration (robot_radius, coverage_radius, coverage_offset)
-	# with dynamic reconfigure and turn on logging of the cleaned path (service "start_coverage_monitoring")
-	def startCoverageMonitoring(self):
-		try:
-			print("Start coverage monitoring")
-
-			coverage_circle_offset_transform_x = 0.5 * (self.field_of_view_[0].x + self.field_of_view_[2].x)
-			coverage_circle_offset_transform_y = 0.5 * (self.field_of_view_[0].y + self.field_of_view_[1].y)
-
-			client = dynamic_reconfigure.client.Client(self.coverage_monitor_dynamic_reconfigure_service_str_, timeout=5)
-
-			rospy.wait_for_service(self.coverage_monitor_dynamic_reconfigure_service_str_ + "/set_parameters")
-			client.update_configuration({
-				"map_frame": self.map_header_frame_id_, "robot_frame": self.robot_frame_id_,
-				"coverage_radius": self.coverage_radius_,
-				"coverage_circle_offset_transform_x": coverage_circle_offset_transform_x,
-				"coverage_circle_offset_transform_y": coverage_circle_offset_transform_y,
-				"coverage_circle_offset_transform_z": 0.0,
-				"robot_trajectory_recording_active": True
-			})
-
-		except rospy.ServiceException, e:
-			print("Dynamic reconfigure request to " + self.coverage_monitor_dynamic_reconfigure_service_str_ + " failed: %s" % e)
-
 	def executeCustomBehaviorInRoomId(self, room_id):
 
+		# todo (rmb-ma) create a abstract_cleaning common method go to the room and compute path
 		self.printMsg('Starting Wet Cleaning of room ID {}'.format(room_id))
 		starting_position = self.room_information_in_meter_[room_id].room_center
 		self.move_base_handler_.setParameters(
@@ -121,15 +78,19 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		if len(path) == 0 or self.handleInterrupt() >= 1:
 			return
 
+		thread_move_to_the_room.join()
+		if self.move_base_handler_.failed():
+			self.printMsg('Room center is not accessible. Failed to clean room {}'.format(room_id))
+			return
+
 		if self.use_cleaning_device_:
 			self.startCleaningDevice()
-
-		self.startCoverageMonitoring()
 
 		path_follower = MoveBasePathBehavior("MoveBasePathBehavior_PathFollowing", self.interrupt_var_,
 											 self.move_base_path_service_str_)
 
-		thread_move_to_the_room.join()
+		self.startCoverageMonitoring()
+
 		if self.move_base_handler_.failed():
 			self.printMsg('Room center is not accessible. Failed to clean room {}'.format(room_id))
 			return
@@ -144,12 +105,11 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		)
 
 		path_follower.setInterruptVar(self.interrupt_var_)
-		#path_follower.executeBehavior() todo rmb-ma
+		path_follower.executeBehavior()
 		if self.handleInterrupt() >= 1:
 			return
 
 		wall_follower = MoveBaseWallFollowBehavior("MoveBaseWallFollowBehavior", self.interrupt_var_, self.move_base_wall_follow_service_str_)
-		# todo rmb-ma: self.coverage_map_response_.coverage_map, before room_map_data
 
 		wall_follower.setParameters(
 			map=self.map_data_,
@@ -180,4 +140,6 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 			self.stopCleaningDevice()
 
 		# Checkout the completed room
-		self.checkoutRoom(room_id=room_id)
+		self.checkCoverage(room_id)
+		self.stopCoverageMonitoring()
+		self.checkoutRoom(room_id=room_id, cleaning_method=2)

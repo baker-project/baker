@@ -38,21 +38,20 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 		(self.trash_topic_subscriber_, self.dirt_topic_subscriber_) = (None, None)
 		(self.found_dirtspots_, self.found_trashcans_) = ([], [])
 
-
 	# Method for setting parameters for the behavior
 	def setParameters(self, database_handler, sequencing_result, mapping, robot_radius, coverage_radius, field_of_view,
 					  field_of_view_origin, room_information_in_meter):
-		self.database_handler_ = database_handler
-		self.sequencing_result_ = sequencing_result
-		self.mapping_ = mapping
-		self.room_exploration_service_str_ = srv.ROOM_EXPLORATION_SERVICE_STR
-		self.move_base_path_service_str_ = srv.MOVE_BASE_PATH_SERVICE_STR
 
-		self.robot_radius_ = robot_radius
-		self.coverage_radius_ = coverage_radius
-		self.field_of_view_ = field_of_view  # this field of view represents the off-center iMop floor wiping device
-		self.field_of_view_origin_ = field_of_view_origin
-		self.room_information_in_meter_ = room_information_in_meter
+		self.setCommonParameters(
+			database_handler=database_handler,
+			sequencing_result=sequencing_result,
+			room_information_in_meter=room_information_in_meter,
+			mapping=mapping,
+			robot_radius=robot_radius,
+			coverage_radius=coverage_radius,
+			field_of_view_origin=field_of_view_origin,
+			field_of_view=field_of_view
+		)
 
 	# Empty the trash detected in self.detected_trash_
 	def trashcanRoutine(self, room_id, detected_trash):
@@ -82,13 +81,8 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 
 		dirt_remover.executeBehavior()
 
-	def callEmptyService(self, service):
-		rospy.wait_for_service(service)
-		try:
-			rospy.ServiceProxy(service, Empty)()
-			self.printMsg('Called ' + service)
-		except rospy.ServiceException, e:
-			self.printMsg("Service call failed: %s" % e)
+	def callEmptyService(self, service_name):
+		self.callService(service_name, Empty)
 
 	def stopDetections(self):
 		Thread(target=self.callEmptyService, args=(srv.STOP_DIRT_DETECTOR_SERVICE_STR,)).start()
@@ -174,14 +168,12 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 		if DryCleaningBehavior.containsDirtTask(cleaning_tasks):
 			self.dirt_topic_subscriber_ = rospy.Subscriber('dirt_detector_topic', DetectionArray, self.dirtDetectionCallback)
 
-		# todo (rmb-ma). Hack to display computed path
-		#with open('/home/rmb/Desktop/rmb-ma_notes/path_visualizer/path.txt', 'w') as f:
-		#	f.write(str(path))
-
 		thread_move_to_the_room.join()  # don't start the detections before
 		if self.move_base_handler_.failed():
 			self.printMsg('Room center is not accessible. Failed to clean room {}'.format(room_id))
 			return
+
+		self.startCoverageMonitoring()  # todo (rmb-ma) pause the coverage monitoring when no detections on
 
 		while len(path) > 0:
 			(self.detected_trashs_, self.detected_dirts_) = ([], [])
@@ -234,4 +226,9 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 			self.trash_topic_subscriber_.unregister()
 
 		# Checkout the completed room
-		self.checkoutRoom(room_id=room_id, nb_found_dirtspots=len(self.found_dirtspots_), nb_found_trashcans=len(self.found_trashcans_))
+		assert (self.containsDirtTask(cleaning_tasks) and self.containsTrashcanTask(cleaning_tasks)) or self.containsTrashcanTask(cleaning_tasks)
+		cleaning_method = 1 if DryCleaningBehavior.containsDirtTask(cleaning_tasks) else 0
+
+		self.checkCoverage(room_id)
+		self.stopCoverageMonitoring()
+		self.checkoutRoom(room_id=room_id, cleaning_method=cleaning_method, nb_found_dirtspots=len(self.found_dirtspots_), nb_found_trashcans=len(self.found_trashcans_))

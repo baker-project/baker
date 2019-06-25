@@ -87,7 +87,6 @@ class BehaviorContainer:
 	def runAction(self, action_client, action_goal):
 
 		self.is_finished = False
-
 		self.printMsg("Waiting for action " + str(action_client.action_client.ns) + " to become available...")
 		action_client.wait_for_server()
 		while not self.is_finished:

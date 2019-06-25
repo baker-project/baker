@@ -39,13 +39,14 @@ class RobotProperties():
 class GlobalSettings():
 	# Should incomplete assignments be completed in the next opportunity?
 	# (BOOLEAN)
-	shall_auto_complete_ = True  # todo (rmb-ma) check if used
+	shall_auto_complete_ = True  # todo (rmb-ma). Unused. Remove ?
 	# Maximum time the robot has for completing missed cleanups
 	# (FLOAT)
-	max_aux_time_ = 0  # todo (rmb-ma) check if used
+	max_aux_time_ = 0  # todo (rmb-ma). Unused. Remove ?
 	# Amount of days between two executions of the same assignment. Default is two weeks (14)
 	# (INTEGER)
-	assignment_timedelta_ = 14  # todo (rmb-ma) check if it's not hardcoded somewhere
+	assignment_timedelta_ = 14  # todo (rmb-ma). It's harcoded in some places (in the getTodayIndex functions for example)
+	# should be a number of weeks?
 
 	def __str__(self):
 		return "[GlobalSettings]: autocomplete {} | maxAuxTime {} | timeDelta {}".format(self.shall_auto_complete_,

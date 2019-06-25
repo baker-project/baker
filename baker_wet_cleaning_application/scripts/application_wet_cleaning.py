@@ -103,7 +103,7 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			self.database_handler_.computeAllDueRooms()
 			print "len(self.database_.rooms_):", len(self.database_.rooms_), "\ndue rooms:"
 			for room in self.database_handler_.due_rooms_:
-				print room.room_name_
+				print(room.room_name_)
 		else:
 			self.database_handler_.restoreDueRooms()
 
@@ -120,6 +120,31 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.database_handler_.applyChangesToDatabase()
 
 		return rooms_dry_cleaning, rooms_wet_cleaning
+
+	# checks if all these rooms are due rooms are cleaned in the database
+	# throws exception if not
+	def checkAbstractProcessCleaning(self, rooms_cleaning, cleaning_method):
+		print("checking for cleaning_method{}".format(cleaning_method))
+		cleaning_duration_tolerance = 24*60  # in minutes
+		now = datetime.datetime.now()
+
+		for room in rooms_cleaning:
+			last_cleaning_date = room.room_cleaning_datestamps_[cleaning_method]
+			if now - datetime.timedelta(minutes=cleaning_duration_tolerance) > last_cleaning_date:
+				# todo (rmb-ma) find the best way to handle exceptions for the application
+				raise RuntimeError("Room {} supposed to be cleaned (cleaning_method {}) but it's not (last_cleaning_date={})"
+								   .format(room.room_id_, cleaning_method, last_cleaning_date))
+
+	def checkProcessWetCleaning(self, rooms_cleaning):
+		self.checkAbstractProcessCleaning(rooms_cleaning, cleaning_method=2)
+
+	def checkProcessDryCleaning(self, rooms_cleaning):
+		# warning. only trash ? Trash + dirt ?
+		self.checkAbstractProcessCleaning(rooms_cleaning, cleaning_method=1)
+
+	def checkNoUndoneCleaningTasks(self):
+		# todo (rmb-ma)
+		pass
 
 	# Implement application procedures of inherited classes here.
 	def executeCustomBehavior(self, last_execution_date_override=None):
@@ -184,9 +209,10 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		if self.database_.application_data_.last_execution_date_ is None:
 			self.database_.application_data_.last_execution_date_ = datetime.datetime(datetime.MINYEAR, 1, 1)
 		days_delta = datetime.datetime.now() - self.database_.application_data_.last_execution_date_
-		print "------------ CURRENT_DATE: " + str(datetime.datetime.now())
-		print "------------ LAST_DATE: " + str(self.database_.application_data_.last_execution_date_)
-		print "------------ DAYS_DELTA: " + str(days_delta) + " " + str(days_delta.days)
+		print("-- CURRENT_DATE: " + str(datetime.datetime.now()))
+		print("-- LAST_DATE: " + str(self.database_.application_data_.last_execution_date_))
+		print("-- DAYS_DELTA: " + str(days_delta) + " " + str(days_delta.days))
+		print("-- PLANNING_OFFSET: " + str(self.database_.application_data_.planning_offset_))
 
 		shall_continue_old_cleaning = self.database_.application_data_.progress_[0] == 1 and days_delta.days == 0
 		if self.database_.application_data_.progress_[0] == 1 and days_delta.days != 0:
@@ -213,12 +239,14 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			return
 
 		self.processDryCleaning(rooms_dry_cleaning, is_overdue=False)
+		self.checkProcessDryCleaning(rooms_dry_cleaning)
 
 		if self.handleInterrupt() >= 1:
 			return
 
 		self.processWetCleaning(rooms_wet_cleaning, is_overdue=False)
-		
+		self.checkProcessWetCleaning(rooms_wet_cleaning)
+
 		if self.handleInterrupt() >= 1:
 			return
 
@@ -229,13 +257,15 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.database_.application_data_.last_planning_date_[1] = datetime.datetime.now()
 		self.database_handler_.applyChangesToDatabase()
 
-		self.processDryCleaning(rooms_dry_cleaning, True)
+		#self.processDryCleaning(rooms_dry_cleaning, is_overdue=True)
+		self.checkProcessDryCleaning(rooms_dry_cleaning)
 
 		if self.handleInterrupt() >= 1:
 			return
 
-		self.processWetCleaning(rooms_wet_cleaning, True)
-		
+		#self.processWetCleaning(rooms_wet_cleaning, is_overdue=True)
+		self.checkProcessWetCleaning(rooms_wet_cleaning)
+
 		if self.handleInterrupt() >= 1:
 			return
 

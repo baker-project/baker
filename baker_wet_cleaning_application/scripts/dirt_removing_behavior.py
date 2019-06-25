@@ -54,7 +54,6 @@ class DirtRemovingBehavior(behavior_container.BehaviorContainer):
 		accessible_poses = response.accessible_poses_on_perimeter
 		return accessible_poses
 
-	# todo (rmb-ma). find the best accessible location
 	@staticmethod
 	def computeBestPose(accessible_locations):
 		assert(len(accessible_locations) > 0)
@@ -69,7 +68,6 @@ class DirtRemovingBehavior(behavior_container.BehaviorContainer):
 			if current_dist < min_dist:
 				min_dist = current_dist
 				best_pose2d = pose
-
 
 		best_pose3d = Pose()
 		(best_pose3d.position.x, best_pose3d.position.y) = (best_pose2d.x, best_pose2d.y)

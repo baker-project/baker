@@ -10,8 +10,6 @@ import os
 
 DATE_FORMAT = '%Y-%m-%d_%H:%M'
 DATABASE_LOCATION = '../resources/json'
-OFFSET = 24*8*60 # todo (rmb-ma) read from database
-
 
 def updateAndReturnPreviousPlanningOffset(planning_offset, database_location=DATABASE_LOCATION):
 	filename = database_location + '/application_data.json'
@@ -69,7 +67,7 @@ def readOffset(database_location):
 	return data['planning_offset']
 
 
-def updateRooms(data, methods, offset=0, reset_opened_tasks=False, reset_timestamps=False, reset_tmp_database=False):
+def updateRooms(data, methods_dict, offset=0, reset_opened_tasks=False, reset_timestamps=False, reset_tmp_database=False):
 	if reset_tmp_database:
 		removeTmpDatabase(database_location=DATABASE_LOCATION)
 
@@ -85,13 +83,10 @@ def updateRooms(data, methods, offset=0, reset_opened_tasks=False, reset_timesta
 		if reset_timestamps:
 			data[key]['room_cleaning_datestamps'] = [previous_date.strftime(DATE_FORMAT)] * 3
 
-		# todo (rmb-ma). doesn't work if ids are not following
-		data[key]['room_cleaning_method'] = methods[key]
+		data[key]['room_cleaning_method'] = methods_dict[key]
 
 		data[key]['room_scheduled_days'] = ['']*14
-		if methods[key] >= 0:
-			print('key {} ; today index {}'.format(key, today_index))
-		data[key]['room_scheduled_days'][today_index] = 'x' if methods[key] >= 0 else ''
+		data[key]['room_scheduled_days'][today_index] = 'x' if methods_dict[key] >= 0 else ''
 
 	return data
 

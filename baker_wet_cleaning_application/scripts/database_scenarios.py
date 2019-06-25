@@ -46,7 +46,7 @@ if __name__ == '__main__':
 							help='Cleaning method of room {} (-1: nothing, 0: dry, 1: wet, 2: both). Default -1'.format(key))
 	args = vars(parser.parse_args())
 
-	cleaning_methods = {key: args.get('room{}'.format(key)) for key in keys}
+	cleaning_methods_dict = {key: args.get('room{}'.format(key)) for key in keys}
 
 	if args['stop_application']:
 		import subprocess
@@ -58,7 +58,7 @@ if __name__ == '__main__':
 	data = database_utils.loadJsonDatabase(rooms_filename)
 	offset = database_utils.readOffset(DATABASE_LOCATION)
 
-	data = database_utils.updateRooms(data, cleaning_methods, offset=offset, reset_opened_tasks=True, reset_timestamps=True, reset_tmp_database=True)
+	data = database_utils.updateRooms(data, cleaning_methods_dict, offset=offset, reset_opened_tasks=True, reset_timestamps=True, reset_tmp_database=True)
 	database_utils.saveJsonDatabase(rooms_filename, data)
 	resetLastPlanningDate()
 
