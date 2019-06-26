@@ -58,7 +58,7 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		self.callTriggerService(self.stop_cleaning_service_str_)
 
 	def executeCustomBehaviorInRoomId(self, room_id):
-
+		self.resetCoverageMap()
 		# todo (rmb-ma) create a abstract_cleaning common method go to the room and compute path
 		self.printMsg('Starting Wet Cleaning of room ID {}'.format(room_id))
 		starting_position = self.room_information_in_meter_[room_id].room_center
@@ -79,6 +79,7 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 			return
 
 		thread_move_to_the_room.join()
+
 		if self.move_base_handler_.failed():
 			self.printMsg('Room center is not accessible. Failed to clean room {}'.format(room_id))
 			return
@@ -89,11 +90,7 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		path_follower = MoveBasePathBehavior("MoveBasePathBehavior_PathFollowing", self.interrupt_var_,
 											 self.move_base_path_service_str_)
 
-		self.startCoverageMonitoring()
-
-		if self.move_base_handler_.failed():
-			self.printMsg('Room center is not accessible. Failed to clean room {}'.format(room_id))
-			return
+		self.initCoverageMonitoring()
 
 		room_map_data = self.database_handler_.database_.getRoomById(room_id).room_map_data_
 		path_follower.setParameters(
@@ -124,20 +121,21 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 			wall_following_off_traveling_distance_threshold=0.8,
 			field_of_view_origin=self.field_of_view_origin_,
 			field_of_view=self.field_of_view_,
-			coverage_radius=self.coverage_radius_
+			coverage_radius=self.coverage_radius_,
+			previous_coverage_map=self.requestCoverageMapResponse(room_id)
 		)
+
 		wall_follower.executeBehavior()
 
 		if self.handleInterrupt() >= 1:
 			return
-
-		self.stopCoverageMonitoring()
 
 		if self.handleInterrupt() >= 1:
 			return
 
 		if self.use_cleaning_device_:
 			self.stopCleaningDevice()
+
 
 		# Checkout the completed room
 		self.checkCoverage(room_id)

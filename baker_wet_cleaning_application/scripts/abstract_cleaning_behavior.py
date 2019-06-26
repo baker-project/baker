@@ -35,6 +35,9 @@ class AbstractCleaningBehavior(BehaviorContainer):
 		self.coverage_monitor_dynamic_reconfigure_service_str_ = srv.COVERAGE_MONITOR_DYNAMIC_RECONFIGURE_SERVICE_STR
 		self.receive_coverage_image_service_str_ = srv.RECEIVE_COVERAGE_IMAGE_SERVICE_STR
 		self.stop_coverage_monitoring_service_str_ = srv.STOP_COVERAGE_MONITORING_SERVICE_STR
+		self.start_coverage_monitoring_service_str_ = srv.START_COVERAGE_MONITORING_SERVICE_STR
+
+		self.coverage_map_ = None
 
 	def setCommonParameters(self, database_handler, sequencing_result, mapping, coverage_radius, field_of_view,
 					   field_of_view_origin, room_information_in_meter, robot_radius):
@@ -66,7 +69,7 @@ class AbstractCleaningBehavior(BehaviorContainer):
 
 	# coverage_monitor_server: set the robot configuration (robot_radius, coverage_radius, coverage_offset)
 	# with dynamic reconfigure and turn on logging of the cleaned path (service "start_coverage_monitoring")
-	def startCoverageMonitoring(self):
+	def initCoverageMonitoring(self):
 		try:
 			print("Start coverage monitoring")
 
@@ -88,7 +91,22 @@ class AbstractCleaningBehavior(BehaviorContainer):
 		except rospy.ServiceException, e:
 			print("Dynamic reconfigure request to " + self.coverage_monitor_dynamic_reconfigure_service_str_ + " failed: %s" % e)
 
-	# todo (rmb-ma) copy past with mose_base_wall_follow_behavior
+	def startCoverageMonitoring(self):
+		self.callService(self.start_coverage_monitoring_service_str_, std_srvs.srv.Trigger);
+
+	def updateCoverageMap(self, room_id):
+		coverage_map = self.requestCoverageMapResponse(room_id)
+		coverage_map = CvBridge().imgmsg_to_cv2(coverage_map, desired_encoding="passthrough")
+		if self.coverage_map_ is None:
+			self.coverage_map_ = coverage_map
+
+		else:
+			self.coverage_map_ = cv2.add(self.coverage_map_, coverage_map)
+
+	def resetCoverageMap(self):
+		self.coverage_map_ = None
+
+	# todo (rmb-ma) copy past with move_base_wall_follow_behavior
 	def requestCoverageMapResponse(self, room_id):
 		self.coverage_map_service_ = srv.RECEIVE_COVERAGE_IMAGE_SERVICE_STR
 
@@ -107,35 +125,21 @@ class AbstractCleaningBehavior(BehaviorContainer):
 			request.check_for_footprint = False
 			request.check_number_of_coverages = False
 			return coverage_image_getter(request).coverage_map
-			print ("Receive coverage image returned")
 		except rospy.ServiceException, e:
 			print ("Service call to " + self.coverage_map_service_ + " failed: %s" % e)
 
 	def checkCoverage(self, room_id):
-		covered_image = self.requestCoverageMapResponse(room_id)
-		covered_image = CvBridge().imgmsg_to_cv2(covered_image, desired_encoding="passthrough")
-
 		map_image = self.database_handler_.database_.getRoomById(room_id).room_map_data_
 		map_image = CvBridge().imgmsg_to_cv2(map_image, desired_encoding="passthrough")
 
-		diff_image = cv2.absdiff(map_image, covered_image)  # useful? todo not absdiff and 0 if negative
-
-		ratio_cleaned = float(np.sum(covered_image))/np.sum(map_image)
+		ratio_cleaned = float(np.sum(self.coverage_map_))/np.sum(map_image)
 
 		print("CLEANED {}".format(ratio_cleaned))
-
-		import matplotlib.pyplot as plt
-		f, axarr = plt.subplots(1, 3)
-		axarr[0].imshow(map_image)
-		axarr[1].imshow(covered_image)
-		axarr[2].imshow(diff_image)
-		plt.show()
 
 		if 0.9 < ratio_cleaned < 0.5:
 			raise RuntimeWarning('Only {}% of room {} cleaned'.format(100*ratio_cleaned, room_id))
 		if ratio_cleaned < 0.9:
 			raise RuntimeError('Only {}% of room {} cleaned'.format(100*ratio_cleaned, room_id))
-
 
 	# Method for returning to the standard state of the robot
 	def returnToRobotStandardState(self):
@@ -171,11 +175,7 @@ class AbstractCleaningBehavior(BehaviorContainer):
 
 		return room_explorer.exploration_result_.coverage_path_pose_stamped
 
-	# todo (rmb-ma). dry or wet ??
 	def checkoutRoom(self, room_id, cleaning_method, nb_found_dirtspots=0, nb_found_trashcans=0):
-		self.printMsg("checkout dry cleaned room: " + str(room_id))
-
-		#cleaning_tasks = copy(self.database_handler_.database_.getRoomById(room_id).open_cleaning_tasks_)
 
 		self.database_handler_.checkoutCompletedRoom(
 			self.database_handler_.database_.getRoomById(room_id),
@@ -186,7 +186,7 @@ class AbstractCleaningBehavior(BehaviorContainer):
 				self.database_handler_.database_.getRoomById(room_id),
 				assignment_type=-1)
 
-		# Adding log entry for dry cleaning (but two  )
+		# Adding log entry for dry cleaning + todo (rmb-ma) for wet cleaning
 		self.database_handler_.addLogEntry(
 			room_id=room_id,
 			status=1,  # 1=Completed

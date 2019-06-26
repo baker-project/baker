@@ -141,10 +141,10 @@ class Database:
 		self.global_map_data_ = database_classes.GlobalMapData()
 		# Get an open cv representation of the map
 		map_opencv = cv2.imread(self.global_map_image_filename_, 0)
-		self.global_map_data_.map_image_ = bridge.cv2_to_imgmsg(map_opencv, encoding = "mono8")
+		self.global_map_data_.map_image_ = bridge.cv2_to_imgmsg(map_opencv, encoding="mono8")
 		# Get an open cv representation of the segmented map
 		map_segmented_opencv = cv2.imread(self.global_map_segmented_image_filename_, 0)
-		self.global_map_data_.map_image_segmented_ = bridge.cv2_to_imgmsg(map_segmented_opencv, encoding = "mono8") 
+		self.global_map_data_.map_image_segmented_ = bridge.cv2_to_imgmsg(map_segmented_opencv, encoding="mono8")
 		# Get the map resolution
 		self.global_map_data_.map_resolution_ = dict.get("map_resolution")
 		# Get the map origin

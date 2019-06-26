@@ -6,7 +6,8 @@ from scitos_msgs.msg import MoveBaseWallFollowAction
 from scitos_msgs.msg import MoveBaseWallFollowGoal
 import ipa_building_msgs.srv
 import behavior_container
-
+from cv_bridge import CvBridge, CvBridgeError
+import cv2
 
 class MoveBaseWallFollowBehavior(behavior_container.BehaviorContainer):
 
@@ -29,7 +30,7 @@ class MoveBaseWallFollowBehavior(behavior_container.BehaviorContainer):
 	# Method for setting parameters for the behavior
 	def setParameters(self, map, area_map, coverage_map_service, map_resolution, map_origin, path_tolerance,
 					  goal_position_tolerance, goal_angle_tolerance, target_wall_distance, wall_following_off_traveling_distance_threshold,
-					  field_of_view, field_of_view_origin, coverage_radius):
+					  field_of_view, field_of_view_origin, coverage_radius, previous_coverage_map):
 		self.map_ = map		# contains map, map_resolution, map_origin
 		self.area_map_ = area_map
 		self.coverage_map_service_ = coverage_map_service
@@ -44,8 +45,12 @@ class MoveBaseWallFollowBehavior(behavior_container.BehaviorContainer):
 		self.field_of_view_ = field_of_view
 		self.field_of_view_origin_ = field_of_view_origin
 		self.coverage_radius_ = coverage_radius
+		self.previous_coverage_map_ = CvBridge().imgmsg_to_cv2(previous_coverage_map, desired_encoding='passthrough')
+
+
 
 	def requestCoverageMapResponse(self):
+
 		self.printMsg("Receive coverage image from coverage monitor " + self.coverage_map_service_)
 		rospy.wait_for_service(self.coverage_map_service_)
 		try:
@@ -59,14 +64,23 @@ class MoveBaseWallFollowBehavior(behavior_container.BehaviorContainer):
 			request.coverage_radius = self.coverage_radius_
 			request.check_for_footprint = False
 			request.check_number_of_coverages = False
-			self.coverage_map_response_ = coverage_image_getter(request)
-			print ("Receive coverage image returned")
+			coverage_map = coverage_image_getter(request).coverage_map
+
+			coverage_map = CvBridge().imgmsg_to_cv2(coverage_map, desired_encoding="passthrough")
+			actual_coverage_map = cv2.absdiff(coverage_map, self.previous_coverage_map_)
+			import matplotlib.pyplot as plt
+			plt.imshow(actual_coverage_map)
+			plt.show()
+
+			self.coverage_map_ = CvBridge().cv2_to_imgmsg(actual_coverage_map, encoding='mono8')
+
 		except rospy.ServiceException, e:
 			print ("Service call to " + self.coverage_map_service_ + " failed: %s" % e)
 
+
 	def computeNewGoalFromPausedResult(self, prev_action_goal, result):
 		self.requestCoverageMapResponse()
-		prev_action_goal.coverage_map = self.coverage_map_response_.coverage_map
+		prev_action_goal.coverage_map = self.coverage_map_
 		return prev_action_goal
 
 	# Implemented Behavior
@@ -76,7 +90,7 @@ class MoveBaseWallFollowBehavior(behavior_container.BehaviorContainer):
 		move_base_goal = MoveBaseWallFollowGoal()
 		move_base_goal.map = self.map_
 		move_base_goal.area_map = self.area_map_
-		move_base_goal.coverage_map = self.coverage_map_response_.coverage_map
+		move_base_goal.coverage_map = self.coverage_map_
 		move_base_goal.map_resolution = self.map_resolution_
 		move_base_goal.map_origin = self.map_origin_
 		move_base_goal.path_tolerance = self.path_tolerance_
