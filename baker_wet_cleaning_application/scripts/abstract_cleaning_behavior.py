@@ -40,7 +40,7 @@ class AbstractCleaningBehavior(BehaviorContainer):
 		self.coverage_map_ = None
 
 	def setCommonParameters(self, database_handler, sequencing_result, mapping, coverage_radius, field_of_view,
-					   field_of_view_origin, room_information_in_meter, robot_radius):
+					   field_of_view_origin, room_information_in_meter, robot_radius, robot_frame_id):
 		self.database_handler_ = database_handler
 		self.sequencing_result_ = sequencing_result
 		self.mapping_ = mapping
@@ -49,6 +49,7 @@ class AbstractCleaningBehavior(BehaviorContainer):
 		self.room_information_in_meter_ = room_information_in_meter
 		self.field_of_view_origin_ = field_of_view_origin
 		self.robot_radius_ = robot_radius
+		self.robot_frame_id_ = robot_frame_id
 
 		self.map_data_ = self.database_handler_.database_.global_map_data_.map_image_
 		self.map_resolution_ = self.database_handler_.database_.global_map_data_.map_resolution_
@@ -128,18 +129,24 @@ class AbstractCleaningBehavior(BehaviorContainer):
 		except rospy.ServiceException, e:
 			print ("Service call to " + self.coverage_map_service_ + " failed: %s" % e)
 
-	def checkCoverage(self, room_id):
+	def checkAndComputeCoverage(self, room_id):
 		map_image = self.database_handler_.database_.getRoomById(room_id).room_map_data_
 		map_image = CvBridge().imgmsg_to_cv2(map_image, desired_encoding="passthrough")
 
-		ratio_cleaned = float(np.sum(self.coverage_map_))/np.sum(map_image)
+		coverage_map = self.requestCoverageMapResponse(room_id)
+		coverage_map = CvBridge().imgmsg_to_cv2(coverage_map, desired_encoding="passthrough")
+
+		ratio_cleaned = float(np.sum(coverage_map))/np.sum(map_image)
 
 		print("CLEANED {}".format(ratio_cleaned))
 
-		if 0.9 < ratio_cleaned < 0.5:
-			raise RuntimeWarning('Only {}% of room {} cleaned'.format(100*ratio_cleaned, room_id))
-		if ratio_cleaned < 0.9:
-			raise RuntimeError('Only {}% of room {} cleaned'.format(100*ratio_cleaned, room_id))
+		#if 0.9 < ratio_cleaned < 0.5:
+		#	raise RuntimeWarning('Only {}% of room {} cleaned'.format(100*ratio_cleaned, room_id))
+		#if ratio_cleaned < 0.9:
+		#	raise RuntimeError('Only {}% of room {} cleaned'.format(100*ratio_cleaned, room_id))
+
+		# todo (rmb-ma) compute coverage in m
+		return int(np.sum(coverage_map))
 
 	# Method for returning to the standard state of the robot
 	def returnToRobotStandardState(self):
@@ -175,7 +182,9 @@ class AbstractCleaningBehavior(BehaviorContainer):
 
 		return room_explorer.exploration_result_.coverage_path_pose_stamped
 
-	def checkoutRoom(self, room_id, cleaning_method, nb_found_dirtspots=0, nb_found_trashcans=0):
+	def checkoutRoom(self, room_id, cleaning_method, nb_found_dirtspots=0, nb_found_trashcans=0, coverage_area=0):
+
+		print(coverage_area)
 
 		self.database_handler_.checkoutCompletedRoom(
 			self.database_handler_.database_.getRoomById(room_id),
@@ -190,10 +199,10 @@ class AbstractCleaningBehavior(BehaviorContainer):
 		self.database_handler_.addLogEntry(
 			room_id=room_id,
 			status=1,  # 1=Completed
-			cleaning_task=0,  # 1=wet only
+			cleaning_task=cleaning_method,  # 1=wet only
 			found_dirtspots=nb_found_dirtspots,
 			found_trashcans=nb_found_trashcans,
-			cleaned_surface_area=0,
+			cleaned_surface_area=coverage_area,
 			room_issues=[],
 			used_water_amount=0,
 			battery_usage=0

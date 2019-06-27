@@ -36,10 +36,10 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 			robot_radius=robot_radius,
 			coverage_radius=coverage_radius,
 			field_of_view_origin=field_of_view_origin,
-			field_of_view=field_of_view
+			field_of_view=field_of_view,
+			robot_frame_id=robot_frame_id
 		)
 		# Parameters set from the outside
-		self.robot_frame_id_ = robot_frame_id
 		self.use_cleaning_device_ = use_cleaning_device  # hack: cleaning device can be turned off for trade fair show
 
 	def returnToRobotStandardState(self):
@@ -136,8 +136,7 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		if self.use_cleaning_device_:
 			self.stopCleaningDevice()
 
-
 		# Checkout the completed room
-		self.checkCoverage(room_id)
+		coverage_area = self.checkAndComputeCoverage(room_id)
 		self.stopCoverageMonitoring()
-		self.checkoutRoom(room_id=room_id, cleaning_method=2)
+		self.checkoutRoom(room_id=room_id, cleaning_method=2, coverage_area=coverage_area)

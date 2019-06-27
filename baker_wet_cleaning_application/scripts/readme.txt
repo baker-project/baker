@@ -144,10 +144,10 @@ Basic function of application_wet_cleaning.py (ordered)
 =======================================================
 
 - Loads database
-- Retreives all due rooms and sorts them after cleaning method
+- Retrieves all due rooms and sorts them after cleaning method
 - Performs dry cleaning process of due rooms
 - Performs wet cleaning process of due rooms
-- Retreives all overdue rooms and sorts them after cleaning method
+- Retrieves all overdue rooms and sorts them after cleaning method
 - Performs dry cleaning process of overdue rooms
 - Performs wet cleaning process of overdue rooms
 - Documents completion of cleaning
@@ -161,7 +161,7 @@ application_wet_cleaning.py
 |- database.py
 |  |- database_classes.py
 |- database_handler.py
-|- map_handling_beahvior.py
+|- map_handling_behavior.py
 |  |- room_sequencing_behavior.py
 |- dry_cleaning_behavior.py
 |  |- tool_changing_behavior.py

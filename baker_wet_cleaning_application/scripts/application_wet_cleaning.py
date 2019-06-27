@@ -53,7 +53,8 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			coverage_radius=self.coverage_radius_,
 			field_of_view=self.field_of_view_,
 			field_of_view_origin=self.field_of_view_origin_,
-			room_information_in_meter=self.database_handler_.getRoomInformationInMeter(rooms_dry_cleaning)
+			room_information_in_meter=self.database_handler_.getRoomInformationInMeter(rooms_dry_cleaning),
+			robot_frame_id=self.robot_frame_id_
 		)
 		self.dry_cleaner_.executeBehavior()
 
@@ -239,14 +240,18 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 			return
 
 		self.processDryCleaning(rooms_dry_cleaning, is_overdue=False)
-		self.checkProcessDryCleaning(rooms_dry_cleaning)
+		if self.handleInterrupt() >= 1:
+			return
 
+		self.checkProcessDryCleaning(rooms_dry_cleaning)
 		if self.handleInterrupt() >= 1:
 			return
 
 		self.processWetCleaning(rooms_wet_cleaning, is_overdue=False)
-		self.checkProcessWetCleaning(rooms_wet_cleaning)
+		if self.handleInterrupt() >= 1:
+			return
 
+		self.checkProcessWetCleaning(rooms_wet_cleaning)
 		if self.handleInterrupt() >= 1:
 			return
 

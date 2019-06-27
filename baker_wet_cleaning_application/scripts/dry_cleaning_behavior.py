@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
-
 import rospy
 from cob_object_detection_msgs.msg import DetectionArray
 from geometry_msgs.msg import Pose2D, Quaternion
-from std_srvs.srv import Empty
+from std_srvs.srv import Trigger
 
 from move_base_path_behavior import MoveBasePathBehavior
 from dirt_removing_behavior import DirtRemovingBehavior
@@ -40,7 +39,7 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 
 	# Method for setting parameters for the behavior
 	def setParameters(self, database_handler, sequencing_result, mapping, robot_radius, coverage_radius, field_of_view,
-					  field_of_view_origin, room_information_in_meter):
+					  field_of_view_origin, room_information_in_meter, robot_frame_id):
 
 		self.setCommonParameters(
 			database_handler=database_handler,
@@ -50,7 +49,8 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 			robot_radius=robot_radius,
 			coverage_radius=coverage_radius,
 			field_of_view_origin=field_of_view_origin,
-			field_of_view=field_of_view
+			field_of_view=field_of_view,
+			robot_frame_id=robot_frame_id
 		)
 
 	# Empty the trash detected in self.detected_trash_
@@ -81,12 +81,13 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 
 		dirt_remover.executeBehavior()
 
-	def callEmptyService(self, service_name):
-		self.callService(service_name, Empty)
+	# todo rmb-ma. tmp because the message will change
+	def callTriggerServiceTmp(self, service_name):
+		self.callService(service_name, Trigger)
 
 	def stopDetections(self):
-		Thread(target=self.callEmptyService, args=(srv.STOP_DIRT_DETECTOR_SERVICE_STR,)).start()
-		Thread(target=self.callEmptyService, args=(srv.STOP_TRASH_DETECTOR_SERVICE_STR,)).start()
+		Thread(target=self.callTriggerServiceTmp, args=(srv.STOP_DIRT_DETECTOR_SERVICE_STR,)).start()
+		Thread(target=self.callTriggerServiceTmp, args=(srv.STOP_TRASH_DETECTOR_SERVICE_STR,)).start()
 
 	@staticmethod
 	def isAlreadyDetected(detections, new_detection):
@@ -179,10 +180,10 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 			(self.detected_trashs_, self.detected_dirts_) = ([], [])
 
 			if DryCleaningBehavior.containsTrashcanTask(cleaning_tasks):
-				Thread(target=self.callEmptyService, args=(srv.START_TRASH_DETECTOR_SERVICE_STR,)).start()
+				Thread(target=self.callTriggerServiceTmp, args=(srv.START_TRASH_DETECTOR_SERVICE_STR,)).start()
 
 			if DryCleaningBehavior.containsDirtTask(cleaning_tasks):
-				Thread(target=self.callEmptyService, args=(srv.START_DIRT_DETECTOR_SERVICE_STR,)).start()
+				Thread(target=self.callTriggerServiceTmp, args=(srv.START_DIRT_DETECTOR_SERVICE_STR,)).start()
 
 			room_map_data = self.database_handler_.database_.getRoomById(room_id).room_map_data_
 			path_follower.setParameters(
@@ -229,6 +230,6 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 		assert (self.containsDirtTask(cleaning_tasks) and self.containsTrashcanTask(cleaning_tasks)) or self.containsTrashcanTask(cleaning_tasks)
 		cleaning_method = 1 if DryCleaningBehavior.containsDirtTask(cleaning_tasks) else 0
 
-		self.checkCoverage(room_id)
+		self.checkAndComputeCoverage(room_id)
 		self.stopCoverageMonitoring()
 		self.checkoutRoom(room_id=room_id, cleaning_method=cleaning_method, nb_found_dirtspots=len(self.found_dirtspots_), nb_found_trashcans=len(self.found_trashcans_))

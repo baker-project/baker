@@ -67,8 +67,8 @@ IpaDirtDetectionPreprocessing::ClientPreprocessing::ClientPreprocessing(ros::Nod
 //	dirt_detection_image_pub_ = it_->advertise("dirt_detections", 1);
 
 	// services
-	activate_dirt_detection_service_server_ = node_handle_.advertiseService("activate_dirt_detection", &IpaDirtDetectionPreprocessing::ClientPreprocessing::activateDirtDetection, this);
-	deactivate_dirt_detection_service_server_ = node_handle_.advertiseService("deactivate_dirt_detection", &IpaDirtDetectionPreprocessing::ClientPreprocessing::deactivateDirtDetection, this);
+	activate_dirt_detection_service_server_ = node_handle_.advertiseService("activate_detection", &IpaDirtDetectionPreprocessing::ClientPreprocessing::activateDirtDetection, this);
+	deactivate_dirt_detection_service_server_ = node_handle_.advertiseService("deactivate_detection", &IpaDirtDetectionPreprocessing::ClientPreprocessing::deactivateDirtDetection, this);
 
 	std::cout << "Dirt detection preprocessing initialized." << std::endl;
 }

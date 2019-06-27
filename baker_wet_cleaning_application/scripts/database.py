@@ -540,6 +540,7 @@ class Database:
 		log_item_list.append(log_element)
 		# Translate LogItem list to dict and dict to text
 		log_item_dict = self.getLogDictFromLogList(log_item_list)
+		print(log_item_dict)
 		log_text = json.dumps(log_item_dict, indent=4, sort_keys=True)
 		# Copy current log file and name the copy _backup_<Filename>.json
 		current_backup_file_name = str(self.log_filepath_) + "_backup_" + str(current_logfile_filename)

@@ -68,9 +68,9 @@ class MoveBaseWallFollowBehavior(behavior_container.BehaviorContainer):
 
 			coverage_map = CvBridge().imgmsg_to_cv2(coverage_map, desired_encoding="passthrough")
 			actual_coverage_map = cv2.absdiff(coverage_map, self.previous_coverage_map_)
-			import matplotlib.pyplot as plt
-			plt.imshow(actual_coverage_map)
-			plt.show()
+			#import matplotlib.pyplot as plt
+			#plt.imshow(actual_coverage_map)
+			#plt.show()
 
 			self.coverage_map_ = CvBridge().cv2_to_imgmsg(actual_coverage_map, encoding='mono8')
 
