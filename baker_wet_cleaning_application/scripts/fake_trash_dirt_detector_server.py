@@ -79,7 +79,7 @@ if __name__ == "__main__":
 
         args = rospy.myargv(argv=sys.argv)
         if '--dirt' in args:
-            dirt_detector = Detector('dirt_detection_client_preprocessing', 'dirt_detector_topic', 5000)
+            dirt_detector = Detector('dirt_detection_client_preprocessing', '/dirt_detection_client_preprocessing/dirt_detector_topic', 5000)
         if '--trash' in args:
             trash_detector = Detector('trash_detector', 'trash_detector_topic', 1)
         rospy.spin()

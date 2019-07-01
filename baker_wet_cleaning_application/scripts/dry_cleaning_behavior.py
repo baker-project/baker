@@ -11,6 +11,7 @@ from abstract_cleaning_behavior import AbstractCleaningBehavior
 from trashcan_emptying_behavior import TrashcanEmptyingBehavior
 
 from threading import Lock, Thread
+from utils import getCurrentRobotPosition
 import services_params as srv
 from math import pi
 
@@ -100,8 +101,17 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 				return True
 		return False
 
+	def projectToRoom(self, detection, robot_position):
+		detection.pose.pose.position.x = robot_position[0]
+		detection.pose.pose.position.y = robot_position[1]
+		return detection
+
 	def dirtDetectionCallback(self, detections):
 		detections = detections.detections
+		(robot_position, _, _) = getCurrentRobotPosition()
+
+		# todo rmb-ma temporary solution. Keep camera, robot or room coordinates?
+		detections = [self.projectToRoom(detection, robot_position) for detection in detections]
 		detections = list(filter(lambda detection: not self.isAlreadyDetected(self.found_dirtspots_, detection), detections))
 		if len(detections) == 0:
 			return
@@ -167,7 +177,7 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 			self.trash_topic_subscriber_ = rospy.Subscriber('trash_detector_topic', DetectionArray, self.trashDetectionCallback)
 
 		if DryCleaningBehavior.containsDirtTask(cleaning_tasks):
-			self.dirt_topic_subscriber_ = rospy.Subscriber('dirt_detector_topic', DetectionArray, self.dirtDetectionCallback)
+			self.dirt_topic_subscriber_ = rospy.Subscriber('/dirt_detection_client_preprocessing/dirt_detector_topic', DetectionArray, self.dirtDetectionCallback)
 
 		thread_move_to_the_room.join()  # don't start the detections before
 		if self.move_base_handler_.failed():
@@ -230,6 +240,7 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 		assert (self.containsDirtTask(cleaning_tasks) and self.containsTrashcanTask(cleaning_tasks)) or self.containsTrashcanTask(cleaning_tasks)
 		cleaning_method = 1 if DryCleaningBehavior.containsDirtTask(cleaning_tasks) else 0
 
-		self.checkAndComputeCoverage(room_id)
+		coverage_area = self.checkAndComputeCoverage(room_id)
 		self.stopCoverageMonitoring()
-		self.checkoutRoom(room_id=room_id, cleaning_method=cleaning_method, nb_found_dirtspots=len(self.found_dirtspots_), nb_found_trashcans=len(self.found_trashcans_))
+		self.checkoutRoom(room_id=room_id, cleaning_method=cleaning_method, coverage_area=coverage_area,
+						  nb_found_dirtspots=len(self.found_dirtspots_), nb_found_trashcans=len(self.found_trashcans_))

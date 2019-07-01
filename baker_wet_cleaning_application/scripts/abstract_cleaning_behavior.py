@@ -107,7 +107,6 @@ class AbstractCleaningBehavior(BehaviorContainer):
 	def resetCoverageMap(self):
 		self.coverage_map_ = None
 
-	# todo (rmb-ma) copy past with move_base_wall_follow_behavior
 	def requestCoverageMapResponse(self, room_id):
 		self.coverage_map_service_ = srv.RECEIVE_COVERAGE_IMAGE_SERVICE_STR
 
@@ -183,8 +182,6 @@ class AbstractCleaningBehavior(BehaviorContainer):
 		return room_explorer.exploration_result_.coverage_path_pose_stamped
 
 	def checkoutRoom(self, room_id, cleaning_method, nb_found_dirtspots=0, nb_found_trashcans=0, coverage_area=0):
-
-		print(coverage_area)
 
 		self.database_handler_.checkoutCompletedRoom(
 			self.database_handler_.database_.getRoomById(room_id),
