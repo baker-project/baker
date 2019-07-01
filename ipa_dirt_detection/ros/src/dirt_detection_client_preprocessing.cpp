@@ -1,5 +1,7 @@
 #include "ipa_dirt_detection/dirt_detection_client_preprocessing.h"
 
+#include <cob_object_detection_msgs/Detection.h>
+#include <cob_object_detection_msgs/DetectionArray.h>
 
 struct lessPoint2i: public std::binary_function<cv::Point2i, cv::Point2i, bool>
 {
@@ -18,8 +20,8 @@ IpaDirtDetectionPreprocessing::ClientPreprocessing::ClientPreprocessing(ros::Nod
 
 	pnh.param("use_mask", use_mask_, true);
 	std::cout << "ClientPreprocessing: use_mask: " << use_mask_ << std::endl;
-	pnh.param("warp_image", warp_image_, true);
-	std::cout << "ClientPreprocessing: warp_image = " << warp_image_ << std::endl;
+	pnh.param("warp_image", is_warp_image_bird_perspective_enabled_, true);
+	std::cout << "ClientPreprocessing: warp_image = " << is_warp_image_bird_perspective_enabled_ << std::endl;
 	pnh.param("floor_search_iterations", floor_search_iterations_, 3);
 	std::cout << "ClientPreprocessing: floor_search_iterations = " << floor_search_iterations_ << std::endl;
 	pnh.param("min_plane_points", min_plane_points_, 0);
@@ -31,8 +33,8 @@ IpaDirtDetectionPreprocessing::ClientPreprocessing::ClientPreprocessing(ros::Nod
 	pnh.param("bird_eye_base_resolution", bird_eye_base_resolution_, 300.0);
 	std::cout << "ClientPreprocessing: bird_eye_base_resolution = " << bird_eye_base_resolution_ << std::endl;
 	bird_eye_resolution_ = bird_eye_base_resolution_;
-	pnh.param("detect_scales", detect_scales_, 5);
-	std::cout << "ClientPreprocessing: detect_scales_ = " << detect_scales_ << std::endl;
+	pnh.param("detect_scales", nb_detect_scales_, 5);
+	std::cout << "ClientPreprocessing: detect_scales_ = " << nb_detect_scales_ << std::endl;
 	pnh.param("dirt_detection_activated_on_startup", dirt_detection_callback_active_, true);
 	std::cout << "dirt_detection_activated_on_startup = " << dirt_detection_callback_active_ << std::endl;
 
@@ -106,14 +108,14 @@ bool IpaDirtDetectionPreprocessing::ClientPreprocessing::deactivateDirtDetection
 void IpaDirtDetectionPreprocessing::ClientPreprocessing::dynamicReconfigureCallback(ipa_dirt_detection::DirtDetectionPreprocessingConfig &config, uint32_t level)
 {
 	//ROS_INFO("Reconfigure Request: %d %f %s %s %d",	config.int_param, config.double_param, config.str_param.c_str(), config.bool_param?"True":"False", config.size);
-	warp_image_ = config.warp_image;
+	is_warp_image_bird_perspective_enabled_ = config.warp_image;
 	bird_eye_base_resolution_ = config.bird_eye_base_resolution;
 	max_distance_to_camera_ = config.max_distance_to_camera;
 	floor_search_iterations_ = config.floor_search_iterations;
 	min_plane_points_ = config.min_plane_points;
 
 	std::cout << "\n========== dirt_detection_client_preprocessing Dynamic reconfigure ==========\n";
-	std::cout << "  warp_image = " << warp_image_ << std::endl;
+	std::cout << "  is_warp_image_bird_perspective_enabled = " << is_warp_image_bird_perspective_enabled_ << std::endl;
 	std::cout << "  bird_eye_base_resolution = " << bird_eye_base_resolution_ << std::endl;
 	std::cout << "  max_distance_to_camera = " << max_distance_to_camera_ << std::endl;
 	std::cout << "  floor_search_iterations = " << floor_search_iterations_ << std::endl;
@@ -122,8 +124,8 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::dynamicReconfigureCallb
 
 void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(const sensor_msgs::PointCloud2ConstPtr& point_cloud2_rgb_msg)
 {
-	if (dirt_detection_callback_active_ == false)
-		return;
+	if (dirt_detection_callback_active_ == false) return;
+	//dirt_detection_callback_active_ = false; // todo rmb-ma avoid many callbacks
 
 	// get tf between camera and map
 	tf::StampedTransform transformMapCamera;	// todo: add parameter for preferred relative transform between camera z-axis and ground plane z-axis and check this in planeSegmentation()
@@ -141,221 +143,178 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 	cv::Mat plane_color_image = cv::Mat();
 	cv::Mat plane_mask = cv::Mat();
 	pcl::ModelCoefficients plane_model;
+
+	std::cout << "looking for plane segmentation " << std::endl;
 	bool found_plane = planeSegmentation(input_cloud, point_cloud2_rgb_msg->header, plane_color_image, plane_mask, plane_model, transformMapCamera);
 
-	// Paramter to use mask or not. If not all points belong to plane.
-	//if(use_mask_ == false)
-	//	plane_mask.setTo(cv::Scalar(255));
-
-//	std::cout << "Segmentation time: " << tim.getElapsedTimeInMilliSec() << "ms." << std::endl;
-//	segmentation_time = tim.getElapsedTimeInMilliSec();
-//	tim.start();
-
-	for (int s = 0; s < detect_scales_; s++)
+	if (!found_plane)
 	{
-		// check if a ground plane could be found
-		if (found_plane == true)
+		std::cout << "ERROR. No plane found " << std::endl;
+		return;
+	}
+
+	if (nb_detect_scales_ != 1)
+	{
+		std::cout << "ERROR nb_detect_scales should be == 1" << std::endl;
+		return;
+	}
+
+	for (int s = 0; s < nb_detect_scales_; s++)
+	{
+		// nb_detect_scales == 1 (always, throws an error otherwise)
+		image_scaling_ = nb_detect_scales_ == 1 ? 1 : pow(2, s)*bird_eye_start_resolution_ / bird_eye_base_resolution_;
+		bird_eye_resolution_ = nb_detect_scales_ == 1 ? bird_eye_base_resolution_ : pow(2, s)*bird_eye_start_resolution_;
+
+		// remove perspective from image
+		cv::Mat H; // homography between floor plane in image and bird's eye perspective
+		cv::Mat R, t; // transformation between world and floor plane coordinates, i.e. [xw,yw,zw] = R*[xp,yp,0]+t and [xp,yp,0] = R^T*[xw,yw,zw] - R^T*t
+		cv::Point2f camera_image_plane_offset; // offset in the camera image plane. Conversion from floor plane to  [xc, yc]
+		cv::Mat plane_color_image_warped;
+		cv::Mat plane_mask_warped;
+
+		if (is_warp_image_bird_perspective_enabled_)
 		{
-			if (detect_scales_==1)
+			bool transformSuccessful = computeBirdsEyePerspective(input_cloud, plane_color_image, plane_mask, plane_model, H, R, t, camera_image_plane_offset, plane_color_image_warped, plane_mask_warped);
+			if (!transformSuccessful)
 			{
-				// single scale
-				image_scaling_ = 1;
-				bird_eye_resolution_ = bird_eye_base_resolution_;
-			}
-			else
-			{
-				image_scaling_ = pow(2, s) * bird_eye_start_resolution_ / bird_eye_base_resolution_;
-				bird_eye_resolution_ = pow(2, s) * bird_eye_start_resolution_;
-			}
-
-			// remove perspective from image
-			cv::Mat H; // homography between floor plane in image and bird's eye perspective
-			cv::Mat R, t; // transformation between world and floor plane coordinates, i.e. [xw,yw,zw] = R*[xp,yp,0]+t and [xp,yp,0] = R^T*[xw,yw,zw] - R^T*t
-			cv::Point2f camera_image_plane_offset; // offset in the camera image plane. Conversion from floor plane to  [xc, yc]
-			cv::Mat plane_color_image_warped;
-			cv::Mat plane_mask_warped;
-
-			if (warp_image_ == true)
-			{
-				bool transformSuccessful = computeBirdsEyePerspective(input_cloud, plane_color_image, plane_mask, plane_model, H, R, t, camera_image_plane_offset, plane_color_image_warped, plane_mask_warped);
-				if (transformSuccessful == false)
-				{
-					std::cout << "Transform to bird's eye perspective not successful!" << std::endl;
-					return;
-				}
-			}
-			else
-			{
-				// todo: use rescaling with image_scaling_ here
-				H = (cv::Mat_<double>(3, 3) << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
-				R = H;
-				t = (cv::Mat_<double>(3, 1) << 0.0, 0.0, 0.0);
-				camera_image_plane_offset.x = 0.f;
-				camera_image_plane_offset.y = 0.f;
-				plane_color_image_warped = plane_color_image;
-				plane_mask_warped = plane_mask;
-			}
-
-			if (debug_["show_plane_color_image"] == true)
-			{
-				cv::imshow("segmented color image", plane_color_image);
-				cvMoveWindow("segmented color image", 650, 0);
-				cv::waitKey(10);
-			}
-
-
-			//================== Call ACTION CLIENT =====================================================================================
-			//setting up GOALS
-			baker_msgs::DirtDetectionGoal goal;
-			cv_bridge::CvImage cv_image;
-			cv_image.header = point_cloud2_rgb_msg->header;
-			cv_image.image = plane_color_image_warped;
-			cv_image.encoding = sensor_msgs::image_encodings::BGR8;
-			cv_image.toImageMsg(goal.plane_color_image_warped);
-			cv_image.image = plane_mask_warped;
-			cv_image.encoding = sensor_msgs::image_encodings::MONO8;
-			cv_image.toImageMsg(goal.plane_mask_warped);
-
-			//sending goal from this client to the server
-			std::cout << "=======================================================\nSending GOAL from client to server." << std::endl;
-			dirt_detection_client_.sendGoal(goal);
-
-			//wait for the server to take action and deliver a result
-			std::cout << "		Wait for the server to take action and deliver a result." << std::endl;
-			bool finished_before_timeout = dirt_detection_client_.waitForResult(ros::Duration(10.0));
-
-			//if not ready before timeout abort
-			if (finished_before_timeout == false)
-			{
-				ROS_ERROR("Timeout on action call to dirt detection.\n");
+				std::cout << "Transform to bird's eye perspective failed!" << std::endl;
 				return;
 			}
-			//================== End ACTION CLIENT ======================================================================================
-
-			//check if action was successful
-			if (dirt_detection_client_.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-			{
-				std::cout << "Received RESULT from server.\n" << dirt_detection_client_.getResult()->dirt_detections.size() << "=======================================================" << std::endl;
-
-				cob_object_detection_msgs::DetectionArray detected_dirt_to_publish;
-				const cv::Mat H_inv = H.inv();
-				for (size_t i=0; i<dirt_detection_client_.getResult()->dirt_detections.size(); ++i) //rescale, find coordinates for, and publish all dirts detected
-					{
-						// todo: rescale dirt detections with 1./image_scaling_
-						const baker_msgs::RotatedRect& det = dirt_detection_client_.getResult()->dirt_detections[i];
-						const cv::Rect dirt_warped = cv::RotatedRect(cv::Point2f(det.center_x, det.center_y), cv::Size2f(det.width, det.height), det.angle).boundingRect();
-						const int max_v = int(dirt_warped.y + dirt_warped.height*0.5);
-						const int max_u = int(dirt_warped.x + dirt_warped.width*0.5);
-						for (int v = int(dirt_warped.y - dirt_warped.height*0.5); v <= max_v; ++v)
-						{
-							for (int u = int(dirt_warped.x - dirt_warped.width*0.5); u <= max_u; ++u)
-							{
-								cv::Mat point_original_image = (cv::Mat_<double>(3, 1) << u, v, 1.0);
-								if (warp_image_ == true)
-								{
-									point_original_image = H_inv*(cv::Mat_<double>(3, 1) << u, v, 1.0);
-									point_original_image.at<double>(0,0) /= point_original_image.at<double>(2,0);
-									point_original_image.at<double>(1,0) /= point_original_image.at<double>(2,0);
-								}
-								const int u_pcl = point_original_image.at<double>(0,0);
-								const int v_pcl = point_original_image.at<double>(1,0);
-								if (u_pcl >= 0 && u_pcl<input_cloud->width && v_pcl >= 0 && v_pcl<input_cloud->height)
-								{
-									pcl::PointXYZRGB& point = (*input_cloud)[v_pcl*input_cloud->width + u_pcl];
-									// todo: average
-								}
-							}
-						}
-
-
-
-						cv::RotatedRect dirt;
-						//cv::RotatedRect dirt(cv::Point2f(det.center_x, det.center_y), cv::Size2f(det.width/bird_eye_resolution_, det.height/bird_eye_resolution_), det.angle);
-//						if (warp_image_ == true)
-//						{
-//							H_inv*cv::Point3f();
-//						}
-
-
-						//cv::RotatedRect dirt = dirt_detection_client_.getResult()->dirt_detections[i]; //todo: throws error. need conversion.
-						dirt.center.x = dirt.center.x * 1./image_scaling_;
-						dirt.center.y = dirt.center.y * 1./image_scaling_;
-						dirt.size.width = dirt.size.width * 1./image_scaling_;
-						dirt.size.height = dirt.size.height * 1./image_scaling_;
-
-						//if (warp_image_ == true)
-						// transform pixel coordinates back by using inverse homography of H
-
-						//todo: find coordinates in pointcloud
-						pcl::PointXYZRGB point;
-						bool found_point = false;
-						for (int v = 0; v < (int) input_cloud->height; v++) //go through point cloud
-						{	for (int u = 0; u < (int) input_cloud->width; u++)	//go through point cloud
-							{
-
-									for(int i = 0; i < 10; ++i)//check if we find a point in pointcloud thats not a nan and close to coordinate in from dirt_detections rect
-									{	for(int j = 0; j < 10; ++j)//check if we find a point in pointcloud thats not a nan and close to coordinate in from dirt_detections rect
-										{
-
-											for(int minus_plus = 0; minus_plus < 2; ++minus_plus) //check in both directions
-											{
-												if(minus_plus==0)
-												{
-													point = (*input_cloud)[(int)(dirt.size.width * (v+i) + (u+j))];
-													if( !std::isnan(point.x) || !std::isnan(point.y) || !std::isnan(point.z))
-													{
-														found_point = true;
-														point = (*input_cloud)[(int)(dirt.size.width * i + j)];
-														goto found_point;
-													}
-												}
-												if(minus_plus==1)
-												{
-													i=-i;
-													j=-j;
-													point = (*input_cloud)[(int)(dirt.size.width * (v+i) + (u+j))];
-													if( !std::isnan(point.x) || !std::isnan(point.y) || !std::isnan(point.z))
-													{
-														found_point = true;
-														point = (*input_cloud)[(int)(dirt.size.width * i + j)];
-														goto found_point;
-													}
-												}
-											}
-
-										}
-									}
-
-							}
-						}
-						found_point:; //todo: dont know if its good idea to use goto statement but dont wanted to break multiple for loops.
-						//todo: put found point in msgs
-						detected_dirt_to_publish.header = point_cloud2_rgb_msg->header;
-						detected_dirt_to_publish.detections[i].header = point_cloud2_rgb_msg->header;
-						detected_dirt_to_publish.detections[i].label = "dirt_spots_found";
-
-						//todo: error: pose has no member named ‘position'.
-//						detected_dirt_to_publish.detections[i].pose.position.x = point.x;
-//						detected_dirt_to_publish.detections[i].pose.position.y = point.y;
-//						detected_dirt_to_publish.detections[i].pose.position.z = point.z;
-
-//						detected_dirt_to_publish.detections[i].pose.orientation.x;
-//						detected_dirt_to_publish.detections[i].pose.orientation.y;
-//						detected_dirt_to_publish.detections[i].pose.orientation.z;
-//						detected_dirt_to_publish.detections[i].pose.orientation.w;
-					}
-
-				//todo: publish coordinates and rects
-				dirt_detected_.publish(detected_dirt_to_publish);
-
-				ROS_INFO("Finished IpaDirtDetectionSpectral successfully.\n");
-			}
-			else
-				ROS_ERROR("IpaDirtDetectionSpectral FAILED.\n");
 		}
+		else
+		{
+			// todo: use rescaling with image_scaling_ here
+			H = (cv::Mat_<double>(3, 3) << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
+			R = H;
+			t = (cv::Mat_<double>(3, 1) << 0.0, 0.0, 0.0);
+			camera_image_plane_offset.x = 0.f;
+			camera_image_plane_offset.y = 0.f;
+			plane_color_image_warped = plane_color_image;
+			plane_mask_warped = plane_mask;
+		}
+
+		if (debug_["show_plane_color_image"])
+		{
+			cv::imshow("segmented color image", plane_color_image);
+			cvMoveWindow("segmented color image", 650, 0);
+			cv::waitKey(10);
+		}
+
+
+		//================== Call ACTION CLIENT =====================================================================================
+		//setting up GOALS
+		baker_msgs::DirtDetectionGoal goal;
+		cv_bridge::CvImage cv_image;
+		cv_image.header = point_cloud2_rgb_msg->header;
+		cv_image.image = plane_color_image_warped;
+		cv_image.encoding = sensor_msgs::image_encodings::BGR8;
+		cv_image.toImageMsg(goal.plane_color_image_warped);
+		cv_image.image = plane_mask_warped;
+		cv_image.encoding = sensor_msgs::image_encodings::MONO8;
+		cv_image.toImageMsg(goal.plane_mask_warped);
+
+		//sending goal from this client to the server
+		std::cout << "=======================================================\nSending GOAL from client to server." << std::endl;
+		dirt_detection_client_.sendGoal(goal);
+
+		//wait for the server to take action and deliver a result
+		std::cout << "		Wait for the server to take action and deliver a result." << std::endl;
+		bool finished_before_timeout = dirt_detection_client_.waitForResult(ros::Duration(10.0));
+
+		//if not ready before timeout abort
+		if (!finished_before_timeout)
+		{
+			ROS_ERROR("Timeout on action call to dirt detection.\n");
+			return;
+		}
+		//================== End ACTION CLIENT ======================================================================================
+
+		//check if action wasn't successful
+		if (dirt_detection_client_.getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
+		{
+			ROS_ERROR("IpaDirtDetectionSpectral FAILED.\n");
+			continue;
+		}
+
+		std::cout << "=======================================================" << std::endl;
+		std::cout << "Received RESULT from server.\n" << std::endl;
+		const size_t nb_detections = dirt_detection_client_.getResult()->dirt_detections.size();
+		std::cout << "Nb detections: " << nb_detections << std::endl;
+
+
+		cob_object_detection_msgs::DetectionArray detected_dirts_to_publish;
+
+		const cv::Mat H_inv = H.inv();
+		for (size_t i = 0; i < nb_detections; ++i) //rescale, find coordinates for, and publish all dirts detected
+		{
+			// todo: rescale dirt detections with 1./image_scaling_
+			const baker_msgs::RotatedRect& detection = dirt_detection_client_.getResult()->dirt_detections[i];
+			const cv::Rect dirt_warped = cv::RotatedRect(cv::Point2f(detection.center_x, detection.center_y), cv::Size2f(detection.width, detection.height), detection.angle).boundingRect();
+			const int max_v = std::min(int(dirt_warped.y + dirt_warped.height), plane_color_image_warped.rows-1);
+			const int max_u = std::min(int(dirt_warped.x + dirt_warped.width), plane_color_image_warped.cols-1);
+
+			pcl::PointXYZRGB centroid;
+			unsigned int nb_points = 0;
+
+			for (int v = std::max(0, dirt_warped.y); v <= max_v; ++v)
+			{
+				for (int u = std::max(0, dirt_warped.x); u <= max_u; ++u)
+				{
+					cv::Mat point_original_image = (cv::Mat_<double>(3, 1) << u, v, 1.0);
+					if (is_warp_image_bird_perspective_enabled_)
+					{
+						point_original_image = H_inv*(cv::Mat_<double>(3, 1) << u, v, 1.0);
+						point_original_image.at<double>(0,0) /= point_original_image.at<double>(2,0);
+						point_original_image.at<double>(1,0) /= point_original_image.at<double>(2,0);
+					}
+					const int u_pcl = point_original_image.at<double>(0,0);
+					const int v_pcl = point_original_image.at<double>(1,0);
+					if (u_pcl >= 0 && u_pcl<input_cloud->width && v_pcl >= 0 && v_pcl<input_cloud->height)
+					{
+						pcl::PointXYZRGB& point = (*input_cloud)[v_pcl*input_cloud->width + u_pcl];
+						if (point.x == point.x && point.y == point.y && point.z == point.z)	// check for NaN values
+						{
+							centroid.x += point.x;
+							centroid.y += point.y;
+							centroid.z += point.z;
+							nb_points++;
+						}
+						// todo: average // todo rmb-ma average ???
+					}
+				}
+			}
+
+			centroid.x /= nb_points;
+			centroid.y /= nb_points;
+			centroid.z /= nb_points;
+
+			if (nb_points == 0) {
+				// todo rmb-ma
+				std::cout << "ERROR ERROR ERROR" << std::endl;
+			}
+
+			cv::RotatedRect dirt;
+
+			dirt.center.x = detection.center_x * 1./image_scaling_;
+			dirt.center.y = detection.center_y * 1./image_scaling_;
+			dirt.size.width = detection.width * 1./image_scaling_;
+			dirt.size.height = detection.height * 1./image_scaling_;
+
+			detected_dirts_to_publish.header = point_cloud2_rgb_msg->header;
+			cob_object_detection_msgs::Detection detection_msg;
+			detection_msg.header = point_cloud2_rgb_msg->header;
+			detection_msg.label = "dirt_spots_found";
+			detection_msg.pose.pose.position.x = centroid.x;
+			detection_msg.pose.pose.position.y = centroid.y;
+			detection_msg.pose.pose.position.z = centroid.z;
+
+			detected_dirts_to_publish.detections.push_back(detection_msg);
+		}
+		//todo: publish coordinates and rects
+		dirt_detected_.publish(detected_dirts_to_publish);
 	}
-	//publish resulting image with dirt detected
-	//dirt_detection_image_pub_.publish();
+
+	ROS_INFO("Finished IpaDirtDetectionSpectral successfully.\n"); // no it's not finished here
 }
 
 //See header for explanation
@@ -380,7 +339,7 @@ bool IpaDirtDetectionPreprocessing::ClientPreprocessing::planeSegmentation(pcl::
 		//display original image
 		cv::imshow("original color image", color_image);
 		cvMoveWindow("original color image", 0, 0);
-		cv::waitKey();
+		cv::waitKey(1);
 		if (debug_["save_data_for_test"] == true)
 		{
 			//bird_eye_resolution_string_ = std::to_string(bird_eye_resolution_);
@@ -475,83 +434,58 @@ bool IpaDirtDetectionPreprocessing::ClientPreprocessing::planeSegmentation(pcl::
 	}
 
 	// if the ground plane was found, write the respective data to the images
-	if (found_plane == true)
+	if (!found_plane)
+		return false;
+
+	pcl::PointCloud<pcl::PointXYZRGB> floor_plane;
+
+	// determine all point indices in original point cloud for plane inliers
+	inliers->indices.clear();
+	for (unsigned int i = 0; i < input_cloud->size(); i++)
 	{
-		pcl::PointCloud<pcl::PointXYZRGB> floor_plane;
-
-		// determine all point indices in original point cloud for plane inliers
-		inliers->indices.clear();
-		for (unsigned int i = 0; i < input_cloud->size(); i++)
+		pcl::PointXYZRGB& point = (*input_cloud)[i];
+		if (point.x != 0. || point.y != 0. || point.z != 0.)
 		{
-			pcl::PointXYZRGB& point = (*input_cloud)[i];
-			if (point.x != 0. || point.y != 0. || point.z != 0.)
-			{
-				// check plane equation
-				double distance = plane_model.values[0] * point.x + plane_model.values[1] * point.y + plane_model.values[2] * point.z + plane_model.values[3];
-				if (distance > -plane_inlier_threshold && distance < plane_inlier_threshold)
-					inliers->indices.push_back(i);
-			}
+			// check plane equation
+			double distance = plane_model.values[0] * point.x + plane_model.values[1] * point.y + plane_model.values[2] * point.z + plane_model.values[3];
+			if (distance > -plane_inlier_threshold && distance < plane_inlier_threshold)
+				inliers->indices.push_back(i);
 		}
-
-		plane_color_image = cv::Mat::zeros(input_cloud->height, input_cloud->width, CV_8UC3);
-		plane_mask = cv::Mat::zeros(input_cloud->height, input_cloud->width, CV_8UC1);
-		std::set<cv::Point2i, lessPoint2i> visitedGridCells; // secures that no two observations can count twice for the same grid cell
-//		cv::Point2i grid_offset(0,0);	//(grid_number_observations.cols/2, grid_number_observations.rows/2);	//done: offset
-		for (size_t i = 0; i < inliers->indices.size(); i++)
-		{
-			int v = inliers->indices[i] / input_cloud->width; // todo: check if this rounds down every time
-			int u = inliers->indices[i] - v * input_cloud->width;
-
-			// cropped color image and mask
-			pcl::PointXYZRGB point = (*input_cloud)[(inliers->indices[i])];
-			plane_color_image.at<cv::Vec3b>(v, u) = cv::Vec3b(point.b, point.g, point.r);
-			plane_mask.at<uchar>(v, u) = 255;
-
-			// populate visibility grid
-//			tf::Vector3 planePointCamera(point.x, point.y, point.z);
-//			tf::Vector3 planePointWorld = transform_map_camera * planePointCamera;
-//			//cv::Point2i co(-(planePointWorld.getX()-gridOrigin_.x)*gridResolution_+grid_offset.x, (planePointWorld.getY()-gridOrigin_.y)*gridResolution_+grid_offset.y);	//done: offset
-//			cv::Point2i co((planePointWorld.getX() - gridOrigin_.x) * gridResolution_, (planePointWorld.getY() - gridOrigin_.y) * gridResolution_);
-//			// todo: add a check whether the current point is really visible in the current image of analysis (i.e. the warped image)
-//			if (visitedGridCells.find(co) == visitedGridCells.end() && co.x >= 0 && co.x < grid_number_observations.cols && co.y >= 0
-//					&& co.y < grid_number_observations.rows)
-//			{
-//				// grid cell has not been incremented, yet
-////				for (std::set<cv::Point2i, lessPoint2i>::iterator it=visitedGridCells.begin(); it!=visitedGridCells.end(); it++)
-////				{
-////					if (it->x==co.x && it->y==co.y)
-////					{
-////						std::cout << "co: " << co.x << " " << co.y << std::endl;
-////						std::cout << "p:" << it->x << " " << it->y << std::endl;
-////						getchar();
-////					}
-////				}
-//				visitedGridCells.insert(co);
-//				grid_number_observations.at<int>(co) = grid_number_observations.at<int>(co) + 1;
-//			}
-
-//			point.z = -(plane_model.values[0]*point.x+plane_model.values[1]*point.y+plane_model.values[3])/plane_model.values[2];
-			floor_plane.push_back(point);
-		}
-		if (debug_["save_data_for_test"] == true)
-		{
-			cv::imwrite("test_data/plane_color_image" + bird_eye_resolution_string_ + ".jpg", plane_color_image);
-			cv::imwrite("test_data/plane_mask" + bird_eye_resolution_string_ + ".jpg", plane_mask);
-		}
-
-		//display detected floor
-		//cv::imshow("floor cropped", ground_image);
-
-		// todo: make parameter whether this should be published
-		sensor_msgs::PointCloud2 floor_cloud;
-		pcl::toROSMsg(floor_plane, floor_cloud);
-		floor_cloud.header = header;
-		floor_plane_pub_.publish(floor_cloud);
-
-		found_plane = true;
 	}
 
-	return found_plane;
+	plane_color_image = cv::Mat::zeros(input_cloud->height, input_cloud->width, CV_8UC3);
+	plane_mask = cv::Mat::zeros(input_cloud->height, input_cloud->width, CV_8UC1);
+	std::set<cv::Point2i, lessPoint2i> visitedGridCells; // secures that no two observations can count twice for the same grid cell
+//		cv::Point2i grid_offset(0,0);	//(grid_number_observations.cols/2, grid_number_observations.rows/2);	//done: offset
+	for (size_t i = 0; i < inliers->indices.size(); i++)
+	{
+		int v = inliers->indices[i] / input_cloud->width; // todo: check if this rounds down every time
+		int u = inliers->indices[i] - v * input_cloud->width;
+
+		// cropped color image and mask
+		pcl::PointXYZRGB point = (*input_cloud)[(inliers->indices[i])];
+		plane_color_image.at<cv::Vec3b>(v, u) = cv::Vec3b(point.b, point.g, point.r);
+		plane_mask.at<uchar>(v, u) = 255;
+
+		floor_plane.push_back(point);
+	}
+
+	if (debug_["save_data_for_test"] == true)
+	{
+		cv::imwrite("test_data/plane_color_image" + bird_eye_resolution_string_ + ".jpg", plane_color_image);
+		cv::imwrite("test_data/plane_mask" + bird_eye_resolution_string_ + ".jpg", plane_mask);
+	}
+
+	//display detected floor
+	//cv::imshow("floor cropped", ground_image);
+
+	// todo: make parameter whether this should be published
+	sensor_msgs::PointCloud2 floor_cloud;
+	pcl::toROSMsg(floor_plane, floor_cloud);
+	floor_cloud.header = header;
+	floor_plane_pub_.publish(floor_cloud);
+
+	return true;
 }
 
 
@@ -566,6 +500,7 @@ bool IpaDirtDetectionPreprocessing::ClientPreprocessing::computeBirdsEyePerspect
 	// choose two arbitrary points on the plane
 	cv::Point3d p1, p2;
 	double a = plane_model.values[0], b = plane_model.values[1], c = plane_model.values[2], d = plane_model.values[3];
+
 	if (a == 0. && b == 0.)
 	{
 		p1.x = 0;
