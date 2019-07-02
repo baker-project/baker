@@ -279,7 +279,6 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 							centroid.z += point.z;
 							nb_points++;
 						}
-						// todo: average // todo rmb-ma average ???
 					}
 				}
 			}
@@ -301,8 +300,10 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 			dirt.size.height = detection.height * 1./image_scaling_;
 
 			detected_dirts_to_publish.header = point_cloud2_rgb_msg->header;
+
 			cob_object_detection_msgs::Detection detection_msg;
 			detection_msg.header = point_cloud2_rgb_msg->header;
+			detection_msg.header.frame_id = "camera1_optical_frame";
 			detection_msg.label = "dirt_spots_found";
 			detection_msg.pose.pose.position.x = centroid.x;
 			detection_msg.pose.pose.position.y = centroid.y;

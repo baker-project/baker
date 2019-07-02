@@ -11,7 +11,7 @@ from abstract_cleaning_behavior import AbstractCleaningBehavior
 from trashcan_emptying_behavior import TrashcanEmptyingBehavior
 
 from threading import Lock, Thread
-from utils import getCurrentRobotPosition
+from utils import getCameraPosition
 import services_params as srv
 from math import pi
 
@@ -90,6 +90,9 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 		Thread(target=self.callTriggerServiceTmp, args=(srv.STOP_DIRT_DETECTOR_SERVICE_STR,)).start()
 		Thread(target=self.callTriggerServiceTmp, args=(srv.STOP_TRASH_DETECTOR_SERVICE_STR,)).start()
 
+	def returnToRobotStandardState(self):
+		self.stopDetections()
+
 	@staticmethod
 	def isAlreadyDetected(detections, new_detection):
 		# todo (rmb-ma). if already detected add an issue / ask for the picture?
@@ -108,10 +111,9 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 
 	def dirtDetectionCallback(self, detections):
 		detections = detections.detections
-		(robot_position, _, _) = getCurrentRobotPosition()
 
 		# todo rmb-ma temporary solution. Keep camera, robot or room coordinates?
-		detections = [self.projectToRoom(detection, robot_position) for detection in detections]
+		detections = [self.projectToRoom(detection, getCameraPosition(detection.header.stamp)[0]) for detection in detections]
 		detections = list(filter(lambda detection: not self.isAlreadyDetected(self.found_dirtspots_, detection), detections))
 		if len(detections) == 0:
 			return
