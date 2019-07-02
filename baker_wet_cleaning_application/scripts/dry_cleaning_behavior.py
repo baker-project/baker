@@ -11,7 +11,7 @@ from abstract_cleaning_behavior import AbstractCleaningBehavior
 from trashcan_emptying_behavior import TrashcanEmptyingBehavior
 
 from threading import Lock, Thread
-from utils import getCameraPosition
+from utils import projectToCamera
 import services_params as srv
 from math import pi
 
@@ -96,6 +96,7 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 	@staticmethod
 	def isAlreadyDetected(detections, new_detection):
 		# todo (rmb-ma). if already detected add an issue / ask for the picture?
+		# todo rmb-ma handle the size
 		new_position = new_detection.pose.pose.position
 		for detection in detections:
 			position = detection.pose.pose.position
@@ -104,16 +105,12 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 				return True
 		return False
 
-	def projectToRoom(self, detection, robot_position):
-		detection.pose.pose.position.x = robot_position[0]
-		detection.pose.pose.position.y = robot_position[1]
-		return detection
-
 	def dirtDetectionCallback(self, detections):
 		detections = detections.detections
 
 		# todo rmb-ma temporary solution. Keep camera, robot or room coordinates?
-		detections = [self.projectToRoom(detection, getCameraPosition(detection.header.stamp)[0]) for detection in detections]
+		detections = [projectToCamera(detection) for detection in detections]
+
 		detections = list(filter(lambda detection: not self.isAlreadyDetected(self.found_dirtspots_, detection), detections))
 		if len(detections) == 0:
 			return
@@ -186,7 +183,7 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 			self.printMsg('Room center is not accessible. Failed to clean room {}'.format(room_id))
 			return
 
-		self.initCoverageMonitoring()  # todo (rmb-ma) pause the coverage monitoring when no detections on
+		self.initCoverageMonitoring() # todo rmb-ma stop the coverage monitoring during detection
 
 		while len(path) > 0:
 			(self.detected_trashs_, self.detected_dirts_) = ([], [])

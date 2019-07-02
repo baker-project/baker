@@ -2,6 +2,8 @@
 
 #include <cob_object_detection_msgs/Detection.h>
 #include <cob_object_detection_msgs/DetectionArray.h>
+#include <limits>
+#include <Eigen/Geometry>
 
 struct lessPoint2i: public std::binary_function<cv::Point2i, cv::Point2i, bool>
 {
@@ -144,12 +146,11 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 	cv::Mat plane_mask = cv::Mat();
 	pcl::ModelCoefficients plane_model;
 
-	std::cout << "looking for plane segmentation " << std::endl;
 	bool found_plane = planeSegmentation(input_cloud, point_cloud2_rgb_msg->header, plane_color_image, plane_mask, plane_model, transformMapCamera);
 
 	if (!found_plane)
 	{
-		std::cout << "ERROR. No plane found " << std::endl;
+		//std::cout << "ERROR. No plane found " << std::endl;
 		return;
 	}
 
@@ -249,11 +250,15 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 		{
 			// todo: rescale dirt detections with 1./image_scaling_
 			const baker_msgs::RotatedRect& detection = dirt_detection_client_.getResult()->dirt_detections[i];
-			const cv::Rect dirt_warped = cv::RotatedRect(cv::Point2f(detection.center_x, detection.center_y), cv::Size2f(detection.width, detection.height), detection.angle).boundingRect();
+			const cv::Rect dirt_warped = cv::RotatedRect(cv::Point2f(detection.center_x*1./image_scaling_, detection.center_y*1./image_scaling_),
+					cv::Size2f(detection.width*1./image_scaling_, detection.height*1./image_scaling_), detection.angle).boundingRect();
+
 			const int max_v = std::min(int(dirt_warped.y + dirt_warped.height), plane_color_image_warped.rows-1);
 			const int max_u = std::min(int(dirt_warped.x + dirt_warped.width), plane_color_image_warped.cols-1);
 
-			pcl::PointXYZRGB centroid;
+			Eigen::Vector3f centroid(0, 0, 0);
+			Eigen::Vector3f maxPoint(std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min());
+			Eigen::Vector3f minPoint(std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
 			unsigned int nb_points = 0;
 
 			for (int v = std::max(0, dirt_warped.y); v <= max_v; ++v)
@@ -272,42 +277,49 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 					if (u_pcl >= 0 && u_pcl<input_cloud->width && v_pcl >= 0 && v_pcl<input_cloud->height)
 					{
 						pcl::PointXYZRGB& point = (*input_cloud)[v_pcl*input_cloud->width + u_pcl];
-						if (point.x == point.x && point.y == point.y && point.z == point.z)	// check for NaN values
-						{
-							centroid.x += point.x;
-							centroid.y += point.y;
-							centroid.z += point.z;
-							nb_points++;
-						}
+						if (!(point.x == point.x && point.y == point.y && point.z == point.z))	// check for NaN values
+							continue;
+
+						minPoint.x() = std::min(point.x, minPoint.x());
+						minPoint.y() = std::min(point.y, minPoint.y());
+						minPoint.z() = std::min(point.z, minPoint.z());
+						maxPoint.x() = std::max(point.x, maxPoint.x());
+						maxPoint.y() = std::max(point.y, maxPoint.y());
+						maxPoint.z() = std::max(point.z, maxPoint.z());
+
+						centroid.x() += point.x;
+						centroid.y() += point.y;
+						centroid.z() += point.z;
+						nb_points++;
 					}
 				}
 			}
 
-			centroid.x /= nb_points;
-			centroid.y /= nb_points;
-			centroid.z /= nb_points;
-
 			if (nb_points == 0) {
 				// todo rmb-ma
 				std::cout << "ERROR ERROR ERROR" << std::endl;
+				continue;
 			}
 
-			cv::RotatedRect dirt;
-
-			dirt.center.x = detection.center_x * 1./image_scaling_;
-			dirt.center.y = detection.center_y * 1./image_scaling_;
-			dirt.size.width = detection.width * 1./image_scaling_;
-			dirt.size.height = detection.height * 1./image_scaling_;
+			centroid.x() /= nb_points;
+			centroid.y() /= nb_points;
+			centroid.z() /= nb_points;
 
 			detected_dirts_to_publish.header = point_cloud2_rgb_msg->header;
 
 			cob_object_detection_msgs::Detection detection_msg;
 			detection_msg.header = point_cloud2_rgb_msg->header;
+			// todo warning frame_id (just for simulation)
+			detection_msg.pose.header.frame_id = "camera1_optical_frame";
 			detection_msg.header.frame_id = "camera1_optical_frame";
 			detection_msg.label = "dirt_spots_found";
-			detection_msg.pose.pose.position.x = centroid.x;
-			detection_msg.pose.pose.position.y = centroid.y;
-			detection_msg.pose.pose.position.z = centroid.z;
+
+			detection_msg.pose.pose.position.x = centroid.x();
+			detection_msg.pose.pose.position.y = centroid.y();
+			detection_msg.pose.pose.position.z = centroid.z();
+			detection_msg.bounding_box_lwh.x = maxPoint.x() - minPoint.x();
+			detection_msg.bounding_box_lwh.y = maxPoint.y() - minPoint.y();
+			detection_msg.bounding_box_lwh.z = maxPoint.z() - minPoint.z();
 
 			detected_dirts_to_publish.detections.push_back(detection_msg);
 		}
@@ -335,7 +347,7 @@ bool IpaDirtDetectionPreprocessing::ClientPreprocessing::planeSegmentation(pcl::
 				color_image.at<cv::Vec3b>(v, u) = cv::Vec3b(point.b, point.g, point.r);
 			}
 		}
-		std::cout << input_cloud->height << "x" << input_cloud->width << std::endl;
+		//std::cout << input_cloud->height << "x" << input_cloud->width << std::endl;
 
 		//display original image
 		cv::imshow("original color image", color_image);

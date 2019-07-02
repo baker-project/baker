@@ -18,24 +18,20 @@ def getTransformListener():
 		return _tl
 
 
-def getCameraPosition(time=None):
-	if time is None:
-		time = rospy.Time.now()
-	else:
-		print(time)
+def projectToCamera(detection):
 
+	time = detection.header.stamp
 	try:
+		print("before {}".format(detection))
 		listener = getTransformListener()
 		listener.waitForTransform('/map', '/camera1_optical_frame', time, rospy.Duration(10))
-		(camera_pose_translation, camera_pose_rotation) = listener.lookupTransform('/map', '/base_link', time)
-
+		detection.pose = listener.transformPose('/map', detection.pose)
+		#detection.header.frame_id = '/map'
+		print("after {}".format(detection))
+		return detection
 	except (tf.Exception, tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException,), e:
 		print "Could not lookup robot pose: %s" % e
-		return None, None, None
-
-	camera_pose_rotation_euler = tf.transformations.euler_from_quaternion(camera_pose_rotation, 'rzyx')
-	return camera_pose_translation, camera_pose_rotation, camera_pose_rotation_euler
-
+		return None
 
 # retrieves the current robot pose
 def getCurrentRobotPosition():

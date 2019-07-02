@@ -4,7 +4,7 @@
 	<arg name="scitos_node_args" default="-k127.0.0.1:1234"/>
 	<arg name="brush_cleaning_module_interface_args" default="-k127.0.0.1:1234"/>
 	<arg name="obstacle_map_channel" default="/navigation/laser/Map"/>	<!-- /3d/MergedMap or /navigation/laser/Map -->
-    <arg name="spectral_dirt_detection" default="False"/>
+    <arg name="spectral_dirt_detection" default="True"/>
 
 	<!-- ROS-MIRA communication -->
 	<include file="$(find scitos_mira)/launch/scitos_mira.launch">
