@@ -197,7 +197,8 @@ class DatabaseCreator():
 				0,
 				None
 			],
-			"run_count": 0
+			"run_count": 0,
+			"planning_offset": 720
 		}
 		application_data_dict_text = json.dumps(application_data_dict, indent=4, sort_keys=True)
 		file = open("resources/json/application_data.json", "w")

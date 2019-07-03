@@ -117,6 +117,7 @@ class ApplicationContainer:
 	# Call this method to execute the application.
 	def executeApplication(self):
 		self.printMsg("Application server started.")
+		rate = rospy.Rate(10)  # 10hz
 		while not rospy.is_shutdown():
 			if self.getStatus() == self.STATUS['IS_RUNNING']:
 				self.printMsg("Application started.")
@@ -128,6 +129,8 @@ class ApplicationContainer:
 
 			elif self.getStatus() == self.STATUS['IS_FINISHED']:
 				break
+			
+			rate.sleep()
 
 	def setStatus(self, status):
 		self.application_status_[0] = status

@@ -1,4 +1,5 @@
 #include "ipa_dirt_detection/dirt_detection_client_preprocessing.h"
+#include "ipa_dirt_detection/timer.h"
 
 #include <cob_object_detection_msgs/Detection.h>
 #include <cob_object_detection_msgs/DetectionArray.h>
@@ -58,7 +59,7 @@ IpaDirtDetectionPreprocessing::ClientPreprocessing::ClientPreprocessing(ros::Nod
 	dirt_detection_client_.waitForServer();
 
 	//Subscribing point cloud from camera and find plane and compute bird's eye perspective.
-	camera_depth_points_sub_ = node_handle_.subscribe<sensor_msgs::PointCloud2>("colored_point_cloud", 1, &IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback, this);
+	camera_depth_points_sub_ = node_handle_.subscribe<sensor_msgs::PointCloud2>("colored_point_cloud", 2, &IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback, this);
 
 	//Publisher for plane segmented image.
 	floor_plane_pub_ = node_handle_.advertise<sensor_msgs::PointCloud2>("floor_plane", 1);
@@ -129,6 +130,9 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 	if (dirt_detection_callback_active_ == false) return;
 	//dirt_detection_callback_active_ = false; // todo rmb-ma avoid many callbacks
 
+	Timer tim;
+	//double segmentation_time = 0., dirt_detection_time = 0.;
+
 	// get tf between camera and map
 	tf::StampedTransform transformMapCamera;	// todo: add parameter for preferred relative transform between camera z-axis and ground plane z-axis and check this in planeSegmentation()
 	transformMapCamera.setIdentity();
@@ -137,16 +141,17 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 	pcl::PointCloud<pcl::PointXYZRGB>::Ptr input_cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
 	pcl::fromROSMsg(*point_cloud2_rgb_msg, *input_cloud); //conversion Ros message->Pcl point cloud
 	//std::cout << input_cloud->size() << std::endl;
-
-//	Timer tim;
-//	double segmentation_time = 0., dirt_detection_time = 0.;
+	std::cout << "Time for data preparation: " << tim.getElapsedTimeInMilliSec() << "ms." << std::endl;
+	tim.start();
 
 	// find ground plane
 	cv::Mat plane_color_image = cv::Mat();
 	cv::Mat plane_mask = cv::Mat();
 	pcl::ModelCoefficients plane_model;
-
 	bool found_plane = planeSegmentation(input_cloud, point_cloud2_rgb_msg->header, plane_color_image, plane_mask, plane_model, transformMapCamera);
+	std::cout << "Plane model: " << plane_model.values[0] << ", " << plane_model.values[1] << ", "  << plane_model.values[2] << ", " << plane_model.values[3] << std::endl;
+	std::cout << "Time for plane segmentation: " << tim.getElapsedTimeInMilliSec() << "ms." << std::endl;
+	tim.start();
 
 	if (!found_plane)
 	{
@@ -162,6 +167,8 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 
 	for (int s = 0; s < nb_detect_scales_; s++)
 	{
+		Timer tim2;
+
 		// nb_detect_scales == 1 (always, throws an error otherwise)
 		image_scaling_ = nb_detect_scales_ == 1 ? 1 : pow(2, s)*bird_eye_start_resolution_ / bird_eye_base_resolution_;
 		bird_eye_resolution_ = nb_detect_scales_ == 1 ? bird_eye_base_resolution_ : pow(2, s)*bird_eye_start_resolution_;
@@ -193,6 +200,9 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 			plane_color_image_warped = plane_color_image;
 			plane_mask_warped = plane_mask;
 		}
+
+		std::cout << "Time for image warp: " << tim2.getElapsedTimeInMilliSec() << "ms." << std::endl;
+		tim2.start();
 
 		if (debug_["show_plane_color_image"])
 		{
@@ -310,8 +320,8 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 			cob_object_detection_msgs::Detection detection_msg;
 			detection_msg.header = point_cloud2_rgb_msg->header;
 			// todo warning frame_id (just for simulation)
-			detection_msg.pose.header.frame_id = "camera1_optical_frame";
-			detection_msg.header.frame_id = "camera1_optical_frame";
+//			detection_msg.pose.header.frame_id = "camera1_optical_frame";
+//			detection_msg.header.frame_id = "camera1_optical_frame";
 			detection_msg.label = "dirt_spots_found";
 
 			detection_msg.pose.pose.position.x = centroid.x();
@@ -325,7 +335,10 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 		}
 		//todo: publish coordinates and rects
 		dirt_detected_.publish(detected_dirts_to_publish);
+
+		std::cout << "Time for dirt detection excluding image warping: " << tim2.getElapsedTimeInMilliSec() << "ms." << std::endl;
 	}
+	std::cout << "Time for dirt detection: " << tim.getElapsedTimeInMilliSec() << "ms." << std::endl;
 
 	ROS_INFO("Finished IpaDirtDetectionSpectral successfully.\n"); // no it's not finished here
 }
