@@ -1,114 +1,151 @@
 #!/usr/bin/env python
 
-import threading
+from abstract_cleaning_behavior import AbstractCleaningBehavior
+from move_base_path_behavior import MoveBasePathBehavior
+from move_base_wall_follow_behavior import MoveBaseWallFollowBehavior
 
-import room_wet_floor_cleaning_behavior
-import tool_changing_behavior
-import trolley_movement_behavior
-import behavior_container
+from geometry_msgs.msg import Quaternion
+import std_srvs.srv
+from threading import Thread
+import services_params as srv
+from cv_bridge import CvBridge, CvBridgeError
+from math import pi
+import cv2
 
-
-class WetCleaningBehavior(behavior_container.BehaviorContainer):
+class WetCleaningBehavior(AbstractCleaningBehavior):
 
 	# ========================================================================
 	# Description:
-	# Handles the wet cleaning process (i.e. Floor cleaning, Trashcan)
+	# Handles the wet cleaning process (i.e. Floor cleaning)
 	# for all rooms provided in a given list
 	# ========================================================================
 
+	def __init__(self, behavior_name, interrupt_var):
+		super(WetCleaningBehavior, self).__init__(behavior_name, interrupt_var)
+		self.start_cleaning_service_str_ = srv.START_CLEANING_SERVICE_STR
+		self.stop_cleaning_service_str_ = srv.STOP_CLEANING_SERVICE_STR
+
+		self.move_base_wall_follow_service_str_ = srv.MOVE_BASE_WALL_FOLLOW_SERVICE_STR
+
 	# Method for setting parameters for the behavior
-	def setParameters(self, database_handler, room_information_in_meter, sequence_data, mapping, robot_frame_id,
+	def setParameters(self, database_handler, sequencing_result, room_information_in_meter, mapping, robot_frame_id,
 					  robot_radius, coverage_radius, field_of_view, field_of_view_origin, use_cleaning_device):
+		self.setCommonParameters(
+			database_handler=database_handler,
+			sequencing_result=sequencing_result,
+			room_information_in_meter=room_information_in_meter,
+			mapping=mapping,
+			robot_radius=robot_radius,
+			coverage_radius=coverage_radius,
+			field_of_view_origin=field_of_view_origin,
+			field_of_view=field_of_view,
+			robot_frame_id=robot_frame_id
+		)
 		# Parameters set from the outside
-		self.database_handler_= database_handler
-		self.room_information_in_meter_ = room_information_in_meter
-		self.sequence_data_ = sequence_data
-		self.mapping_ = mapping
-		self.robot_frame_id_ = robot_frame_id
-		self.robot_radius_ = robot_radius
-		self.coverage_radius_ = coverage_radius
-		self.field_of_view_ = field_of_view
-		self.field_of_view_origin_ = field_of_view_origin
-		self.use_cleaning_device_ = use_cleaning_device	# todo: hack: cleaning device can be turned off for trade fair show
+		self.use_cleaning_device_ = use_cleaning_device  # hack: cleaning device can be turned off for trade fair show
 
-
-	# Method for returning to the standard pose of the robot
 	def returnToRobotStandardState(self):
-		# nothing to save
-		# nothing to be undone
-		pass
+		if self.use_cleaning_device_:
+			self.stopCleaningDevice()
 
-	# Driving through room and wet cleaning
-	def driveCleaningTrajectory(self, room_id):
+	def callTriggerService(self, service_name):
+		self.callService(service_name, service_message=std_srvs.srv.Trigger)
 
-		self.printMsg("Moving to next room with room_id = " + str(room_id))
+	def startCleaningDevice(self):
+		assert self.use_cleaning_device_
+		self.callTriggerService(self.start_cleaning_service_str_)
 
-		# Interruption opportunity
+	def stopCleaningDevice(self):
+		assert self.use_cleaning_device_
+		self.callTriggerService(self.stop_cleaning_service_str_)
+
+	def executeCustomBehaviorInRoomId(self, room_id):
+
+		# todo (rmb-ma) create a abstract_cleaning common method go to the room and compute path
+		self.printMsg('Starting Wet Cleaning of room ID {}'.format(room_id))
+		starting_position = self.room_information_in_meter_[room_id].room_center
+		self.move_base_handler_.setParameters(
+			goal_position=starting_position,
+			goal_orientation=Quaternion(x=0., y=0., z=0., w=1.),
+			header_frame_id='base_link',
+			goal_angle_tolerance=2*pi,
+			goal_position_tolerance=0.5
+		)
+
+		thread_move_to_the_room = Thread(target=self.move_base_handler_.executeBehavior)
+		thread_move_to_the_room.start()
+
+		path = self.computeCoveragePath(room_id=room_id)
+
+		if len(path) == 0 or self.handleInterrupt() >= 1:
+			return
+
+		thread_move_to_the_room.join()
+
+		if self.move_base_handler_.failed():
+			self.printMsg('Room center is not accessible. Failed to clean room {}'.format(room_id))
+			return
+
+		if self.use_cleaning_device_:
+			self.startCleaningDevice()
+
+		path_follower = MoveBasePathBehavior("MoveBasePathBehavior_PathFollowing", self.interrupt_var_,
+											 self.move_base_path_service_str_)
+
+		self.resetCoverageMonitoring()
+		self.initAndStartCoverageMonitoring()
+
+		room_map_data = self.database_handler_.database_.getRoomById(room_id).room_map_data_
+		path_follower.setParameters(
+			target_poses=path,
+			area_map=room_map_data,
+			path_tolerance=0.2,
+			goal_position_tolerance=0.5,
+			goal_angle_tolerance=1.57
+		)
+
+		path_follower.setInterruptVar(self.interrupt_var_)
+		path_follower.executeBehavior()
 		if self.handleInterrupt() >= 1:
 			return
 
-		self.room_wet_floor_cleaner_.setParameters(
-			room_map_data=self.database_handler_.database_.getRoomById(room_id).room_map_data_,
-			room_center=self.room_information_in_meter_[room_id].room_center,
-			map_data=self.database_handler_.database_.global_map_data_.map_image_,
-			map_resolution=self.database_handler_.database_.global_map_data_.map_resolution_,
-			map_origin=self.database_handler_.database_.global_map_data_.map_origin_,
-			map_header_frame_id=self.database_handler_.database_.global_map_data_.map_header_frame_id_,
-			robot_frame_id=self.robot_frame_id_,
-			robot_radius=self.robot_radius_,
-			coverage_radius=self.coverage_radius_,
-			field_of_view=self.field_of_view_,
+		coverage_map = self.requestCoverageMapResponse(room_id)
+		coverage_map = CvBridge().imgmsg_to_cv2(coverage_map, desired_encoding="passthrough")
+		self.resetCoverageMonitoring()
+
+		wall_follower = MoveBaseWallFollowBehavior("MoveBaseWallFollowBehavior", self.interrupt_var_, self.move_base_wall_follow_service_str_)
+
+		wall_follower.setParameters(
+			map=self.map_data_,
+			area_map=room_map_data,
+			coverage_map_service=self.receive_coverage_image_service_str_,
+			map_resolution=self.map_resolution_,
+			map_origin=self.map_origin_,
+			path_tolerance=0.2,
+			goal_position_tolerance=0.3,
+			goal_angle_tolerance=1.57,
+			target_wall_distance=0.15,
+			wall_following_off_traveling_distance_threshold=0.8,
 			field_of_view_origin=self.field_of_view_origin_,
-			use_cleaning_device=self.use_cleaning_device_  # todo: hack: cleaning device can be turned off for trade fair show
+			field_of_view=self.field_of_view_,
+			coverage_radius=self.coverage_radius_
 		)
-		self.room_wet_floor_cleaner_.executeBehavior()
 
-		# Interruption opportunity
+		wall_follower.executeBehavior()
+
 		if self.handleInterrupt() >= 1:
 			return
 
-		# Mark the current room as finished
-		self.printMsg("ID of cleaned room: " + str(room_id))
-		self.database_handler_.checkoutCompletedRoom(self.database_handler_.database_.getRoomById(room_id), assignment_type=1)
-		self.printMsg(str(self.database_handler_.database_.getRoomById(room_id).open_cleaning_tasks_))
+		if self.handleInterrupt() >= 1:
+			return
 
-		# Adding log entry for wet cleaning
-		self.database_handler_.addLogEntry(
-			room_id=room_id,
-			status=1,  # 1=Completed
-			cleaning_task=1,  # 1=wet only
-			found_dirtspots=0,
-			found_trashcans=0,
-			cleaned_surface_area=0,
-			room_issues=[],
-			used_water_amount=0,
-			battery_usage=0
-		)
+		if self.use_cleaning_device_:
+			self.stopCleaningDevice()
 
-	# Implemented Behavior
-	def executeCustomBehavior(self):
-		self.trolley_mover_ = trolley_movement_behavior.TrolleyMovementBehavior("TrolleyMovementBehavior", self.interrupt_var_)
-		self.tool_changer_ = tool_changing_behavior.ToolChangingBehavior("ToolChangingBehavior", self.interrupt_var_)
-		self.room_wet_floor_cleaner_ = room_wet_floor_cleaning_behavior.RoomWetFloorCleaningBehavior("RoomWetFloorCleaningBehavior", self.interrupt_var_)
-
-		# Tool changing
-		self.tool_changer_.setParameters(self.database_handler_)
-		self.tool_changer_.executeBehavior()
-
-		# Room counter index: Needed for mapping of room_indices <--> RoomItem.room_id
-		room_counter = 0
-
-		for current_checkpoint_index in range(len(self.sequence_data_.checkpoints)):
-			# Trolley movement to checkpoint
-			self.trolley_mover_.setParameters(self.database_handler_)
-			self.trolley_mover_.executeBehavior()
-
-			for current_room_index in self.sequence_data_.checkpoints[current_checkpoint_index].room_indices:
-				# Handling of selected room
-				room_id = self.mapping_[room_counter]
-				cleaning_thread = threading.Thread(target=self.driveCleaningTrajectory(room_id=room_id))
-				cleaning_thread.start()
-				cleaning_thread.join()
-				
-				# Increment the current room counter index
-				room_counter += 1
+		# Checkout the completed room
+		wall_coverage_map = self.requestCoverageMapResponse(room_id)
+		wall_coverage_map = CvBridge().imgmsg_to_cv2(wall_coverage_map, desired_encoding="passthrough")
+		coverage_map = cv2.add(wall_coverage_map, coverage_map)
+		coverage_area = self.checkAndComputeCoverage(room_id, coverage_map=coverage_map)
+		self.stopCoverageMonitoring()
+		self.checkoutRoom(room_id=room_id, cleaning_method=2, coverage_area=coverage_area)

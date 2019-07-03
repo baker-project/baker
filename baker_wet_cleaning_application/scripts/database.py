@@ -2,30 +2,26 @@
 
 # For the room and robot data information
 import database_classes
-# For time calculations
-from datetime import datetime, date, time, timedelta
-# For Point32
-from geometry_msgs.msg import Point32
-from geometry_msgs.msg import Pose
+from datetime import datetime
 # For map receiving, for image receiving
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
-# For support of the JSON format
 import json
 # For copying, finding and deleting JSON files
 from shutil import copyfile
 import os
-# For room information
 from ipa_building_msgs.msg import RoomInformation
+from geometry_msgs.msg import Point32
+from geometry_msgs.msg import Pose
 
 # Database class
 class Database:
 
-	#========================================================================
+	# ========================================================================
 	# Description:
 	# Container for all data being used in the cleaning application.
 	# Also contains functions to load and save data.
-	#========================================================================
+	# ========================================================================
 
 	# Rooms
 	rooms_ = []
@@ -50,7 +46,6 @@ class Database:
 	global_map_image_filename_ = ""
 	global_map_segmented_image_filename_ = ""
 
-
 # =========================================================================================
 # Private methods
 # =========================================================================================
@@ -59,47 +54,45 @@ class Database:
 	def datetimeToString(datetime_date):
 		return datetime_date.strftime("%Y-%m-%d_%H:%M")
 
-
 	@staticmethod
 	def stringToDatetime(string_date):
 		return datetime.strptime(string_date, "%Y-%m-%d_%H:%M")
-
 
 	@staticmethod
 	def point32ToArray(point32_point):
 		return [point32_point.x, point32_point.y, point32_point.z]
 
-
 	@staticmethod
 	def arrayToPoint32(array_point):
 		return Point32(x=array_point[0], y=array_point[1], z=array_point[2])
 
-
-	def updateGlobalApplicationData(self, dict):
+	def updateGlobalApplicationData(self, dict_application_data):
 		self.application_data_ = database_classes.GlobalApplicationData()
-		# Get the datetime of the last recorded start of the application
-		last_execution_date_str = dict.get("last_execution_date")
+
+		last_execution_date_str = dict_application_data.get("last_execution_date")
 		if last_execution_date_str is not None:
 			self.application_data_.last_execution_date_ = self.stringToDatetime(last_execution_date_str)
 		else:
 			self.application_data_.last_execution_date_ = None
-		# Get the last planning dates (see database_classes.py for further explanation)
-		last_planning_date_str = dict.get("last_planning_date")
+
+		last_planning_date_str = dict_application_data.get("last_planning_date")
 		if (last_planning_date_str[0] is not None) and (last_planning_date_str[1] is not None):
 			self.application_data_.last_planning_date_ = [self.stringToDatetime(last_planning_date_str[0]), self.stringToDatetime(last_planning_date_str[1])]
 		else:
 			self.application_data_.last_planning_date_ = [None, None]
-		# Get if the last database saving routine completed without error
-		self.application_data_.last_database_save_successful_ = dict.get("last_database_save_successful")
-		# Get the amount of executions of the application on the current day. Increment by one.
-		self.application_data_.run_count_ = dict.get("run_count")
-		# Get the progress variable
-		progress_str = dict.get("progress")
+		self.application_data_.last_database_save_successful_ = dict_application_data.get("last_database_save_successful")
+
+		self.application_data_.run_count_ = dict_application_data.get("run_count")
+
+		progress_str = dict_application_data.get("progress")
 		self.application_data_.progress_[0] = progress_str[0]
-		if progress_str[1] is not None:
-			self.application_data_.progress_[1] = self.stringToDatetime(progress_str[1])
-		else:
-			self.application_data_.progress_[1] = None
+		self.application_data_.progress_[1] = self.stringToDatetime((progress_str[1])) if progress_str[1] is not None else None
+
+		if not dict_application_data.get("planning_offset"):
+			dict_application_data["planning_offset"] = 0
+			print("Warning. Planning_offset set to 0")
+
+		self.application_data_.planning_offset_ = dict_application_data["planning_offset"]
 
 
 	def getGlobalApplicationDataDictFromGlobalApplicationData(self):
@@ -125,16 +118,16 @@ class Database:
 			application_data_dict["progress"] = [self.application_data_.progress_[0], self.datetimeToString(self.application_data_.progress_[1])]
 		else:
 			application_data_dict["progress"] = [self.application_data_.progress_[0], None]
-		
+
+		application_data_dict["planning_offset"] = self.application_data_.planning_offset_
+
 		return application_data_dict
-	
 
 	def updateGlobalSettings(self, dict_settings):
 		self.global_settings_ = database_classes.GlobalSettings()
 		self.global_settings_.shall_auto_complete_ = dict_settings.get("shall_auto_complete")
 		self.global_settings_.max_aux_time_ = dict_settings.get("max_aux_time")
 		self.global_settings_.assignment_timedelta_ = dict_settings.get("assignment_timedelta")
-
 
 	def getGlobalSettingsDictFromGlobalSettings(self):
 		global_settings_dict = {}
@@ -143,16 +136,15 @@ class Database:
 		global_settings_dict["assignment_timedelta"] = self.global_settings_.assignment_timedelta_
 		return global_settings_dict
 
-
 	def updateGlobalMapData(self, dict):
 		bridge = CvBridge()
 		self.global_map_data_ = database_classes.GlobalMapData()
 		# Get an open cv representation of the map
 		map_opencv = cv2.imread(self.global_map_image_filename_, 0)
-		self.global_map_data_.map_image_ = bridge.cv2_to_imgmsg(map_opencv, encoding = "mono8")
+		self.global_map_data_.map_image_ = bridge.cv2_to_imgmsg(map_opencv, encoding="mono8")
 		# Get an open cv representation of the segmented map
 		map_segmented_opencv = cv2.imread(self.global_map_segmented_image_filename_, 0)
-		self.global_map_data_.map_image_segmented_ = bridge.cv2_to_imgmsg(map_segmented_opencv, encoding = "mono8") 
+		self.global_map_data_.map_image_segmented_ = bridge.cv2_to_imgmsg(map_segmented_opencv, encoding="mono8")
 		# Get the map resolution
 		self.global_map_data_.map_resolution_ = dict.get("map_resolution")
 		# Get the map origin
@@ -168,7 +160,6 @@ class Database:
 		self.global_map_data_.map_origin_ = pose
 		# Get the map header frame id
 		self.global_map_data_.map_header_frame_id_ = dict.get("map_header_frame_id")
-
 
 	def updateRobotProperties(self, dict):
 		self.robot_properties_ = database_classes.RobotProperties()
@@ -188,7 +179,6 @@ class Database:
 		self.robot_properties_.wall_follow_path_tolerance_ = dict.get("wall_follow_path_tolerance")
 		self.robot_properties_.wall_follow_goal_position_tolerance_ = dict.get("wall_follow_goal_position_tolerance")
 		self.robot_properties_.wall_follow_goal_angle_tolerance_ = dict.get("wall_follow_goal_angle_tolerance")
-
 
 	# Make rooms_ contain all the rooms stated in the dict parameter
 	def updateRoomsList(self, dict_settings):
@@ -259,7 +249,6 @@ class Database:
 			current_room.room_scheduled_days_ = dict_settings.get(room_key).get("room_scheduled_days")
 			# Get the yet open cleaning tasks
 			current_room.open_cleaning_tasks_ = dict_settings.get(room_key).get("open_cleaning_tasks")
-			
 			# Get the list with the datestamps
 			string_datestamp_list = dict_settings.get(room_key).get("room_cleaning_datestamps")
 			datestamps = []
@@ -272,7 +261,6 @@ class Database:
 			
 			# Append current room object to the rooms_ list
 			self.rooms_.append(current_room)
-
 
 	# Get a dictionary representation of rooms_
 	def getRoomsDictFromRoomsList(self):
@@ -349,7 +337,6 @@ class Database:
 				print "[FATAL]: An element in rooms_ array is not a room object!"
 		return room_dict
 
-
 	# Load temporal/original database from file.
 	def readFiles(self, temporal):
 		# Load the room data
@@ -383,7 +370,6 @@ class Database:
 		global_map_data_dict = json.loads(datafile)
 		self.updateGlobalMapData(global_map_data_dict)
 
-
 	# Check the integrity of the specified file, return True on intact files
 	def checkIntegrity(self, temporal):
 		try:
@@ -396,7 +382,6 @@ class Database:
 		except:
 			return False
 
-
 	# Returns the amount of runs of a specific day
 	# Run count increases, if application is found completed or discarded
 	def updateRunCount(self, date):
@@ -408,7 +393,6 @@ class Database:
 				self.application_data_.run_count_ = 1
 		else:
 			self.application_data_.run_count_ = 1
-			
 
 	# Determine what the current logfile name is supposed to be
 	def getCurrentLogfileName(self):
@@ -420,7 +404,6 @@ class Database:
 		run_count = self.application_data_.run_count_
 		return "log_" + str(year) + "_" + str(week) + "_" + str(day) + "_run" + str(run_count) + ".json"
 		
-
 	# Convert log dict into an object array
 	def getLogListFromLogDict(self, dict_settings):
 		log_item_list = []
@@ -439,7 +422,6 @@ class Database:
 			log_item.battery_usage_ = dict_settings.get(log_key).get("battery_usage")
 			log_item_list.append(log_item)
 		return log_item_list
-
 
 	# Convert log object array into dict
 	def getLogDictFromLogList(self, log_item_list):
@@ -461,7 +443,6 @@ class Database:
 			}
 		return log_dict
 
-
 	# Save the room data
 	def saveRoomDatabase(self, temporal=True):
 		rooms_dict = self.getRoomsDictFromRoomsList()
@@ -472,7 +453,6 @@ class Database:
 			datafile = open(self.rooms_filename_, "w")
 		datafile.write(rooms_text)
 		datafile.close()
-
 
 	# Save the application data
 	def saveGlobalApplicationData(self, temporal=True):
@@ -525,7 +505,6 @@ class Database:
 		self.application_data_.progress_ = [4, datetime.now()]
 		self.saveCompleteDatabase(temporal_file=False)
 
-
 	# Load database data from files
 	def loadDatabase(self):
 		# Check if there is a temporal representation
@@ -540,7 +519,6 @@ class Database:
 		#except:
 		#	print "[Database] Loading of database failed. No valid original or temporal JSON file set found. Check for damaged data."
 		#	exit(1)
-
 
 	def addLogEntry(self, log_element):
 		# Load current log file. If there is not a suiting log file, create one
@@ -562,6 +540,7 @@ class Database:
 		log_item_list.append(log_element)
 		# Translate LogItem list to dict and dict to text
 		log_item_dict = self.getLogDictFromLogList(log_item_list)
+		print(log_item_dict)
 		log_text = json.dumps(log_item_dict, indent=4, sort_keys=True)
 		# Copy current log file and name the copy _backup_<Filename>.json
 		current_backup_file_name = str(self.log_filepath_) + "_backup_" + str(current_logfile_filename)
@@ -572,7 +551,6 @@ class Database:
 		datafile.close
 		# Remove backup file
 		os.remove(current_backup_file_name)
-
 
 	# Save the complete database safely, remove temporal data on final save
 	def saveCompleteDatabase(self, temporal_file=True):
@@ -587,7 +565,6 @@ class Database:
 				os.remove(str(self.tmp_rooms_filename_))
 			if os.path.isfile(self.tmp_application_data_filename_):
 				os.remove(str(self.tmp_application_data_filename_))
-
 
 	# Retrieve a room by providing a room_id
 	def getRoomById(self, room_id):

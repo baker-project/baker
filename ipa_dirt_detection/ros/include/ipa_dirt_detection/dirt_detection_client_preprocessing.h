@@ -15,8 +15,6 @@
 #include <actionlib/client/simple_action_client.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <std_srvs/Trigger.h>
-#include <cob_object_detection_msgs/DetectionArray.h>
-#include <cob_object_detection_msgs/Detection.h>
 #include <geometry_msgs/Pose.h>
 
 // dynamic reconfigure
@@ -136,9 +134,9 @@ protected:
 
 		//PARAMS
 		double bird_eye_resolution_; // resolution for bird eye's perspective [pixel/m]
-		bool warp_image_; // if true, image warping to a bird's eye perspective is enabled todo: make this dynamic reconfigure or param (joel)
+		bool is_warp_image_bird_perspective_enabled_; // if true, image warping to a bird's eye perspective is enabled todo: make this dynamic reconfigure or param (joel)
 		bool use_mask_; //paramter to use mask or not. if not all points belong to plane.
-		int detect_scales_;
+		int nb_detect_scales_;
 
 		std::string bird_eye_resolution_string_;
 

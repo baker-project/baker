@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 
-import roslib
-roslib.load_manifest('baker_wet_cleaning_application')
 import rospy
 import tf
 from abc import ABCMeta, abstractmethod
 from threading import Lock
+from application_container import ApplicationContainer
 
 _tl=None
 _tl_creation_lock = Lock()
@@ -19,11 +18,12 @@ def get_transform_listener():
 		return _tl
 ###########################################################################
 
+
 class BehaviorContainer:
-	#========================================================================
+	# ========================================================================
 	# Description:
 	# Abstract class which contains one specific behavior of the application
-	#========================================================================
+	# ========================================================================
 
 	__metaclass__ = ABCMeta
 	# Arbitrary behavior name. Only used for debug.
@@ -48,7 +48,7 @@ class BehaviorContainer:
 
 	def interruptExecution(self):
 		self.mutex_.acquire()
-		self.interrupt_var_ = [1]
+		self.interrupt_var_ = [ApplicationContainer.STATUS['IS_CANCELLED']]
 		self.mutex_.release()
 
 	def setInterruptVar(self, interrupt_var):
@@ -57,9 +57,16 @@ class BehaviorContainer:
 	# Method that returns the current interruption value [True/False]
 	def executionInterrupted(self):
 		self.mutex_.acquire()
-		is_interrupted = self.interrupt_var_[0] != 0
+		is_interrupted = self.interrupt_var_[0] != ApplicationContainer.STATUS['IS_RUNNING'] \
+			and self.interrupt_var_[0] != ApplicationContainer.STATUS['IS_PAUSED']
 		self.mutex_.release()
 		return is_interrupted
+
+	def executionPaused(self):
+		self.mutex_.acquire()
+		is_paused = self.interrupt_var_[0] == ApplicationContainer.STATUS['IS_PAUSED']
+		self.mutex_.release()
+		return is_paused
 
 	# Method that handles interruptions (ASSUMING: False=OK, True=INTERRUPT)
 	def handleInterrupt(self):
@@ -72,36 +79,57 @@ class BehaviorContainer:
 	def failed(self):
 		return self.state_ != 3
 
+	def computeNewGoalFromPausedResult(self, prev_action_goal, result):
+		return prev_action_goal
+
 	# Method for running an action server, shall only be called from def executeCustomBehavior
+	# Definition of SimpleGoalState: 0 = PENDING, 1 = ACTIVE, 3 = DONE
 	def runAction(self, action_client, action_goal):
+
 		self.is_finished = False
-		# action client --> call external functionality but do not wait for finishing
 		self.printMsg("Waiting for action " + str(action_client.action_client.ns) + " to become available...")
 		action_client.wait_for_server()
-		self.printMsg("Sending goal...")
-		action_client.send_goal(action_goal)
-		# loop --> ask for action finished and sleep for one second
-		# in loop check for interrupt --> if necessary stop action with self.executionInterrupted() == True and wait until action stopped
-		# Definition of SimpleGoalState: 0 = PENDING, 1 = ACTIVE, 3 = DONE
-		while action_client.get_state() < 3:
-			#self.printMsg("action_client.get_state()=" + str(action_client.get_state()))
-			if self.executionInterrupted() or rospy.is_shutdown():
-				action_client.cancel_goal()
-				while action_client.get_state() < 3 and not rospy.is_shutdown():
-					pass
-				action_client.wait_for_result()
-				self.is_finished = True
-				return {'interrupt_var': self.handleInterrupt(), 'result': action_client.get_result()}
-			rospy.sleep(self.sleep_time_)
-		if action_client.get_state() == 3:
-			self.printMsg("Action successfully processed.")
-		else:
-			self.printMsg("Action failed.")
+		while not self.is_finished:
+			resumed_after_pause = False
+			# action client --> call external functionality but do not wait for finishing
+			self.printMsg("Sending goal...")
+			action_client.send_goal(action_goal)
 
-		action_client.wait_for_result()
-		self.is_finished = True
-		self.state_ = action_client.get_state()
-		return {'interrupt_var': self.interrupt_var_[0], 'result': action_client.get_result()}
+			while action_client.get_state() < 3:
+				if self.executionPaused():
+					action_client.cancel_goal()
+					action_client.wait_for_result()
+					result = action_client.get_result()
+
+					while self.executionPaused() and not rospy.is_shutdown():
+						rospy.sleep(self.sleep_time_)
+
+					if self.interrupt_var_[0] == ApplicationContainer.STATUS['IS_RUNNING'] and not rospy.is_shutdown():
+						action_goal = self.computeNewGoalFromPausedResult(prev_action_goal=action_goal, result=result)
+						resumed_after_pause = True
+
+				if self.executionInterrupted() or rospy.is_shutdown():
+					action_client.cancel_goal()
+					while action_client.get_state() < 3 and not rospy.is_shutdown():
+						pass
+					action_client.wait_for_result()
+					self.is_finished = True
+
+					return {'interrupt_var': self.handleInterrupt(), 'result': action_client.get_result()}
+				rospy.sleep(self.sleep_time_)
+
+			if resumed_after_pause:
+				continue
+
+			if action_client.get_state() == 3:
+				self.printMsg("Action successfully processed.")
+			else:
+				self.printMsg("Action failed.")
+
+			action_client.wait_for_result()
+			self.is_finished = True
+			self.state_ = action_client.get_state()
+			return {'interrupt_var': self.interrupt_var_[0], 'result': action_client.get_result()}
 
 	# Method for returning to the standard pose of the robot
 	@abstractmethod

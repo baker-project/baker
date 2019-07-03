@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 import rospy
+import tf
 from cob_map_accessibility_analysis.srv import CheckPerimeterAccessibility, CheckPerimeterAccessibilityRequest
-from geometry_msgs.msg import Pose2D, Pose
+from geometry_msgs.msg import Pose2D, Pose, Quaternion
+from utils import getCurrentRobotPosition
 
 from move_base_behavior import MoveBaseBehavior
 import behavior_container
@@ -45,30 +47,40 @@ class DirtRemovingBehavior(behavior_container.BehaviorContainer):
 		center.theta = 0
 		request.center = center
 
-		request.radius = 1  # todo (rmb-ma) use the value from the detector
+		request.radius = 1  # todo (rmb-ma) use the value from the cleaning device
 		request.rotational_sampling_step = 0.3
 		response = accessibility_checker(request)
 
 		accessible_poses = response.accessible_poses_on_perimeter
 		return accessible_poses
 
-	# todo (rmb-ma). find the best accessible location
 	@staticmethod
 	def computeBestPose(accessible_locations):
 		assert(len(accessible_locations) > 0)
-		best_pose2d = accessible_locations[0]
+
+		(robot_position, robot_rotation, _) = getCurrentRobotPosition()
+		(x_robot, y_robot) = (robot_position[0], robot_position[1])
+
+		min_dist = float('inf')
+		for pose in accessible_locations:
+			(x, y) = (pose.x, pose.y)
+			current_dist = (x - x_robot)**2 + (y - y_robot)**2
+			if current_dist < min_dist:
+				min_dist = current_dist
+				best_pose2d = pose
+
 		best_pose3d = Pose()
 		(best_pose3d.position.x, best_pose3d.position.y) = (best_pose2d.x, best_pose2d.y)
-		best_pose3d.orientation.w = best_pose2d.theta
+		best_pose3d.orientation = Quaternion(*tf.transformations.quaternion_from_euler(0, 0, best_pose2d.theta))
 		return best_pose3d
 
 	def removeDirt(self):
 		# todo (rmb-ma)
-		pass
+		rospy.sleep(1.)
 
 	def checkoutDirt(self):
 		# todo (rmb-ma)
-		pass
+		rospy.sleep(1.)
 
 	# Implemented Behavior
 	def executeCustomBehavior(self):

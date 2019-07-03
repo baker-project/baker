@@ -14,9 +14,24 @@ def getTransformListener():
 	global _tl
 	with _tl_creation_lock:
 		if _tl is None:
-			_tl = tf.TransformListener(True, rospy.Duration(40.0))
+			_tl = tf.TransformListener(interpolate=True, cache_time=rospy.Duration(40.0))
 		return _tl
 
+
+def projectToCamera(detection):
+
+	time = detection.header.stamp
+	try:
+		print("before {}".format(detection))
+		listener = getTransformListener()
+		listener.waitForTransform('/map', '/camera1_optical_frame', time, rospy.Duration(10))
+		detection.pose = listener.transformPose('/map', detection.pose)
+		#detection.header.frame_id = '/map'
+		print("after {}".format(detection))
+		return detection
+	except (tf.Exception, tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException,), e:
+		print "Could not lookup robot pose: %s" % e
+		return None
 
 # retrieves the current robot pose
 def getCurrentRobotPosition():
@@ -33,11 +48,3 @@ def getCurrentRobotPosition():
 																		 'rzyx')  # yields yaw, pitch, roll
 
 	return robot_pose_translation, robot_pose_rotation, robot_pose_rotation_euler
-
-def getTodayIndex():
-	today = datetime.now()
-	week_type = today.isocalendar()[1] % 2
-	week_day = today.weekday()
-	today_index = week_type * 7 + week_day
-	return today_index
-

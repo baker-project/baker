@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 
-from geometry_msgs.msg import Quaternion
-
-from move_base_behavior import MoveBaseBehavior
 import behavior_container
+import rospy
 
+from geometry_msgs.msg import Quaternion
+from move_base_behavior import MoveBaseBehavior
 
 class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 
-	#========================================================================
+	# ========================================================================
 	# Description:
 	# Class which contains the behavior of trashcan emptying
 	# > Go to the trashcan
@@ -17,13 +17,12 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 	# > Empty the trashcan
 	# > Go to the trashcan location
 	# > Leave the trashcan
-	#========================================================================
+	# ========================================================================
 
 	def __init__(self, behavior_name, interrupt_var, move_base_service_str):
 		super(TrashcanEmptyingBehavior, self).__init__(behavior_name, interrupt_var)
 		self.move_base_handler_ = MoveBaseBehavior("MoveBaseBehavior", self.interrupt_var_, move_base_service_str)
 		(self.trolley_position_, self.trashcan_position_) = (None, None)
-
 
 	# Method for setting parameters for the behavior
 	def setParameters(self, trashcan_position, trolley_position):
@@ -47,15 +46,15 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 
 	def takeTrashcan(self):
 		# todo (rmb-ma)
-		pass
+		rospy.sleep(2.)
 
 	def emptyTrashcan(self):
 		# todo (rmb-ma)
-		pass
+		rospy.sleep(2)
 
 	def leaveTrashcan(self):
 		# todo (rmb-ma)
-		pass
+		rospy.sleep(2)
 
 	# Implemented Behavior
 	def executeCustomBehavior(self):
