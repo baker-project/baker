@@ -16,6 +16,7 @@
 	<depend>actionlib_msgs</depend>
 	<depend>baker_msgs</depend>
 	<depend>boost</depend>
+	<depend>cob_object_detection_msgs</depend>
 	<depend>cv_bridge</depend>
 	<depend>dynamic_reconfigure</depend>
 	<depend>geometry_msgs</depend>

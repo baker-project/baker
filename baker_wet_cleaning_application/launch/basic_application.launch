@@ -11,9 +11,9 @@
 	</include>
 	
 	<!-- include ROS_MIRA communication module to brush cleaner -->
-	<include file="$(find baker_brush_cleaning_module_interface)/launch/brush_cleaning_module_interface.launch">
+	<!--include file="$(find baker_brush_cleaning_module_interface)/launch/brush_cleaning_module_interface.launch">
 		<arg name="brush_cleaning_module_interface_args" value="$(arg brush_cleaning_module_interface_args)"/>
-	</include>
+	</include-->
 	
 
 	<!-- map management system -->

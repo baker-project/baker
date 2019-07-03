@@ -41,7 +41,7 @@ max_distance_to_camera: 3.00
 # all flags are of type bool
 
 # displays the original source image that comes with the point cloud data
-show_original_image: false #true
+show_original_image: true #true
 
 # shows only the part of the color image that belongs to the plane, the remainder is masked black
 show_plane_color_image: false #true

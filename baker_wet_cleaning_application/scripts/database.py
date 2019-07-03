@@ -279,7 +279,7 @@ class Database:
 		room_dict = {}
 		for current_room in self.rooms_:
 			# Check if current_room is a room 
-			if isinstance(current_room, database_classes.RoomItem) :
+			if isinstance(current_room, database_classes.RoomItem):
 				# Make a dict of the issues of current_room
 				issues_dict = {}
 				for current_issue in current_room.room_issues_:
@@ -434,6 +434,7 @@ class Database:
 			log_item.log_week_and_day_ = dict_settings.get(log_key).get("week_and_day")
 			log_item.room_id_ = dict_settings.get(log_key).get("room_id")
 			log_item.status_ = dict_settings.get(log_key).get("status")
+			log_item.trolley_capacity_ = dict_settings.get(log_key).get("trolley_capacity")
 			log_item.used_water_amount_ = dict_settings.get(log_key).get("used_water_amount")
 			log_item.battery_usage_ = dict_settings.get(log_key).get("battery_usage")
 			log_item_list.append(log_item)
@@ -454,6 +455,7 @@ class Database:
 				"week_and_day": log_item.log_week_and_day_,
 				"room_id": log_item.room_id_,
 				"status": log_item.status_,
+				"trolley_capacity": log_item.trolley_capacity_,
 				"used_water_amount": log_item.used_water_amount_,
 				"battery_usage": log_item.battery_usage_
 			}
@@ -465,9 +467,9 @@ class Database:
 		rooms_dict = self.getRoomsDictFromRoomsList()
 		rooms_text = json.dumps(rooms_dict, indent=4, sort_keys=True)
 		if temporal:
-			datafile = open(self.rooms_filename_, "w")
-		else:
 			datafile = open(self.tmp_rooms_filename_, "w")
+		else:
+			datafile = open(self.rooms_filename_, "w")
 		datafile.write(rooms_text)
 		datafile.close()
 
@@ -489,7 +491,7 @@ class Database:
 # =========================================================================================
 
 	# Constructor method
-	def __init__(self, extracted_file_path='resources'):
+	def __init__(self, extracted_file_path='resources', auto_load_database=True):
 		self.extracted_file_path = extracted_file_path
 		self.rooms_filename_ = self.extracted_file_path + str("/json/rooms.json")
 		self.tmp_rooms_filename_ = self.extracted_file_path + str("/json/tmp_rooms.json")
@@ -501,7 +503,8 @@ class Database:
 		self.application_data_filename_ = self.extracted_file_path + str("/json/application_data.json")
 		self.tmp_application_data_filename_ = self.extracted_file_path + str("/json/tmp_application_data.json")
 		self.log_filepath_ = self.extracted_file_path + str("/logs/")
-		self.loadDatabase()
+		if auto_load_database:
+			self.loadDatabase()
 
 	# Discard temporal database --> All current progress will be forgotten
 	def discardTemporalDatabase(self):

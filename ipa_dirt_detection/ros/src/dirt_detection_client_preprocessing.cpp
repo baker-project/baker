@@ -70,7 +70,7 @@ IpaDirtDetectionPreprocessing::ClientPreprocessing::ClientPreprocessing(ros::Nod
 	activate_dirt_detection_service_server_ = node_handle_.advertiseService("activate_dirt_detection", &IpaDirtDetectionPreprocessing::ClientPreprocessing::activateDirtDetection, this);
 	deactivate_dirt_detection_service_server_ = node_handle_.advertiseService("deactivate_dirt_detection", &IpaDirtDetectionPreprocessing::ClientPreprocessing::deactivateDirtDetection, this);
 
-	//std::cout << "Preprocessing constructed." << std::endl;
+	std::cout << "Dirt detection preprocessing initialized." << std::endl;
 }
 
 IpaDirtDetectionPreprocessing::ClientPreprocessing::~ClientPreprocessing()
@@ -134,8 +134,8 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 	pcl::fromROSMsg(*point_cloud2_rgb_msg, *input_cloud); //conversion Ros message->Pcl point cloud
 	//std::cout << input_cloud->size() << std::endl;
 
-	Timer tim;
-	double segmentation_time = 0., dirt_detection_time = 0.;
+//	Timer tim;
+//	double segmentation_time = 0., dirt_detection_time = 0.;
 
 	// find ground plane
 	cv::Mat plane_color_image = cv::Mat();
@@ -147,9 +147,9 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 	//if(use_mask_ == false)
 	//	plane_mask.setTo(cv::Scalar(255));
 
-	std::cout << "Segmentation time: " << tim.getElapsedTimeInMilliSec() << "ms." << std::endl;
-	segmentation_time = tim.getElapsedTimeInMilliSec();
-	tim.start();
+//	std::cout << "Segmentation time: " << tim.getElapsedTimeInMilliSec() << "ms." << std::endl;
+//	segmentation_time = tim.getElapsedTimeInMilliSec();
+//	tim.start();
 
 	for (int s = 0; s < detect_scales_; s++)
 	{
@@ -271,10 +271,10 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 
 						cv::RotatedRect dirt;
 						//cv::RotatedRect dirt(cv::Point2f(det.center_x, det.center_y), cv::Size2f(det.width/bird_eye_resolution_, det.height/bird_eye_resolution_), det.angle);
-						if (warp_image_ == true)
-						{
-							H_inv*cv::Point3f();
-						}
+//						if (warp_image_ == true)
+//						{
+//							H_inv*cv::Point3f();
+//						}
 
 
 						//cv::RotatedRect dirt = dirt_detection_client_.getResult()->dirt_detections[i]; //todo: throws error. need conversion.
@@ -375,10 +375,12 @@ bool IpaDirtDetectionPreprocessing::ClientPreprocessing::planeSegmentation(pcl::
 				color_image.at<cv::Vec3b>(v, u) = cv::Vec3b(point.b, point.g, point.r);
 			}
 		}
+		std::cout << input_cloud->height << "x" << input_cloud->width << std::endl;
+
 		//display original image
 		cv::imshow("original color image", color_image);
 		cvMoveWindow("original color image", 0, 0);
-		cv::waitKey(10);
+		cv::waitKey();
 		if (debug_["save_data_for_test"] == true)
 		{
 			//bird_eye_resolution_string_ = std::to_string(bird_eye_resolution_);

@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+#========================================================================
+# Description:
+# Contains all classes whose instances are stored in the database
+#========================================================================
+
 
 # Class which contains all the properties of the robot
 class RobotProperties():
@@ -18,7 +23,17 @@ class RobotProperties():
 	wall_follow_goal_position_tolerance_ = 0
 	wall_follow_goal_angle_tolerance_ = 0
 
-
+	def __str__(self):
+		output = "[RobotProperties]:\n"
+		output += "\tRadius {} | coverage radius {} | fov {}\n".format(self.exploration_robot_radius_,
+																		self.exploration_coverage_radius_, self.exploration_field_of_view_)
+		output += "\tFrameId {}\n".format(self.exploration_header_frame_id_)
+		output += "\tPath tolerance {} | Goal tolerance {} | Angle tolerance {}\n".format(self.path_follow_path_tolerance_,
+																						  self.path_follow_goal_position_tolerance_, self.path_follow_goal_angle_tolerance_)
+		output += "\tWall tolerance {} | Wall position tolerance {} | Wall angle tolerance {}\n".format(self.wall_follow_path_tolerance_,
+																										self.wall_follow_goal_position_tolerance_,
+																										self.wall_follow_goal_angle_tolerance_)
+		return output
 
 # Class which contains all global application settings
 class GlobalSettings():
@@ -32,7 +47,10 @@ class GlobalSettings():
 	# (INTEGER)
 	assignment_timedelta_ = 14
 
-
+	def __str__(self):
+		return "[GlobalSettings]: autocomplete {} | maxAuxTime {} | timeDelta {}".format(self.shall_auto_complete_,
+																						 self.max_aux_time_,
+																						 self.assignment_timedelta_)
 
 # Class which contains all global map data
 class GlobalMapData():
@@ -53,7 +71,6 @@ class GlobalMapData():
 	map_header_frame_id_ = ""
 
 
-
 # Class which contains all application-wide data to be recorded
 class GlobalApplicationData():
 	# Last date the application was started
@@ -68,6 +85,9 @@ class GlobalApplicationData():
 	# Was the last saving of the database successful?
 	# (BOOLEAN)
 	last_database_save_successful_ = True
+	# Progress status of the application [0=Completed, 1=Running, 2=Paused, 3=Stopped, 4=Discarded] and date the progress belongs to
+	# ([INTEGER, DATETIME])
+	progress_ = [0, None]
 
 
 
@@ -85,7 +105,7 @@ class LogItem():
 	# Concerning cleaning task [-1=trashcan_only, 0=dry_only, 1=wet_only]
 	# (INTEGER)
 	cleaning_task_ = 0
-	# Status [Started, Completed, Stopped, Halted, Paused, Continued, ...]
+	# Status [Started, Completed=1, Stopped, Halted, Paused, Continued, ...]
 	# (INTEGER)
 	status_ = 0
 	# Found trashcans
@@ -207,3 +227,5 @@ class RoomItem():
 	def __hash__(self):
 		return self.room_id_
 
+	def __str__(self):
+		return "[Room {}]".format(self.room_id_)

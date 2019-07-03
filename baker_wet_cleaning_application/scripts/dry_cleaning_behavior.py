@@ -278,6 +278,7 @@ class DryCleaningBehavior(behavior_container.BehaviorContainer):
 			if self.handleInterrupt() >= 1:
 				return
 
+			# todo: mutex necessary?
 			for dirt in self.detected_dirts_:
 				self.dirtRoutine(room_id=room_id, detected_dirt=dirt)
 			for trash in self.detected_trashs_:

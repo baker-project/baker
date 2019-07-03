@@ -186,7 +186,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 				path_tolerance = 0.2
 				goal_position_tolerance = 0.5
 				goal_angle_tolerance = 1.57
-				""
+				"""
 				self.path_follower_.setParameters(
 					self.room_explorer_.exploration_result_.coverage_path_pose_stamped,
 					current_room_map,
@@ -195,7 +195,7 @@ class MovementHandlingBehavior(behavior_container.BehaviorContainer):
 					1.57
 				)
 				self.path_follower_.executeBehavior()
-				"""
+				
 				# Interruption opportunity
 				if self.handleInterrupt() >= 1:
 					return
