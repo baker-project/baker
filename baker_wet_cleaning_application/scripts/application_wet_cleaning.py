@@ -234,11 +234,15 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		if self.handleInterrupt() >= 1:
 			return
 
+		# Find and sort all due rooms
+		# ===========================
 		(rooms_dry_cleaning, rooms_wet_cleaning) = self.computeAndSortDueRooms(shall_continue_old_cleaning)
 
 		if self.handleInterrupt() >= 1:
 			return
 
+		# Dry cleaning of the due rooms
+		# =============================
 		self.processDryCleaning(rooms_dry_cleaning, is_overdue=False)
 		if self.handleInterrupt() >= 1:
 			return
@@ -247,6 +251,8 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		if self.handleInterrupt() >= 1:
 			return
 
+		# Wet cleaning of the due rooms
+		# =============================
 		self.processWetCleaning(rooms_wet_cleaning, is_overdue=False)
 		if self.handleInterrupt() >= 1:
 			return
@@ -255,6 +261,8 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		if self.handleInterrupt() >= 1:
 			return
 
+		# Find and sort all overdue rooms
+		# ===============================
 		self.database_handler_.computeAllOverdueRooms()
 		(rooms_dry_cleaning, rooms_wet_cleaning) = self.database_handler_.sortRoomsList(self.database_handler_.overdue_rooms_)
 
@@ -262,18 +270,24 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.database_.application_data_.last_planning_date_[1] = datetime.datetime.now()
 		self.database_handler_.applyChangesToDatabase()
 
+		# Dry cleaning of the overdue rooms
+		# =================================
 		#self.processDryCleaning(rooms_dry_cleaning, is_overdue=True)
 		self.checkProcessDryCleaning(rooms_dry_cleaning)
 
 		if self.handleInterrupt() >= 1:
 			return
 
+		# Wet cleaning of the overdue rooms
+		# =================================
 		#self.processWetCleaning(rooms_wet_cleaning, is_overdue=True)
 		self.checkProcessWetCleaning(rooms_wet_cleaning)
 
 		if self.handleInterrupt() >= 1:
 			return
 
+		# Complete application
+		# ====================
 		self.printMsg("Cleaning completed. Overwriting database...")
 		self.database_.application_data_.progress_ = [0, datetime.datetime.now()]
 		self.database_handler_.cleaningFinished()

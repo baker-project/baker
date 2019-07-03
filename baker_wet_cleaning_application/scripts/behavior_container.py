@@ -89,6 +89,9 @@ class BehaviorContainer:
 		self.is_finished = False
 		self.printMsg("Waiting for action " + str(action_client.action_client.ns) + " to become available...")
 		action_client.wait_for_server()
+		
+		# loop --> ask for action finished and sleep for one second
+		# in loop check for interrupt --> if necessary stop action with self.executionInterrupted() == True and wait until action stopped
 		while not self.is_finished:
 			resumed_after_pause = False
 			# action client --> call external functionality but do not wait for finishing
