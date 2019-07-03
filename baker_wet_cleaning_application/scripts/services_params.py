@@ -9,6 +9,7 @@ STOP_CLEANING_SERVICE_STR = '/brush_cleaning_module_interface/stop_brush_cleaner
 COVERAGE_MONITOR_DYNAMIC_RECONFIGURE_SERVICE_STR = '/room_exploration/coverage_monitor_server'
 STOP_COVERAGE_MONITORING_SERVICE_STR = "/room_exploration/coverage_monitor_server/stop_coverage_monitoring"
 START_COVERAGE_MONITORING_SERVICE_STR = "/room_exploration/coverage_monitor_server/start_coverage_monitoring"
+RESET_COVERAGE_MONITORING_SERVICE_STR = "/room_exploration/coverage_monitor_server/reset_coverage_monitoring"
 RECEIVE_COVERAGE_IMAGE_SERVICE_STR = "/room_exploration/coverage_monitor_server/get_coverage_image"
 START_DIRT_DETECTOR_SERVICE_STR = "/dirt_detection_client_preprocessing/activate_detection"
 STOP_DIRT_DETECTOR_SERVICE_STR = "/dirt_detection_client_preprocessing/deactivate_detection"

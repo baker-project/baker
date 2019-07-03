@@ -8,7 +8,9 @@ from geometry_msgs.msg import Quaternion
 import std_srvs.srv
 from threading import Thread
 import services_params as srv
+from cv_bridge import CvBridge, CvBridgeError
 from math import pi
+import cv2
 
 class WetCleaningBehavior(AbstractCleaningBehavior):
 
@@ -58,7 +60,7 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		self.callTriggerService(self.stop_cleaning_service_str_)
 
 	def executeCustomBehaviorInRoomId(self, room_id):
-		self.resetCoverageMap()
+
 		# todo (rmb-ma) create a abstract_cleaning common method go to the room and compute path
 		self.printMsg('Starting Wet Cleaning of room ID {}'.format(room_id))
 		starting_position = self.room_information_in_meter_[room_id].room_center
@@ -90,7 +92,8 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		path_follower = MoveBasePathBehavior("MoveBasePathBehavior_PathFollowing", self.interrupt_var_,
 											 self.move_base_path_service_str_)
 
-		self.initCoverageMonitoring()
+		self.resetCoverageMonitoring()
+		self.initAndStartCoverageMonitoring()
 
 		room_map_data = self.database_handler_.database_.getRoomById(room_id).room_map_data_
 		path_follower.setParameters(
@@ -105,6 +108,10 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		path_follower.executeBehavior()
 		if self.handleInterrupt() >= 1:
 			return
+
+		coverage_map = self.requestCoverageMapResponse(room_id)
+		coverage_map = CvBridge().imgmsg_to_cv2(coverage_map, desired_encoding="passthrough")
+		self.resetCoverageMonitoring()
 
 		wall_follower = MoveBaseWallFollowBehavior("MoveBaseWallFollowBehavior", self.interrupt_var_, self.move_base_wall_follow_service_str_)
 
@@ -121,8 +128,7 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 			wall_following_off_traveling_distance_threshold=0.8,
 			field_of_view_origin=self.field_of_view_origin_,
 			field_of_view=self.field_of_view_,
-			coverage_radius=self.coverage_radius_,
-			previous_coverage_map=self.requestCoverageMapResponse(room_id)
+			coverage_radius=self.coverage_radius_
 		)
 
 		wall_follower.executeBehavior()
@@ -137,6 +143,9 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 			self.stopCleaningDevice()
 
 		# Checkout the completed room
-		coverage_area = self.checkAndComputeCoverage(room_id)
+		wall_coverage_map = self.requestCoverageMapResponse(room_id)
+		wall_coverage_map = CvBridge().imgmsg_to_cv2(wall_coverage_map, desired_encoding="passthrough")
+		coverage_map = cv2.add(wall_coverage_map, coverage_map)
+		coverage_area = self.checkAndComputeCoverage(room_id, coverage_map=coverage_map)
 		self.stopCoverageMonitoring()
 		self.checkoutRoom(room_id=room_id, cleaning_method=2, coverage_area=coverage_area)

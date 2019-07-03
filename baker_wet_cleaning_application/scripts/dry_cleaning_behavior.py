@@ -183,7 +183,7 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 			self.printMsg('Room center is not accessible. Failed to clean room {}'.format(room_id))
 			return
 
-		self.initCoverageMonitoring() # todo rmb-ma stop the coverage monitoring during detection
+		self.initAndStartCoverageMonitoring() # todo rmb-ma stop the coverage monitoring during detection
 
 		while len(path) > 0:
 			(self.detected_trashs_, self.detected_dirts_) = ([], [])

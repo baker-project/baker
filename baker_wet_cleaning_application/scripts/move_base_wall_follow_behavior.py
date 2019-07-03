@@ -30,7 +30,7 @@ class MoveBaseWallFollowBehavior(behavior_container.BehaviorContainer):
 	# Method for setting parameters for the behavior
 	def setParameters(self, map, area_map, coverage_map_service, map_resolution, map_origin, path_tolerance,
 					  goal_position_tolerance, goal_angle_tolerance, target_wall_distance, wall_following_off_traveling_distance_threshold,
-					  field_of_view, field_of_view_origin, coverage_radius, previous_coverage_map):
+					  field_of_view, field_of_view_origin, coverage_radius):
 		self.map_ = map		# contains map, map_resolution, map_origin
 		self.area_map_ = area_map
 		self.coverage_map_service_ = coverage_map_service
@@ -45,10 +45,8 @@ class MoveBaseWallFollowBehavior(behavior_container.BehaviorContainer):
 		self.field_of_view_ = field_of_view
 		self.field_of_view_origin_ = field_of_view_origin
 		self.coverage_radius_ = coverage_radius
-		self.previous_coverage_map_ = CvBridge().imgmsg_to_cv2(previous_coverage_map, desired_encoding='passthrough')
 
-
-
+	# todo rmb-ma avoid copy paste with abstract_cleaning_behavior
 	def requestCoverageMapResponse(self):
 
 		self.printMsg("Receive coverage image from coverage monitor " + self.coverage_map_service_)
@@ -64,16 +62,10 @@ class MoveBaseWallFollowBehavior(behavior_container.BehaviorContainer):
 			request.coverage_radius = self.coverage_radius_
 			request.check_for_footprint = False
 			request.check_number_of_coverages = False
-			coverage_map = coverage_image_getter(request).coverage_map
-
-			coverage_map = CvBridge().imgmsg_to_cv2(coverage_map, desired_encoding="passthrough")
-			actual_coverage_map = cv2.absdiff(coverage_map, self.previous_coverage_map_)
-
-			self.coverage_map_ = CvBridge().cv2_to_imgmsg(actual_coverage_map, encoding='mono8')
+			self.coverage_map_ = coverage_image_getter(request).coverage_map
 
 		except rospy.ServiceException, e:
 			print ("Service call to " + self.coverage_map_service_ + " failed: %s" % e)
-
 
 	def computeNewGoalFromPausedResult(self, prev_action_goal, result):
 		self.requestCoverageMapResponse()

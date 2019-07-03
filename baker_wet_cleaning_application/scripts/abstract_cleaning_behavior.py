@@ -36,6 +36,7 @@ class AbstractCleaningBehavior(BehaviorContainer):
 		self.receive_coverage_image_service_str_ = srv.RECEIVE_COVERAGE_IMAGE_SERVICE_STR
 		self.stop_coverage_monitoring_service_str_ = srv.STOP_COVERAGE_MONITORING_SERVICE_STR
 		self.start_coverage_monitoring_service_str_ = srv.START_COVERAGE_MONITORING_SERVICE_STR
+		self.reset_coverage_monitoring_service_str_ = srv.RESET_COVERAGE_MONITORING_SERVICE_STR
 
 		self.coverage_map_ = None
 
@@ -65,14 +66,11 @@ class AbstractCleaningBehavior(BehaviorContainer):
 		except rospy.ServiceException, e:
 			print("Service call to {} failed: {}".format(service_name, e))
 
-	def stopCoverageMonitoring(self):
-		self.callService(self.stop_coverage_monitoring_service_str_, std_srvs.srv.Trigger)
-
 	# coverage_monitor_server: set the robot configuration (robot_radius, coverage_radius, coverage_offset)
 	# with dynamic reconfigure and turn on logging of the cleaned path (service "start_coverage_monitoring")
-	def initCoverageMonitoring(self):
+	def initAndStartCoverageMonitoring(self):
 		try:
-			print("Start coverage monitoring")
+			print("Init and start coverage monitoring")
 
 			coverage_circle_offset_transform_x = 0.5 * (self.field_of_view_[0].x + self.field_of_view_[2].x)
 			coverage_circle_offset_transform_y = 0.5 * (self.field_of_view_[0].y + self.field_of_view_[1].y)
@@ -93,19 +91,13 @@ class AbstractCleaningBehavior(BehaviorContainer):
 			print("Dynamic reconfigure request to " + self.coverage_monitor_dynamic_reconfigure_service_str_ + " failed: %s" % e)
 
 	def startCoverageMonitoring(self):
-		self.callService(self.start_coverage_monitoring_service_str_, std_srvs.srv.Trigger);
+		self.callService(self.start_coverage_monitoring_service_str_, std_srvs.srv.Trigger)
 
-	def updateCoverageMap(self, room_id):
-		coverage_map = self.requestCoverageMapResponse(room_id)
-		coverage_map = CvBridge().imgmsg_to_cv2(coverage_map, desired_encoding="passthrough")
-		if self.coverage_map_ is None:
-			self.coverage_map_ = coverage_map
+	def stopCoverageMonitoring(self):
+		self.callService(self.stop_coverage_monitoring_service_str_, std_srvs.srv.Trigger)
 
-		else:
-			self.coverage_map_ = cv2.add(self.coverage_map_, coverage_map)
-
-	def resetCoverageMap(self):
-		self.coverage_map_ = None
+	def resetCoverageMonitoring(self):
+		self.callService(self.reset_coverage_monitoring_service_str_, std_srvs.srv.Trigger)
 
 	def requestCoverageMapResponse(self, room_id):
 		self.coverage_map_service_ = srv.RECEIVE_COVERAGE_IMAGE_SERVICE_STR
@@ -128,12 +120,13 @@ class AbstractCleaningBehavior(BehaviorContainer):
 		except rospy.ServiceException, e:
 			print ("Service call to " + self.coverage_map_service_ + " failed: %s" % e)
 
-	def checkAndComputeCoverage(self, room_id):
+	def checkAndComputeCoverage(self, room_id, coverage_map=None):
 		map_image = self.database_handler_.database_.getRoomById(room_id).room_map_data_
 		map_image = CvBridge().imgmsg_to_cv2(map_image, desired_encoding="passthrough")
 
-		coverage_map = self.requestCoverageMapResponse(room_id)
-		coverage_map = CvBridge().imgmsg_to_cv2(coverage_map, desired_encoding="passthrough")
+		if coverage_map is None:
+			coverage_map = self.requestCoverageMapResponse(room_id)
+			coverage_map = CvBridge().imgmsg_to_cv2(coverage_map, desired_encoding="passthrough")
 
 		ratio_cleaned = float(np.sum(coverage_map))/np.sum(map_image)
 
@@ -187,7 +180,8 @@ class AbstractCleaningBehavior(BehaviorContainer):
 			self.database_handler_.database_.getRoomById(room_id),
 			assignment_type=cleaning_method - 1)
 
-		if -1 in self.database_handler_.database_.getRoomById(room_id).open_cleaning_tasks_:  # trash
+		if -1 in self.database_handler_.database_.getRoomById(room_id).open_cleaning_tasks_\
+				and cleaning_method == 1:  # trash
 			self.database_handler_.checkoutCompletedRoom(
 				self.database_handler_.database_.getRoomById(room_id),
 				assignment_type=-1)
