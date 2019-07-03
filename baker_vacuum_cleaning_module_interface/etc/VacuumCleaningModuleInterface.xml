@@ -1,0 +1,10 @@
+<root>
+
+	<namespace name="modules">
+		<namespace name="vacuumcleaning">
+			<unit id="VacuumCleaningModuleInterface" class="mira::actors::VacuumCleaningModuleInterface">
+				<ModuleService>BakeRVacuumCleaningModule</ModuleService>
+			</unit>
+		</namespace>
+	</namespace>
+</root>
