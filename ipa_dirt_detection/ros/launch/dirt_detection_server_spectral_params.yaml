@@ -16,7 +16,7 @@ remove_lines: false
 
 # dirt threshold (in [0,1])
 # double
-dirt_threshold: 0.35 #0.25 #0.09 #0.2  #0.35 #0.5 #0.2
+dirt_threshold: 0.55   #0.35 #0.25 #0.09 #0.2  #0.35 #0.5 #0.2
 
 # checks whether the mean intensity in potential dirt spots is high enough compared to the rest of the spectral residual image
 # double

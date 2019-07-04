@@ -110,7 +110,7 @@ class DatabaseCreator():
 			room.room_cleaning_method_ = 0
 			room.room_surface_area_ = 3.141
 			room.room_trashcan_count_ = 4
-			room.room_cleaning_datestamps_ = [None, None, None]
+			room.room_cleaning_datestamps_ = [datetime(1900, 1, 1), datetime(1900, 1, 1), datetime(1900, 1, 1)]
 			room.room_issues_ = []
 			room.room_map_ = img_file_name
 			room.room_map_data_ = self.openCv2CvBridge(cv_image)
@@ -190,12 +190,12 @@ class DatabaseCreator():
 			"last_database_save_successful": True,
 			"last_execution_date": self.database_.datetimeToString(datetime(1999, 1, 1)),
 			"last_planning_date": [
-				None,
-				None
+				datetime(1900, 1, 1),
+				datetime(1900, 1, 1)
 			],
 			"progress": [
 				0,
-				None
+				datetime(1900, 1, 1)
 			],
 			"run_count": 0,
 			"planning_offset": 720

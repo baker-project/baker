@@ -262,7 +262,7 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 		dirt_detection_client_.sendGoal(goal);
 
 		//wait for the server to take action and deliver a result
-		std::cout << "		Wait for the server to take action and deliver a result." << std::endl;
+//		std::cout << "		Wait for the server to take action and deliver a result." << std::endl;
 		bool finished_before_timeout = dirt_detection_client_.waitForResult(ros::Duration(10.0));
 
 		//if not ready before timeout abort
@@ -280,13 +280,14 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 			continue;
 		}
 
-		std::cout << "=======================================================" << std::endl;
-		std::cout << "Received RESULT from server.\n" << std::endl;
+//		std::cout << "=======================================================" << std::endl;
+//		std::cout << "Received RESULT from server.\n" << std::endl;
 		const size_t nb_detections = dirt_detection_client_.getResult()->dirt_detections.size();
-		std::cout << "Nb detections: " << nb_detections << std::endl;
+		std::cout << "Number detections: " << nb_detections << std::endl;
 
 
 		cob_object_detection_msgs::DetectionArray detected_dirts_to_publish;
+		detected_dirts_to_publish.header = point_cloud2_rgb_msg->header;
 
 		const cv::Mat H_inv = H.inv();
 		for (size_t i = 0; i < nb_detections; ++i) //rescale, find coordinates for, and publish all dirts detected
@@ -348,15 +349,13 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 			centroid.y() /= nb_points;
 			centroid.z() /= nb_points;
 
-			detected_dirts_to_publish.header = point_cloud2_rgb_msg->header;
-
 			cob_object_detection_msgs::Detection detection_msg;
 			detection_msg.header = point_cloud2_rgb_msg->header;
 			// todo warning frame_id (just for simulation)
 //			detection_msg.pose.header.frame_id = "camera1_optical_frame";
 //			detection_msg.header.frame_id = "camera1_optical_frame";
 			detection_msg.label = "dirt_spots_found";
-
+			detection_msg.pose.header = point_cloud2_rgb_msg->header;
 			detection_msg.pose.pose.position.x = centroid.x();
 			detection_msg.pose.pose.position.y = centroid.y();
 			detection_msg.pose.pose.position.z = centroid.z();
@@ -442,7 +441,6 @@ bool IpaDirtDetectionPreprocessing::ClientPreprocessing::planeSegmentation(pcl::
 			seg.setInputCloud(filtered_input_cloud);
 			if (plane_model.values.size()==4)		// if some plane model is provided, use it as primer --> but apparently does not give a speedup
 			{
-				std::cout << plane_model.values[0] << "  -----------" << std::endl;
 				seg.setModelType(pcl::SACMODEL_PERPENDICULAR_PLANE);
 				seg.setAxis(Eigen::Vector3f(plane_model.values[0], plane_model.values[1], plane_model.values[2]));
 				seg.setEpsAngle(0.5);

@@ -187,8 +187,10 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		#self.robot_frame_id_ = 'base_link'
 		#self.robot_radius_ = 0.2875  #0.325	# todo: read from MIRA
 		#self.coverage_radius_ = 0.233655  #0.25	# todo: read from MIRA
-		self.field_of_view_ = [Point32(x=0.04035, y=0.136), Point32(x=0.04035, y=-0.364),
-							   Point32(x=0.54035, y=-0.364), Point32(x=0.54035, y=0.136)]	# todo: read from MIRA
+#		self.field_of_view_ = [Point32(x=0.04035, y=0.136), Point32(x=0.04035, y=-0.364),
+#							   Point32(x=0.54035, y=-0.364), Point32(x=0.54035, y=0.136)]	# todo: read from MIRA
+		self.field_of_view_ = [Point32(x=0.080, y=0.7), Point32(x=0.080, y=-0.7),
+							   Point32(x=2.30, y=-0.7), Point32(x=2.30, y=0.7)]	# todo: read from MIRA
 		self.field_of_view_origin_ = Point32(x=0.0, y=0.0) # todo: read from MIRA
 
 		# todo: hack: cleaning device can be turned off for trade fair show
@@ -207,11 +209,14 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		self.database_ = database.Database(extracted_file_path=str(rospack.get_path('baker_wet_cleaning_application') + "/resources"))
 		self.database_handler_ = database_handler.DatabaseHandler(self.database_)
 
+		if self.database_.application_data_.last_planning_date_ is None:
+			self.database_.application_data_.last_planning_date_ = datetime.datetime(datetime.MINYEAR, 1, 1)
 		if self.database_.application_data_.last_execution_date_ is None:
 			self.database_.application_data_.last_execution_date_ = datetime.datetime(datetime.MINYEAR, 1, 1)
 		days_delta = datetime.datetime.now() - self.database_.application_data_.last_execution_date_
 		print("-- CURRENT_DATE: " + str(datetime.datetime.now()))
-		print("-- LAST_DATE: " + str(self.database_.application_data_.last_execution_date_))
+		print("-- LAST_EXECUTION_DATE: " + str(self.database_.application_data_.last_execution_date_))
+		print("-- LAST_PLANNING_DATE_0: " + str(self.database_.application_data_.last_planning_date_[0]))
 		print("-- DAYS_DELTA: " + str(days_delta) + " " + str(days_delta.days))
 		print("-- PLANNING_OFFSET: " + str(self.database_.application_data_.planning_offset_))
 

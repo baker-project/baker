@@ -43,7 +43,7 @@ min_plane_points: 100
 
 # only those points which are close enough to the camera are displayed in the bird's eye view, [max distance in m]
 # double
-max_distance_to_camera: 2.00
+max_distance_to_camera: 1.5
 
 
 ### image perspective normalization

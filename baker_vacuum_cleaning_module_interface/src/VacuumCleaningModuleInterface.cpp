@@ -46,6 +46,7 @@
 
 #include <ros/ros.h>
 #include <std_srvs/Trigger.h>
+#include <baker_msgs/CleanPattern.h>
 
 #include <fw/Unit.h>
 #include <fw/ServiceProperty.h>
@@ -91,7 +92,7 @@ protected:
 
 	//bool startVacuumCleanerCallback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
 	//bool stopVacuumCleanerCallback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
-	bool cleanPatternCallback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
+	bool cleanPatternCallback(baker_msgs::CleanPattern::Request &req, baker_msgs::CleanPattern::Response &res);
 
 	ros::NodeHandle nh_;
 	ros::ServiceServer clean_pattern_srv_;		/// server for activating celan pattern
@@ -154,17 +155,38 @@ void VacuumCleaningModuleInterface::onProgressChanged(mira::ChannelRead<float> p
 }
 
 
-bool VacuumCleaningModuleInterface::cleanPatternCallback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
+bool VacuumCleaningModuleInterface::cleanPatternCallback(baker_msgs::CleanPattern::Request &req, baker_msgs::CleanPattern::Response &res)
 {
+
 	std::cout << "VacuumCleaningModuleInterface::cleanPatternCallback: Starting cleaner." << std::endl;
+	//std::list<mira::SignedDegree<int>> directions { mira::SignedDegree<int>(-45), mira::SignedDegree<int>(0), mira::SignedDegree<int>(45) };
+
+	std::list<mira::SignedDegree<int>> directions;
+	for (float direction : req.clean_pattern_params.directions)
+		directions.push_back(mira::SignedDegree<int>(static_cast<int>(round(direction))));
+
+	std::list<uint8> repetitions;
+	if (req.clean_pattern_params.repetitions.empty())
+	{
+		for (float direction : req.clean_pattern_params.directions)
+			repetitions.push_back(static_cast<uint8>(1));
+	}
+	else
+	{
+		for (uint8 rep : req.clean_pattern_params.repetitions)
+			repetitions.push_back(static_cast<uint8>(rep));
+	}
+
+	bool retract = req.clean_pattern_params.retract;
+
+
 	try
 	{
-		std::list<mira::SignedDegree<int>> directions { mira::SignedDegree<int>(-45), mira::SignedDegree<int>(0), mira::SignedDegree<int>(45) };
-		callService<void>(mModule, "cleanPattern", directions).get();
+		//callService<void>(mModule, "cleanPattern", directions).get();
+		callService<void>(mModule, "cleanPattern", directions, repetitions, retract).get();
 	}
 	catch (XRuntime &e)
 	{
-		res.message = e.what();
 		res.success = false;
 		return false;
 	}
