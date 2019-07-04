@@ -49,7 +49,7 @@ class DirtRemovingBehavior(behavior_container.BehaviorContainer):
 		center.theta = 0
 		request.center = center
 
-		request.radius = 1  # todo (rmb-ma) use the value from the cleaning device
+		request.radius = 0.8  # todo (rmb-ma) use the value from the cleaning device
 		request.rotational_sampling_step = 0.3
 		response = accessibility_checker(request)
 
@@ -89,7 +89,10 @@ class DirtRemovingBehavior(behavior_container.BehaviorContainer):
 
 		return response.success
 		# todo (rmb-ma)
-		# rospy.sleep(1.)
+# 		print("############################################################################")
+# 		print("Cleaning now")
+# 		rospy.sleep(10.)
+# 		return True
 
 	def checkoutDirt(self):
 		# todo (rmb-ma)

@@ -47,6 +47,6 @@ show_detected_lines: false
 # displays the rescaled saliency image
 show_saliency_detection: false #true
 
-# save data for test todo: found no description (joel)
+# save data for test
 save_data_for_test: false
 ##### end debug display section

@@ -57,6 +57,8 @@ IpaDirtDetectionPreprocessing::ClientPreprocessing::ClientPreprocessing(ros::Nod
 	std::cout << "DEBUG_DirtDetectionPreprocessing: show_plane_color_image = " << debug_["show_plane_color_image"] << std::endl;
 	pnh.param("publish_floor_plane", debug_["publish_floor_plane"], false);
 	std::cout << "DEBUG_DirtDetectionPreprocessing: publish_floor_plane = " << debug_["publish_floor_plane"] << std::endl;
+	pnh.param("publish_dirt_detections", debug_["publish_dirt_detections"], false);
+	std::cout << "DEBUG_DirtDetectionPreprocessing: publish_dirt_detections = " << debug_["publish_dirt_detections"] << std::endl;
 	pnh.param("save_data_for_test", debug_["save_data_for_test"], false);
 	std::cout << "DEBUG_DirtDetectionPreprocessing: save_data_for_test = " << debug_["save_data_for_test"] << std::endl;
 
@@ -78,9 +80,8 @@ IpaDirtDetectionPreprocessing::ClientPreprocessing::ClientPreprocessing(ros::Nod
 	//After action server did action we publish image containing the dirt positions.
 	dirt_detected_ = node_handle_.advertise<cob_object_detection_msgs::DetectionArray>("dirt_detector_topic", 1);
 
-	//todo: implement if needed
-//	it_ = new image_transport::ImageTransport(node_handle_);
-//	dirt_detection_image_pub_ = it_->advertise("dirt_detections", 1);
+	it_ = new image_transport::ImageTransport(node_handle_);
+	dirt_detection_image_pub_ = it_->advertise("dirt_detection_image", 1);
 
 	// services
 	activate_dirt_detection_service_server_ = node_handle_.advertiseService("activate_detection", &IpaDirtDetectionPreprocessing::ClientPreprocessing::activateDirtDetection, this);
@@ -297,6 +298,8 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 			const cv::Rect dirt_warped = cv::RotatedRect(cv::Point2f(detection.center_x*1./image_scaling_, detection.center_y*1./image_scaling_),
 					cv::Size2f(detection.width*1./image_scaling_, detection.height*1./image_scaling_), detection.angle).boundingRect();
 
+			const int min_v = std::max(0, dirt_warped.y);
+			const int min_u = std::max(0, dirt_warped.x);
 			const int max_v = std::min(int(dirt_warped.y + dirt_warped.height), plane_color_image_warped.rows-1);
 			const int max_u = std::min(int(dirt_warped.x + dirt_warped.width), plane_color_image_warped.cols-1);
 
@@ -305,9 +308,9 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 			Eigen::Vector3f minPoint(std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
 			unsigned int nb_points = 0;
 
-			for (int v = std::max(0, dirt_warped.y); v <= max_v; ++v)
+			for (int v = min_v; v <= max_v; ++v)
 			{
-				for (int u = std::max(0, dirt_warped.x); u <= max_u; ++u)
+				for (int u = min_u; u <= max_u; ++u)
 				{
 					cv::Mat point_original_image = (cv::Mat_<double>(3, 1) << u, v, 1.0);
 					if (is_warp_image_bird_perspective_enabled_)
@@ -371,6 +374,12 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 		std::cout << "Time for dirt detection excluding image warping: " << tim2.getElapsedTimeInMilliSec() << "ms." << std::endl;
 	}
 	std::cout << "Time for dirt detection: " << tim.getElapsedTimeInMilliSec() << "ms." << std::endl;
+
+	// todo: publish detections
+//	cv_bridge::CvImage cv_ptr;
+//	cv_ptr.image = plane_color_image_display;
+//	cv_ptr.encoding = "bgr8";
+//	dirt_detection_image_pub_.publish(cv_ptr.toImageMsg());
 
 	ROS_INFO("Finished IpaDirtDetectionSpectral successfully.\n"); // no it's not finished here
 }

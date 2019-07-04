@@ -56,13 +56,16 @@ is_warp_image_bird_perspective_enabled: true
 # all flags are of type bool
 
 # displays the original source image that comes with the point cloud data
-show_original_image: true #true
+show_original_image: false #true
 
 # shows only the part of the color image that belongs to the plane, the remainder is masked black
 show_plane_color_image: false #true
 
 # publishes the detected floor plane
 publish_floor_plane: false
+
+# publish the detection results drawn into the color image
+publish_dirt_detections: true
 
 # save data for test
 save_data_for_test: false

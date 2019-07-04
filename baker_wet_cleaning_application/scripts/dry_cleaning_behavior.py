@@ -230,6 +230,17 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 			last_visited_index = path_follower.move_base_path_result_.last_visited_index
 			self.printMsg('Move stopped at position {}'.format(last_visited_index))
 			path = path[last_visited_index:]
+			
+			# move to last path point
+			self.move_base_handler_.setParameters(
+				goal_position=path[0].pose.position,
+				goal_orientation=path[0].pose.orientation,
+				header_frame_id='base_link',
+				goal_position_tolerance=0.2,
+				goal_angle_tolerance=0.17
+			)
+			self.move_base_handler_.executeBehavior()
+			
 
 		if self.dirt_topic_subscriber_ is not None:
 			self.dirt_topic_subscriber_.unregister()
