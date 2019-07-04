@@ -83,17 +83,17 @@ target_link_libraries(dirt_detection_server_spectral
 	${PCL_LIBRARIES}
 )
 
-### dirt_detection_client_preprocessing
-add_executable(dirt_detection_client_preprocessing
-	ros/src/dirt_detection_client_preprocessing.cpp
+### dirt_detection_server_preprocessing
+add_executable(dirt_detection_server_preprocessing
+	ros/src/dirt_detection_server_preprocessing.cpp
 )
 
-add_dependencies(dirt_detection_client_preprocessing 
+add_dependencies(dirt_detection_server_preprocessing 
 	${catkin_EXPORTED_TARGETS} 
 	${${PROJECT_NAME}_EXPORTED_TARGETS}
 )
 
-target_link_libraries(dirt_detection_client_preprocessing
+target_link_libraries(dirt_detection_server_preprocessing
 	${catkin_LIBRARIES}
 	${OpenCV_LIBRARIES}
 	${Boost_LIBRARIES}
@@ -120,7 +120,7 @@ target_link_libraries(dirt_detection_client
 ## Install ##
 #############
 ## Mark executables and/or libraries for installation
-install(TARGETS dirt_detection_server_spectral dirt_detection_client_preprocessing
+install(TARGETS dirt_detection_server_spectral dirt_detection_server_preprocessing
 	ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 	LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 	RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

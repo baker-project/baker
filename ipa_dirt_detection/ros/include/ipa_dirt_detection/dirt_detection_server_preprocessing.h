@@ -47,10 +47,6 @@
 //TIMER
 #include <time.h>
 
-//todo: just for saving delete it
-//	<!-- send parameters to parameter server -->
-//	<!-- <rosparam command="load" ns="dirt_detection/dirt_detection" file="$(find ipa_dirt_detection)/ros/launch/dirt_detection_client_preprocessing_params.yaml"/>
-//	<rosparam command="load" ns="dirt_detection/dirt_detection" file="$(find ipa_dirt_detection)/ros/launch/dirt_detection_server_spectral_params.yaml"/> -->
 
 namespace IpaDirtDetectionPreprocessing
 { //starting namespace

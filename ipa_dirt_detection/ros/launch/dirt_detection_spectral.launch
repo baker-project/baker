@@ -4,8 +4,8 @@
 	<arg name="colored_point_cloud_topic" default="/camera/depth_registered/points"/>
 
 	<!-- dirt detection software -->
-	<node pkg="ipa_dirt_detection" ns="dirt_detection_client_preprocessing" type="dirt_detection_client_preprocessing" name="dirt_detection_client_preprocessing" output="screen">	<!-- ns=namespace (arbitrary), type=name of executable, name=node name (arbitrary) -->
-		<rosparam command="load" file="$(find ipa_dirt_detection)/ros/launch/dirt_detection_client_preprocessing_params.yaml"/>
+	<node pkg="ipa_dirt_detection" ns="dirt_detection_server_preprocessing" type="dirt_detection_server_preprocessing" name="dirt_detection_server_preprocessing" output="screen">	<!-- ns=namespace (arbitrary), type=name of executable, name=node name (arbitrary) -->
+		<rosparam command="load" file="$(find ipa_dirt_detection)/ros/launch/dirt_detection_server_preprocessing_params.yaml"/>
 		
 		<remap from="colored_point_cloud" to="$(arg colored_point_cloud_topic)"/> <!-- depth_registered -->
 		

@@ -1,4 +1,4 @@
-#include "ipa_dirt_detection/dirt_detection_client_preprocessing.h"
+#include "ipa_dirt_detection/dirt_detection_server_preprocessing.h"
 #include "ipa_dirt_detection/timer.h"
 
 #include <cob_object_detection_msgs/Detection.h>
@@ -19,7 +19,7 @@ IpaDirtDetectionPreprocessing::ClientPreprocessing::ClientPreprocessing(ros::Nod
 {
 	//PARAMS
 	ros::NodeHandle pnh("~");
-	std::cout << "\n========== dirt_detection_client_preprocessing Parameters ==========\n";
+	std::cout << "\n========== dirt_detection_server_preprocessing Parameters ==========\n";
 
 	pnh.param("use_mask", use_mask_, true);
 	std::cout << "ClientPreprocessing: use_mask: " << use_mask_ << std::endl;
@@ -117,7 +117,7 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::dynamicReconfigureCallb
 	floor_search_iterations_ = config.floor_search_iterations;
 	min_plane_points_ = config.min_plane_points;
 
-	std::cout << "\n========== dirt_detection_client_preprocessing Dynamic reconfigure ==========\n";
+	std::cout << "\n========== dirt_detection_server_preprocessing Dynamic reconfigure ==========\n";
 	std::cout << "  is_warp_image_bird_perspective_enabled = " << is_warp_image_bird_perspective_enabled_ << std::endl;
 	std::cout << "  bird_eye_base_resolution = " << bird_eye_base_resolution_ << std::endl;
 	std::cout << "  max_distance_to_camera = " << max_distance_to_camera_ << std::endl;
@@ -747,7 +747,7 @@ bool IpaDirtDetectionPreprocessing::ClientPreprocessing::computeBirdsEyePerspect
 
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, "dirt_detection_client_preprocessing");
+	ros::init(argc, argv, "dirt_detection_server_preprocessing");
 	ros::NodeHandle nh;
 
 	IpaDirtDetectionPreprocessing::ClientPreprocessing client_preprocessing(nh);
