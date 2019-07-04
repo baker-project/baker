@@ -1,7 +1,3 @@
-# resolution for bird eye's perspective [pixel/m]
-# double
-bird_eye_resolution: 300.0
-
 # spectral residual component: number of Gaussian smoothing operations
 # int
 spectral_residual_gaussian_blur_iterations: 3    #3
