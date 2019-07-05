@@ -75,7 +75,8 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 		self.found_dirtspots_.append(detected_dirt)
 		dirt_remover = DirtRemovingBehavior("DirtRemovingBehavior", self.interrupt_var_,
 											move_base_service_str=srv.MOVE_BASE_SERVICE_STR,
-											map_accessibility_service_str=srv.MAP_ACCESSIBILITY_SERVICE_STR)
+											map_accessibility_service_str=srv.MAP_ACCESSIBILITY_SERVICE_STR,
+											clean_pattern_str=srv.CLEAN_PATTERN_STR)
 
 		position = detected_dirt.pose.pose.position
 		dirt_remover.setParameters(dirt_position=position)
@@ -157,7 +158,7 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 			goal_position=starting_position,
 			goal_orientation=Quaternion(x=0., y=0., z=0., w=1.),
 			header_frame_id='base_link',
-			goal_position_tolerance=0.5,
+			goal_position_tolerance=2.0,
 			goal_angle_tolerance=2 * pi
 		)
 
@@ -176,7 +177,7 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 			self.trash_topic_subscriber_ = rospy.Subscriber('trash_detector_topic', DetectionArray, self.trashDetectionCallback)
 
 		if DryCleaningBehavior.containsDirtTask(cleaning_tasks):
-			self.dirt_topic_subscriber_ = rospy.Subscriber('/dirt_detection_client_preprocessing/dirt_detector_topic', DetectionArray, self.dirtDetectionCallback)
+			self.dirt_topic_subscriber_ = rospy.Subscriber('/dirt_detection_server_preprocessing/dirt_detector_topic', DetectionArray, self.dirtDetectionCallback)
 
 		thread_move_to_the_room.join()  # don't start the detections before
 		if self.move_base_handler_.failed():
@@ -229,6 +230,17 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 			last_visited_index = path_follower.move_base_path_result_.last_visited_index
 			self.printMsg('Move stopped at position {}'.format(last_visited_index))
 			path = path[last_visited_index:]
+			
+			# move to last path point
+			self.move_base_handler_.setParameters(
+				goal_position=path[0].pose.position,
+				goal_orientation=path[0].pose.orientation,
+				header_frame_id='base_link',
+				goal_position_tolerance=0.2,
+				goal_angle_tolerance=0.17
+			)
+			self.move_base_handler_.executeBehavior()
+			
 
 		if self.dirt_topic_subscriber_ is not None:
 			self.dirt_topic_subscriber_.unregister()

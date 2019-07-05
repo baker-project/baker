@@ -1,0 +1,3 @@
+baker_msgs/CleanPatternParams clean_pattern_params
+---
+bool success

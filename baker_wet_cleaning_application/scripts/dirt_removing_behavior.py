@@ -3,6 +3,7 @@
 import rospy
 import tf
 from cob_map_accessibility_analysis.srv import CheckPerimeterAccessibility, CheckPerimeterAccessibilityRequest
+from baker_msgs.srv import CleanPattern, CleanPatternRequest
 from geometry_msgs.msg import Pose2D, Pose, Quaternion
 from utils import getCurrentRobotPosition
 
@@ -19,11 +20,12 @@ class DirtRemovingBehavior(behavior_container.BehaviorContainer):
 	# > Clean
 	# ========================================================================
 
-	def __init__(self, behavior_name, interrupt_var, move_base_service_str, map_accessibility_service_str):
+	def __init__(self, behavior_name, interrupt_var, move_base_service_str, map_accessibility_service_str, clean_pattern_str):
 		super(DirtRemovingBehavior, self).__init__(behavior_name, interrupt_var)
 		self.move_base_handler_ = MoveBaseBehavior("MoveBaseBehavior", self.interrupt_var_, move_base_service_str)
 		self.dirt_position_ = None
 		self.map_accessibility_service_str_ = map_accessibility_service_str
+		self.clean_pattern_str_ = clean_pattern_str
 
 
 	# Method for setting parameters for the behavior
@@ -47,7 +49,7 @@ class DirtRemovingBehavior(behavior_container.BehaviorContainer):
 		center.theta = 0
 		request.center = center
 
-		request.radius = 1  # todo (rmb-ma) use the value from the cleaning device
+		request.radius = 0.8  # todo (rmb-ma) use the value from the cleaning device
 		request.rotational_sampling_step = 0.3
 		response = accessibility_checker(request)
 
@@ -75,8 +77,22 @@ class DirtRemovingBehavior(behavior_container.BehaviorContainer):
 		return best_pose3d
 
 	def removeDirt(self):
+		clean_pattern = rospy.ServiceProxy(self.clean_pattern_str_, CleanPattern)
+
+		request = CleanPatternRequest()
+
+		request.clean_pattern_params.directions = [ 0.0 ]
+		request.clean_pattern_params.repetitions = [ 2 ]
+		request.clean_pattern_params.retract = True
+
+		response = clean_pattern(request)
+
+		return response.success
 		# todo (rmb-ma)
-		rospy.sleep(1.)
+# 		print("############################################################################")
+# 		print("Cleaning now")
+# 		rospy.sleep(10.)
+# 		return True
 
 	def checkoutDirt(self):
 		# todo (rmb-ma)
@@ -123,3 +139,15 @@ class DirtRemovingBehavior(behavior_container.BehaviorContainer):
 
 		self.printMsg("> Todo. Checkout the dirt")
 		self.checkoutDirt()
+
+
+print "Test"
+if __name__ == '__main__':
+	print "Test"
+	dirt_remover = DirtRemovingBehavior(
+		"DirtRemovingBehavior", None,
+		move_base_service_str=None,
+		map_accessibility_service_str=None,
+		clean_pattern_str='/vacuum_cleaning_module_interface/clean_pattern')
+	dirt_remover.removeDirt()
+

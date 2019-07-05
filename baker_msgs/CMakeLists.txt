@@ -38,6 +38,7 @@ add_message_files(
 		msg
 	FILES 
 		RotatedRect.msg
+		CleanPatternParams.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -46,6 +47,7 @@ add_service_files(
 		srv
 	FILES 
 		GetMap.srv
+		CleanPattern.srv
 )
 
 ## Generate added messages and services with any dependencies listed here

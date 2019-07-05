@@ -21,10 +21,11 @@ def getTransformListener():
 def projectToCamera(detection):
 
 	time = detection.header.stamp
+	camera_frame = detection.header.frame_id
 	try:
 		print("before {}".format(detection))
 		listener = getTransformListener()
-		listener.waitForTransform('/map', '/camera1_optical_frame', time, rospy.Duration(10))
+		listener.waitForTransform('/map', camera_frame, time, rospy.Duration(10))
 		detection.pose = listener.transformPose('/map', detection.pose)
 		#detection.header.frame_id = '/map'
 		print("after {}".format(detection))

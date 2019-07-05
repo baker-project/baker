@@ -176,7 +176,7 @@ void IpaDirtDetection::ServerDirtDetection::SaliencyDetection_C3(const cv::Mat& 
 	cv::Mat realInput;
 
 	realInput = (res_fci + res_sci + res_tci) / 3;
-	std::cout << "		The fft output size after 1 channel is: " << realInput.cols << " " << realInput.rows << std::endl;
+//	std::cout << "		The fft output size after 1 channel is: " << realInput.cols << " " << realInput.rows << std::endl;
 
 	cv::Size2i ksize;
 	ksize.width = 3;
@@ -185,7 +185,7 @@ void IpaDirtDetection::ServerDirtDetection::SaliencyDetection_C3(const cv::Mat& 
 		cv::GaussianBlur(realInput, realInput, ksize, 0); //necessary!? --> less noise
 
 	cv::resize(realInput, C1_saliency_image, C3_color_image.size());
-	std::cout << "		The fft output size after resize is: " << C1_saliency_image.cols << " " << C1_saliency_image.rows << std::endl;
+//	std::cout << "		The fft output size after resize is: " << C1_saliency_image.cols << " " << C1_saliency_image.rows << std::endl;
 
 	// remove borders of the ground plane because of artifacts at the border like lines
 	if (mask != 0)
@@ -340,8 +340,8 @@ void IpaDirtDetection::ServerDirtDetection::SaliencyDetection_C1(const cv::Mat& 
 	cv::split(dft_A, vec);
 
 	C1_saliency_image = vec[0];
-	std::cout << "		The size of the output of 1 channel fft is: " << C1_saliency_image.cols << " " << C1_saliency_image.rows << " "
-			<< C1_saliency_image.channels() << std::endl;
+//	std::cout << "		The size of the output of 1 channel fft is: " << C1_saliency_image.cols << " " << C1_saliency_image.rows << " "
+//			<< C1_saliency_image.channels() << std::endl;
 }
 
 void IpaDirtDetection::ServerDirtDetection::Image_Postprocessing_C1_rmb(const cv::Mat& C1_saliency_image, cv::Mat& C1_BlackWhite_image, cv::Mat& C3_color_image,

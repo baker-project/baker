@@ -73,6 +73,8 @@ class DatabaseHandler:
 		return self.getTodaysWeekType() * 7 + self.getTodaysWeekDay()
 
 	def realToRobotDate(self, real_date):
+		print("real_date:", real_date)
+		print("self.database_.application_data_.planning_offset_:", self.database_.application_data_.planning_offset_)
 		robot_date = real_date - timedelta(minutes=self.database_.application_data_.planning_offset_)
 		return robot_date
 
