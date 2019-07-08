@@ -8,8 +8,6 @@ from std_srvs.srv import Trigger, TriggerResponse
 from threading import Thread, Lock
 
 import random
-from utils import getCurrentRobotPosition
-
 
 class Detector:
 
@@ -43,11 +41,9 @@ class Detector:
 
             detection = Detection()
 
-            (translation, _, _) = getCurrentRobotPosition()
-            (x, y) = (translation[0], translation[1]) if translation is not None else (0, 0)
-
-            detection.pose.pose.position.x = round(x + random.random()*0.02 - 0.01, 2)
-            detection.pose.pose.position.y = round(y + random.random()*0.02 - 0.01, 2)
+            detection.pose.header.frame_id = 'base_link';
+            detection.pose.pose.position.x = round(random.random()*0.02, 2)
+            detection.pose.pose.position.y = round(random.random()*0.02 - 0.01, 2)
 
             detections = DetectionArray()
             detections.detections = [detection]

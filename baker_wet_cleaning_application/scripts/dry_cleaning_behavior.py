@@ -158,7 +158,7 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 			goal_orientation=Quaternion(x=0., y=0., z=0., w=1.),
 			header_frame_id='base_link',
 			goal_position_tolerance=0.5,
-			goal_angle_tolerance=2 * pi
+			goal_angle_tolerance=2*pi
 		)
 
 		thread_move_to_the_room = Thread(target=self.move_base_handler_.executeBehavior)
@@ -183,9 +183,10 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 			self.printMsg('Room center is not accessible. Failed to clean room {}'.format(room_id))
 			return
 
-		self.initAndStartCoverageMonitoring() # todo rmb-ma stop the coverage monitoring during detection
+		self.initAndStartCoverageMonitoring()
 
 		while len(path) > 0:
+			self.startCoverageMonitoring()
 			(self.detected_trashs_, self.detected_dirts_) = ([], [])
 
 			if DryCleaningBehavior.containsTrashcanTask(cleaning_tasks):
@@ -215,6 +216,7 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 				rospy.sleep(2)
 
 			explorer_thread.join()
+			self.stopCoverageMonitoring()
 
 			if self.handleInterrupt() >= 1:
 				return
@@ -239,7 +241,7 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 		assert (self.containsDirtTask(cleaning_tasks) and self.containsTrashcanTask(cleaning_tasks)) or self.containsTrashcanTask(cleaning_tasks)
 		cleaning_method = 1 if DryCleaningBehavior.containsDirtTask(cleaning_tasks) else 0
 
-		coverage_area = self.checkAndComputeCoverage(room_id)
+		coverage_area = self.checkAndComputeCoverageRatio(room_id)
 		self.stopCoverageMonitoring()
-		self.checkoutRoom(room_id=room_id, cleaning_method=cleaning_method, coverage_area=coverage_area,
+		self.checkoutRoom(room_id=room_id, cleaning_method=cleaning_method, coverage_ratio=coverage_area,
 						  nb_found_dirtspots=len(self.found_dirtspots_), nb_found_trashcans=len(self.found_trashcans_))

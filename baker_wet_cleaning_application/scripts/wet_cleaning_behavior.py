@@ -105,7 +105,7 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		)
 
 		path_follower.setInterruptVar(self.interrupt_var_)
-		path_follower.executeBehavior()
+		#path_follower.executeBehavior()
 		if self.handleInterrupt() >= 1:
 			return
 
@@ -146,6 +146,6 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		wall_coverage_map = self.requestCoverageMapResponse(room_id)
 		wall_coverage_map = CvBridge().imgmsg_to_cv2(wall_coverage_map, desired_encoding="passthrough")
 		coverage_map = cv2.add(wall_coverage_map, coverage_map)
-		coverage_area = self.checkAndComputeCoverage(room_id, coverage_map=coverage_map)
+		coverage_ratio = self.checkAndComputeCoverageRatio(room_id, coverage_map=coverage_map)
 		self.stopCoverageMonitoring()
-		self.checkoutRoom(room_id=room_id, cleaning_method=2, coverage_area=coverage_area)
+		self.checkoutRoom(room_id=room_id, cleaning_method=2, coverage_ratio=coverage_ratio)

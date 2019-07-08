@@ -64,6 +64,13 @@ class MoveBaseWallFollowBehavior(behavior_container.BehaviorContainer):
 			request.check_number_of_coverages = False
 			self.coverage_map_ = coverage_image_getter(request).coverage_map
 
+			#map_image = CvBridge().imgmsg_to_cv2(self.coverage_map_, desired_encoding="passthrough")
+			#cv2.imwrite('tmp.png', map_image)
+			#cv2.imshow('my_cover', map_image)
+
+			map = cv2.imread('2.png', 0)
+			self.coverage_map_ = CvBridge().cv2_to_imgmsg(map, encoding='mono8')
+
 		except rospy.ServiceException, e:
 			print ("Service call to " + self.coverage_map_service_ + " failed: %s" % e)
 

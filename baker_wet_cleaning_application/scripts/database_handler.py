@@ -243,7 +243,6 @@ class DatabaseHandler:
 
 		self.overdue_rooms_ = list(overdue_rooms)
 
-
 	# Method for figuring out whether the application had been started today already
 	def noPlanningHappenedToday(self):
 		last_start = self.realToRobotDate(self.database_.application_data_.last_planning_date_[0])
@@ -252,7 +251,6 @@ class DatabaseHandler:
 			delta = today_date - last_start
 			return delta.days >= 1
 		return True
-
 
 	# Method for sorting a list of rooms after the cleaning method
 	def sortRoomsList(self, rooms_list):
@@ -271,7 +269,6 @@ class DatabaseHandler:
 				rooms_dry_cleaning.append(room)
 
 		return rooms_dry_cleaning, rooms_wet_cleaning
-
 
 	# Method for setting a room as completed
 	def checkoutCompletedRoom(self, room, assignment_type):
@@ -301,7 +298,6 @@ class DatabaseHandler:
 		# Save all changes to the database
 		self.applyChangesToDatabase()
 
-	
 	# Public method to add an entry to the log. Method from the database does not need to be called, avoiding nasty imports
 	def addLogEntry(self, room_id, status, cleaning_task, found_dirtspots, found_trashcans, cleaned_surface_area,
 					room_issues, used_water_amount, battery_usage):

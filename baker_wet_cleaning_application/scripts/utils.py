@@ -22,15 +22,12 @@ def projectToCamera(detection):
 
 	time = detection.header.stamp
 	try:
-		print("before {}".format(detection))
 		listener = getTransformListener()
-		listener.waitForTransform('/map', '/camera1_optical_frame', time, rospy.Duration(10))
+		listener.waitForTransform('/map', detection.header.frame_id, time, rospy.Duration(10))
 		detection.pose = listener.transformPose('/map', detection.pose)
-		#detection.header.frame_id = '/map'
-		print("after {}".format(detection))
 		return detection
 	except (tf.Exception, tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException,), e:
-		print "Could not lookup robot pose: %s" % e
+		print("Could not lookup robot pose: %s" % e)
 		return None
 
 # retrieves the current robot pose
