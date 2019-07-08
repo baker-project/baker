@@ -3,8 +3,9 @@
 
 	<arg name="scitos_node_args" default="-k127.0.0.1:1234"/>
 	<arg name="brush_cleaning_module_interface_args" default="-k127.0.0.1:1234"/>
+	<arg name="vacuum_cleaning_module_interface_args" default="-k127.0.0.1:1234"/>
 	<arg name="obstacle_map_channel" default="/navigation/laser/Map"/>	<!-- /3d/MergedMap or /navigation/laser/Map -->
-    <arg name="spectral_dirt_detection" default="True"/>
+	<arg name="spectral_dirt_detection" default="True"/>
 
 	<!-- ROS-MIRA communication -->
 	<include file="$(find scitos_mira)/launch/scitos_mira.launch">
@@ -15,7 +16,11 @@
 	<!--include file="$(find baker_brush_cleaning_module_interface)/launch/brush_cleaning_module_interface.launch">
 		<arg name="brush_cleaning_module_interface_args" value="$(arg brush_cleaning_module_interface_args)"/>
 	</include-->
-	
+
+	<!-- include ROS_MIRA communication module to vacuum cleaner -->
+	<include file="$(find baker_vacuum_cleaning_module_interface)/launch/vacuum_cleaning_module_interface.launch">
+		<arg name="vacuum_cleaning_module_interface_args" value="$(arg vacuum_cleaning_module_interface_args)"/>
+	</include>
 
 	<!-- map management system -->
 	<node pkg="baker_wet_cleaning_application" type="map_management_client" name="map_management_client" output="screen" respawn="true" respawn_delay="2">
@@ -49,7 +54,9 @@
         name="fake_trash_dirt_detector" output="screen" respawn="true" respawn_delay="2" args="--trash"/>
 
         <!--start real dirt detector -->
-        <include file="$(find ipa_dirt_detection)/ros/launch/dirt_detection_spectral.launch"/>
+        <include file="$(find ipa_dirt_detection)/ros/launch/dirt_detection_spectral.launch">
+            <arg name="colored_point_cloud_topic" value="/camera2_pcl"/>
+        </include>
     </group>
 
 

@@ -97,6 +97,7 @@ class GlobalApplicationData():
 	# ([INTEGER, DATETIME])
 	progress_ = [PROGRESS_COMPLETED, None]
 
+	# planning time offset for setting zero time of the day, in [minutes]
 	planning_offset_ = 0
 
 

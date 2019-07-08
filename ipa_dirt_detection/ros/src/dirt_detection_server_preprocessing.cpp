@@ -1,4 +1,5 @@
-#include "ipa_dirt_detection/dirt_detection_client_preprocessing.h"
+#include "ipa_dirt_detection/dirt_detection_server_preprocessing.h"
+#include "ipa_dirt_detection/timer.h"
 
 #include <cob_object_detection_msgs/Detection.h>
 #include <cob_object_detection_msgs/DetectionArray.h>
@@ -18,35 +19,48 @@ IpaDirtDetectionPreprocessing::ClientPreprocessing::ClientPreprocessing(ros::Nod
 {
 	//PARAMS
 	ros::NodeHandle pnh("~");
-	std::cout << "\n========== dirt_detection_client_preprocessing Parameters ==========\n";
+	std::cout << "\n========== dirt_detection_server_preprocessing Parameters ==========\n";
 
-	pnh.param("use_mask", use_mask_, true);
-	std::cout << "ClientPreprocessing: use_mask: " << use_mask_ << std::endl;
-	pnh.param("warp_image", is_warp_image_bird_perspective_enabled_, true);
-	std::cout << "ClientPreprocessing: warp_image = " << is_warp_image_bird_perspective_enabled_ << std::endl;
-	pnh.param("floor_search_iterations", floor_search_iterations_, 3);
-	std::cout << "ClientPreprocessing: floor_search_iterations = " << floor_search_iterations_ << std::endl;
-	pnh.param("min_plane_points", min_plane_points_, 0);
-	std::cout << "ClientPreprocessing: min_plane_points = " << min_plane_points_ << std::endl;
-	pnh.param("max_distance_to_camera", max_distance_to_camera_, 300.0);
-	std::cout << "ClientPreprocessing: max_distance_to_camera = " << max_distance_to_camera_ << std::endl;
-	pnh.param("bird_eye_start_resolution", bird_eye_start_resolution_, 75.0);
-	std::cout << "ClientPreprocessing: bird_eye_start_resolution = " << bird_eye_start_resolution_ << std::endl;
-	pnh.param("bird_eye_base_resolution", bird_eye_base_resolution_, 300.0);
-	std::cout << "ClientPreprocessing: bird_eye_base_resolution = " << bird_eye_base_resolution_ << std::endl;
-	bird_eye_resolution_ = bird_eye_base_resolution_;
-	pnh.param("detect_scales", nb_detect_scales_, 5);
-	std::cout << "ClientPreprocessing: detect_scales_ = " << nb_detect_scales_ << std::endl;
 	pnh.param("dirt_detection_activated_on_startup", dirt_detection_callback_active_, true);
 	std::cout << "dirt_detection_activated_on_startup = " << dirt_detection_callback_active_ << std::endl;
+	pnh.param("number_detect_scales", number_detect_scales_, 5);
+	std::cout << "DirtDetectionPreprocessing: number_detect_scales = " << number_detect_scales_ << std::endl;
+	pnh.param("bird_eye_start_resolution", bird_eye_start_resolution_, 75.0);
+	std::cout << "DirtDetectionPreprocessing: bird_eye_start_resolution = " << bird_eye_start_resolution_ << std::endl;
+	pnh.param("bird_eye_base_resolution", bird_eye_base_resolution_, 300.0);
+	std::cout << "DirtDetectionPreprocessing: bird_eye_base_resolution = " << bird_eye_base_resolution_ << std::endl;
+	bird_eye_resolution_ = bird_eye_base_resolution_;
+	floor_plane_model_.resize(4, 0.f);
+	pnh.param("floor_plane_model_a", floor_plane_model_[0], 0.f);
+	pnh.param("floor_plane_model_b", floor_plane_model_[1], 0.f);
+	pnh.param("floor_plane_model_c", floor_plane_model_[2], 0.f);
+	pnh.param("floor_plane_model_d", floor_plane_model_[3], 0.f);
+	std::cout << "DirtDetectionPreprocessing: floor_plane_model: ";
+	for (size_t i=0; i<floor_plane_model_.size(); ++i)
+		std::cout << floor_plane_model_[i] << " ";
+	std::cout << std::endl;
+	pnh.param("floor_search_iterations", floor_search_iterations_, 3);
+	std::cout << "DirtDetectionPreprocessing: floor_search_iterations = " << floor_search_iterations_ << std::endl;
+	pnh.param("floor_plane_inlier_distance", floor_plane_inlier_distance_, 0.05f);
+	std::cout << "DirtDetectionPreprocessing: floor_plane_inlier_distance = " << floor_plane_inlier_distance_ << std::endl;
+	pnh.param("min_plane_points", min_plane_points_, 0);
+	std::cout << "DirtDetectionPreprocessing: min_plane_points = " << min_plane_points_ << std::endl;
+	pnh.param("max_distance_to_camera", max_distance_to_camera_, 300.0);
+	std::cout << "DirtDetectionPreprocessing: max_distance_to_camera = " << max_distance_to_camera_ << std::endl;
+	pnh.param("is_warp_image_bird_perspective_enabled", is_warp_image_bird_perspective_enabled_, true);
+	std::cout << "DirtDetectionPreprocessing: is_warp_image_bird_perspective_enabled = " << is_warp_image_bird_perspective_enabled_ << std::endl;
 
 	//DEBUG PARAMS
 	pnh.param("show_original_image", debug_["show_original_image"], false);
-	std::cout << "DEBUG_ClientPreprocessing: show_original_image = " << debug_["show_original_image"] << std::endl;
-	pnh.param("save_data_for_test", debug_["save_data_for_test"], false);
-	std::cout << "DEBUG_ClientPreprocessing: save_data_for_test = " << debug_["save_data_for_test"] << std::endl;
+	std::cout << "DEBUG_DirtDetectionPreprocessing: show_original_image = " << debug_["show_original_image"] << std::endl;
 	pnh.param("show_plane_color_image", debug_["show_plane_color_image"], false);
-	std::cout << "DEBUG_ClientPreprocessing: show_plane_color_image = " << debug_["show_plane_color_image"] << std::endl;
+	std::cout << "DEBUG_DirtDetectionPreprocessing: show_plane_color_image = " << debug_["show_plane_color_image"] << std::endl;
+	pnh.param("publish_floor_plane", debug_["publish_floor_plane"], false);
+	std::cout << "DEBUG_DirtDetectionPreprocessing: publish_floor_plane = " << debug_["publish_floor_plane"] << std::endl;
+	pnh.param("publish_dirt_detections", debug_["publish_dirt_detections"], false);
+	std::cout << "DEBUG_DirtDetectionPreprocessing: publish_dirt_detections = " << debug_["publish_dirt_detections"] << std::endl;
+	pnh.param("save_data_for_test", debug_["save_data_for_test"], false);
+	std::cout << "DEBUG_DirtDetectionPreprocessing: save_data_for_test = " << debug_["save_data_for_test"] << std::endl;
 
 	// dynamic reconfigure
 	dynamic_reconfigure::Server<ipa_dirt_detection::DirtDetectionPreprocessingConfig>::CallbackType dynamic_reconfigure_callback_type;
@@ -58,7 +72,7 @@ IpaDirtDetectionPreprocessing::ClientPreprocessing::ClientPreprocessing(ros::Nod
 	dirt_detection_client_.waitForServer();
 
 	//Subscribing point cloud from camera and find plane and compute bird's eye perspective.
-	camera_depth_points_sub_ = node_handle_.subscribe<sensor_msgs::PointCloud2>("colored_point_cloud", 1, &IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback, this);
+	camera_depth_points_sub_ = node_handle_.subscribe<sensor_msgs::PointCloud2>("colored_point_cloud", 2, &IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback, this);
 
 	//Publisher for plane segmented image.
 	floor_plane_pub_ = node_handle_.advertise<sensor_msgs::PointCloud2>("floor_plane", 1);
@@ -66,9 +80,8 @@ IpaDirtDetectionPreprocessing::ClientPreprocessing::ClientPreprocessing(ros::Nod
 	//After action server did action we publish image containing the dirt positions.
 	dirt_detected_ = node_handle_.advertise<cob_object_detection_msgs::DetectionArray>("dirt_detector_topic", 1);
 
-	//todo: implement if needed
-//	it_ = new image_transport::ImageTransport(node_handle_);
-//	dirt_detection_image_pub_ = it_->advertise("dirt_detections", 1);
+	it_ = new image_transport::ImageTransport(node_handle_);
+	dirt_detection_image_pub_ = it_->advertise("dirt_detection_image", 1);
 
 	// services
 	activate_dirt_detection_service_server_ = node_handle_.advertiseService("activate_detection", &IpaDirtDetectionPreprocessing::ClientPreprocessing::activateDirtDetection, this);
@@ -110,24 +123,42 @@ bool IpaDirtDetectionPreprocessing::ClientPreprocessing::deactivateDirtDetection
 void IpaDirtDetectionPreprocessing::ClientPreprocessing::dynamicReconfigureCallback(ipa_dirt_detection::DirtDetectionPreprocessingConfig &config, uint32_t level)
 {
 	//ROS_INFO("Reconfigure Request: %d %f %s %s %d",	config.int_param, config.double_param, config.str_param.c_str(), config.bool_param?"True":"False", config.size);
-	is_warp_image_bird_perspective_enabled_ = config.warp_image;
+	number_detect_scales_ = config.number_detect_scales;
+	bird_eye_start_resolution_ = config.bird_eye_start_resolution;
 	bird_eye_base_resolution_ = config.bird_eye_base_resolution;
-	max_distance_to_camera_ = config.max_distance_to_camera;
+	floor_plane_model_.resize(4);
+	floor_plane_model_[0] = config.floor_plane_model_a;
+	floor_plane_model_[1] = config.floor_plane_model_b;
+	floor_plane_model_[2] = config.floor_plane_model_c;
+	floor_plane_model_[3] = config.floor_plane_model_d;
 	floor_search_iterations_ = config.floor_search_iterations;
+	floor_plane_inlier_distance_ = config.floor_plane_inlier_distance;
 	min_plane_points_ = config.min_plane_points;
+	max_distance_to_camera_ = config.max_distance_to_camera;
+	is_warp_image_bird_perspective_enabled_ = config.is_warp_image_bird_perspective_enabled;
 
-	std::cout << "\n========== dirt_detection_client_preprocessing Dynamic reconfigure ==========\n";
-	std::cout << "  is_warp_image_bird_perspective_enabled = " << is_warp_image_bird_perspective_enabled_ << std::endl;
+	std::cout << "\n========== dirt_detection_server_preprocessing Dynamic reconfigure ==========\n";
+	std::cout << "  number_detect_scales = " << number_detect_scales_ << std::endl;
+	std::cout << "  bird_eye_start_resolution = " << bird_eye_start_resolution_ << std::endl;
 	std::cout << "  bird_eye_base_resolution = " << bird_eye_base_resolution_ << std::endl;
-	std::cout << "  max_distance_to_camera = " << max_distance_to_camera_ << std::endl;
+	std::cout << "  floor_plane_model = ";
+	for (size_t i=0; i<floor_plane_model_.size(); ++i)
+		std::cout << floor_plane_model_[i] << " ";
+	std::cout << std::endl;
 	std::cout << "  floor_search_iterations = " << floor_search_iterations_ << std::endl;
+	std::cout << "  floor_plane_inlier_distance = " << floor_plane_inlier_distance_ << std::endl;
 	std::cout << "  min_plane_points = " << min_plane_points_ << std::endl;
+	std::cout << "  max_distance_to_camera = " << max_distance_to_camera_ << std::endl;
+	std::cout << "  is_warp_image_bird_perspective_enabled = " << is_warp_image_bird_perspective_enabled_ << std::endl;
 }
 
 void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(const sensor_msgs::PointCloud2ConstPtr& point_cloud2_rgb_msg)
 {
 	if (dirt_detection_callback_active_ == false) return;
-	//dirt_detection_callback_active_ = false; // todo rmb-ma avoid many callbacks
+	//dirt_detection_callback_active_ = false; // todo rmb-ma avoid many callbacks --> rmb/wmb: do not change this, connect/disconnect of a
+	// callback also takes 1-2 s of time, we might not want to wait for this. There is not so much performance lost doing this in the current way.
+
+	Timer tim;
 
 	// get tf between camera and map
 	tf::StampedTransform transformMapCamera;	// todo: add parameter for preferred relative transform between camera z-axis and ground plane z-axis and check this in planeSegmentation()
@@ -137,16 +168,23 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 	pcl::PointCloud<pcl::PointXYZRGB>::Ptr input_cloud(new pcl::PointCloud<pcl::PointXYZRGB>());
 	pcl::fromROSMsg(*point_cloud2_rgb_msg, *input_cloud); //conversion Ros message->Pcl point cloud
 	//std::cout << input_cloud->size() << std::endl;
-
-//	Timer tim;
-//	double segmentation_time = 0., dirt_detection_time = 0.;
+	std::cout << "Time for data preparation: " << tim.getElapsedTimeInMilliSec() << "ms." << std::endl;
+	tim.start();
 
 	// find ground plane
 	cv::Mat plane_color_image = cv::Mat();
 	cv::Mat plane_mask = cv::Mat();
 	pcl::ModelCoefficients plane_model;
-
-	bool found_plane = planeSegmentation(input_cloud, point_cloud2_rgb_msg->header, plane_color_image, plane_mask, plane_model, transformMapCamera);
+	if (floor_plane_model_.size() == 4)
+	{
+		plane_model.values.resize(4);
+		for (size_t i=0; i<floor_plane_model_.size(); ++i)
+			plane_model.values[i] = floor_plane_model_[i];
+	}
+	bool found_plane = planeSegmentation(input_cloud, point_cloud2_rgb_msg->header, plane_color_image, plane_mask, plane_model, floor_plane_inlier_distance_, transformMapCamera);
+	std::cout << "Plane model: " << plane_model.values[0] << ", " << plane_model.values[1] << ", "  << plane_model.values[2] << ", " << plane_model.values[3] << std::endl;
+	std::cout << "Time for plane segmentation: " << tim.getElapsedTimeInMilliSec() << "ms." << std::endl;
+	tim.start();
 
 	if (!found_plane)
 	{
@@ -154,17 +192,20 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 		return;
 	}
 
-	if (nb_detect_scales_ != 1)
+	// todo: generalize back for multi scale support
+	if (number_detect_scales_ != 1)
 	{
 		std::cout << "ERROR nb_detect_scales should be == 1" << std::endl;
 		return;
 	}
 
-	for (int s = 0; s < nb_detect_scales_; s++)
+	for (int s = 0; s < number_detect_scales_; s++)
 	{
+		Timer tim2;
+
 		// nb_detect_scales == 1 (always, throws an error otherwise)
-		image_scaling_ = nb_detect_scales_ == 1 ? 1 : pow(2, s)*bird_eye_start_resolution_ / bird_eye_base_resolution_;
-		bird_eye_resolution_ = nb_detect_scales_ == 1 ? bird_eye_base_resolution_ : pow(2, s)*bird_eye_start_resolution_;
+		image_scaling_ = number_detect_scales_ == 1 ? 1 : pow(2, s)*bird_eye_start_resolution_ / bird_eye_base_resolution_;
+		bird_eye_resolution_ = number_detect_scales_ == 1 ? bird_eye_base_resolution_ : pow(2, s)*bird_eye_start_resolution_;
 
 		// remove perspective from image
 		cv::Mat H; // homography between floor plane in image and bird's eye perspective
@@ -184,7 +225,7 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 		}
 		else
 		{
-			// todo: use rescaling with image_scaling_ here
+			// todo: add rescaling with image_scaling_ here for multiscale
 			H = (cv::Mat_<double>(3, 3) << 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
 			R = H;
 			t = (cv::Mat_<double>(3, 1) << 0.0, 0.0, 0.0);
@@ -193,6 +234,9 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 			plane_color_image_warped = plane_color_image;
 			plane_mask_warped = plane_mask;
 		}
+
+		std::cout << "Time for image warp: " << tim2.getElapsedTimeInMilliSec() << "ms." << std::endl;
+		tim2.start();
 
 		if (debug_["show_plane_color_image"])
 		{
@@ -219,7 +263,7 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 		dirt_detection_client_.sendGoal(goal);
 
 		//wait for the server to take action and deliver a result
-		std::cout << "		Wait for the server to take action and deliver a result." << std::endl;
+//		std::cout << "		Wait for the server to take action and deliver a result." << std::endl;
 		bool finished_before_timeout = dirt_detection_client_.waitForResult(ros::Duration(10.0));
 
 		//if not ready before timeout abort
@@ -237,13 +281,14 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 			continue;
 		}
 
-		std::cout << "=======================================================" << std::endl;
-		std::cout << "Received RESULT from server.\n" << std::endl;
+//		std::cout << "=======================================================" << std::endl;
+//		std::cout << "Received RESULT from server.\n" << std::endl;
 		const size_t nb_detections = dirt_detection_client_.getResult()->dirt_detections.size();
-		std::cout << "Nb detections: " << nb_detections << std::endl;
+		std::cout << "Number detections: " << nb_detections << std::endl;
 
 
 		cob_object_detection_msgs::DetectionArray detected_dirts_to_publish;
+		detected_dirts_to_publish.header = point_cloud2_rgb_msg->header;
 
 		const cv::Mat H_inv = H.inv();
 		for (size_t i = 0; i < nb_detections; ++i) //rescale, find coordinates for, and publish all dirts detected
@@ -253,6 +298,8 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 			const cv::Rect dirt_warped = cv::RotatedRect(cv::Point2f(detection.center_x*1./image_scaling_, detection.center_y*1./image_scaling_),
 					cv::Size2f(detection.width*1./image_scaling_, detection.height*1./image_scaling_), detection.angle).boundingRect();
 
+			const int min_v = std::max(0, dirt_warped.y);
+			const int min_u = std::max(0, dirt_warped.x);
 			const int max_v = std::min(int(dirt_warped.y + dirt_warped.height), plane_color_image_warped.rows-1);
 			const int max_u = std::min(int(dirt_warped.x + dirt_warped.width), plane_color_image_warped.cols-1);
 
@@ -261,9 +308,9 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 			Eigen::Vector3f minPoint(std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
 			unsigned int nb_points = 0;
 
-			for (int v = std::max(0, dirt_warped.y); v <= max_v; ++v)
+			for (int v = min_v; v <= max_v; ++v)
 			{
-				for (int u = std::max(0, dirt_warped.x); u <= max_u; ++u)
+				for (int u = min_u; u <= max_u; ++u)
 				{
 					cv::Mat point_original_image = (cv::Mat_<double>(3, 1) << u, v, 1.0);
 					if (is_warp_image_bird_perspective_enabled_)
@@ -305,15 +352,13 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 			centroid.y() /= nb_points;
 			centroid.z() /= nb_points;
 
-			detected_dirts_to_publish.header = point_cloud2_rgb_msg->header;
-
 			cob_object_detection_msgs::Detection detection_msg;
 			detection_msg.header = point_cloud2_rgb_msg->header;
 			// todo warning frame_id (just for simulation)
-			detection_msg.pose.header.frame_id = "camera1_optical_frame";
-			detection_msg.header.frame_id = "camera1_optical_frame";
+//			detection_msg.pose.header.frame_id = "camera1_optical_frame";
+//			detection_msg.header.frame_id = "camera1_optical_frame";
 			detection_msg.label = "dirt_spots_found";
-
+			detection_msg.pose.header = point_cloud2_rgb_msg->header;
 			detection_msg.pose.pose.position.x = centroid.x();
 			detection_msg.pose.pose.position.y = centroid.y();
 			detection_msg.pose.pose.position.z = centroid.z();
@@ -325,14 +370,23 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 		}
 		//todo: publish coordinates and rects
 		dirt_detected_.publish(detected_dirts_to_publish);
+
+		std::cout << "Time for dirt detection excluding image warping: " << tim2.getElapsedTimeInMilliSec() << "ms." << std::endl;
 	}
+	std::cout << "Time for dirt detection: " << tim.getElapsedTimeInMilliSec() << "ms." << std::endl;
+
+	// todo: publish detections
+//	cv_bridge::CvImage cv_ptr;
+//	cv_ptr.image = plane_color_image_display;
+//	cv_ptr.encoding = "bgr8";
+//	dirt_detection_image_pub_.publish(cv_ptr.toImageMsg());
 
 	ROS_INFO("Finished IpaDirtDetectionSpectral successfully.\n"); // no it's not finished here
 }
 
 //See header for explanation
 bool IpaDirtDetectionPreprocessing::ClientPreprocessing::planeSegmentation(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& input_cloud, const std_msgs::Header& header, cv::Mat& plane_color_image,
-		cv::Mat& plane_mask, pcl::ModelCoefficients& plane_model, const tf::StampedTransform& transform_map_camera)
+		cv::Mat& plane_mask, pcl::ModelCoefficients& plane_model, const float plane_inlier_threshold, const tf::StampedTransform& transform_map_camera)
 {
 	//recreate original color image from point cloud
 	if (debug_["show_original_image"] == true)
@@ -362,86 +416,102 @@ bool IpaDirtDetectionPreprocessing::ClientPreprocessing::planeSegmentation(pcl::
 	}
 
 	// try several times to find the ground plane
-	double plane_inlier_threshold = 0.05; // cm
 	bool found_plane = false;
-
-	// downsample the dataset with a voxel filter using a leaf size of 1cm
-	pcl::VoxelGrid<pcl::PointXYZRGB> vg;
-	pcl::PointCloud<pcl::PointXYZRGB>::Ptr filtered_input_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-	vg.setInputCloud(input_cloud->makeShared());
-	vg.setLeafSize(0.01f, 0.01f, 0.01f);
-	vg.filter(*filtered_input_cloud);
-	//std::cout << "PointCloud after filtering has: " << filtered_input_cloud->points.size ()  << " data points." << std::endl;
-
 	pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
-	for (int trial = 0; (trial < floor_search_iterations_ && filtered_input_cloud->points.size() > 100); trial++)
+
+	// search for floor plane model or just use the provided plane_model
+	if (floor_search_iterations_ <= 0 && plane_model.values.size()==4)
 	{
-		// Create the segmentation object for the planar model and set all the parameters
-		inliers->indices.clear();
-		pcl::SACSegmentation<pcl::PointXYZRGB> seg;
-		seg.setOptimizeCoefficients(true);
-		seg.setModelType(pcl::SACMODEL_PLANE);
-		seg.setMethodType(pcl::SAC_RANSAC);
-		seg.setMaxIterations(100);
-		seg.setDistanceThreshold(plane_inlier_threshold);
-		seg.setInputCloud(filtered_input_cloud);
-		seg.segment(*inliers, plane_model);
+		// just use the provided plane_model
+		found_plane = true;
+	}
+	else
+	{
+		// search for floor plane model
 
-		// keep plane_normal upright
-		if (plane_model.values[2] < 0.)
+		// downsample the dataset with a voxel filter using a leaf size of 1cm
+		pcl::VoxelGrid<pcl::PointXYZRGB> vg;
+		pcl::PointCloud<pcl::PointXYZRGB>::Ptr filtered_input_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+		vg.setInputCloud(input_cloud->makeShared());
+		vg.setLeafSize(0.01f, 0.01f, 0.01f);
+		vg.filter(*filtered_input_cloud);
+		//std::cout << "PointCloud after filtering has: " << filtered_input_cloud->points.size ()  << " data points." << std::endl;
+
+		for (int trial = 0; (trial < floor_search_iterations_ && filtered_input_cloud->points.size() > min_plane_points_); trial++)
 		{
-			plane_model.values[0] *= -1;
-			plane_model.values[1] *= -1;
-			plane_model.values[2] *= -1;
-			plane_model.values[3] *= -1;
-		}
-
-		// verify that plane is a valid ground plane
-		if (inliers->indices.size() != 0)//			tf::Vector3 planePointCamera(point.x, point.y, point.z);
-			//			tf::Vector3 planePointWorld = transform_map_camera * planePointCamera;
-			//			//cv::Point2i co(-(planePointWorld.getX()-gridOrigin_.x)*gridResolution_+grid_offset.x, (planePointWorld.getY()-gridOrigin_.y)*gridResolution_+grid_offset.y);	//done: offset
-			//			cv::Point2i co((planePointWorld.getX() - gridOrigin_.x) * gridResolution_, (planePointWorld.getY() - gridOrigin_.y) * gridResolution_);
-
-		{
-//			tf::StampedTransform rotationMapCamera = transform_map_camera;
-//			rotationMapCamera.setOrigin(tf::Vector3(0, 0, 0));
-//			tf::Vector3 planeNormalCamera(plane_model.values[0], plane_model.values[1], plane_model.values[2]);
-//			tf::Vector3 planeNormalWorld = rotationMapCamera * planeNormalCamera;
-
-//			pcl::PointXYZRGB point = (*filtered_input_cloud)[(inliers->indices[inliers->indices.size() / 2])];
-//			tf::Vector3 planePointCamera(point.x, point.y, point.z);
-//			tf::Vector3 planePointWorld = transform_map_camera * planePointCamera;
-//			//std::cout << "normCam: " << planeNormalCamera.getX() << ", " << planeNormalCamera.getY() << ", " << planeNormalCamera.getZ() << "  normW: " << planeNormalWorld.getX() << ", " << planeNormalWorld.getY() << ", " << planeNormalWorld.getZ() << "   point[half]: " << planePointWorld.getX() << ", " << planePointWorld.getY() << ", " << planePointWorld.getZ() << std::endl;
-
-			// verify that the found plane is a valid ground plane
-			//if ((int)inliers->indices.size()>min_plane_points_ && planeNormalWorld.getZ()<plane_normal_max_z_ && abs(planePointWorld.getZ())<plane_max_height_)  // add optional check if a preferred plane-normal direction is provided relative to camera and a height of camera above plan
-			if ((int) inliers->indices.size() > min_plane_points_)
+			// Create the segmentation object for the planar model and set all the parameters
+			inliers->indices.clear();
+			pcl::SACSegmentation<pcl::PointXYZRGB> seg;
+			seg.setOptimizeCoefficients(true);
+			seg.setModelType(pcl::SACMODEL_PLANE);
+			seg.setMethodType(pcl::SAC_RANSAC);
+			seg.setMaxIterations(100);
+			seg.setDistanceThreshold(plane_inlier_threshold);
+			seg.setInputCloud(filtered_input_cloud);
+			if (plane_model.values.size()==4)		// if some plane model is provided, use it as primer --> but apparently does not give a speedup
 			{
-				found_plane = true;
-				break;
+				seg.setModelType(pcl::SACMODEL_PERPENDICULAR_PLANE);
+				seg.setAxis(Eigen::Vector3f(plane_model.values[0], plane_model.values[1], plane_model.values[2]));
+				seg.setEpsAngle(0.5);
 			}
-			else
+			seg.segment(*inliers, plane_model);
+
+			// keep plane_normal upright
+			if (plane_model.values[2] < 0.)
 			{
-//				// the plane is not the ground plane -> remove that plane from the point cloud
-//				for (size_t i=0; i<inliers->indices.size(); i++)
-//				{
-//					// set all inliers to invalid
-//					pcl::PointXYZRGB& point = (*filtered_input_cloud)[(inliers->indices[i])];
-//					point.x = 0;
-//					point.y = 0;
-//					point.z = 0;
-//				}
+				plane_model.values[0] *= -1;
+				plane_model.values[1] *= -1;
+				plane_model.values[2] *= -1;
+				plane_model.values[3] *= -1;
+			}
 
-				// Extract the planar inliers from the input cloud
-				pcl::ExtractIndices<pcl::PointXYZRGB> extract;
-				extract.setInputCloud(filtered_input_cloud);
-				extract.setIndices(inliers);
+			// verify that plane is a valid ground plane
+			if (inliers->indices.size() != 0)//			tf::Vector3 planePointCamera(point.x, point.y, point.z);
+				//			tf::Vector3 planePointWorld = transform_map_camera * planePointCamera;
+				//			//cv::Point2i co(-(planePointWorld.getX()-gridOrigin_.x)*gridResolution_+grid_offset.x, (planePointWorld.getY()-gridOrigin_.y)*gridResolution_+grid_offset.y);	//done: offset
+				//			cv::Point2i co((planePointWorld.getX() - gridOrigin_.x) * gridResolution_, (planePointWorld.getY() - gridOrigin_.y) * gridResolution_);
 
-				// Remove the planar inliers, extract the rest
-				pcl::PointCloud<pcl::PointXYZRGB>::Ptr temp(new pcl::PointCloud<pcl::PointXYZRGB>);
-				extract.setNegative(true);
-				extract.filter(*temp);
-				filtered_input_cloud = temp;
+			{
+	//			tf::StampedTransform rotationMapCamera = transform_map_camera;
+	//			rotationMapCamera.setOrigin(tf::Vector3(0, 0, 0));
+	//			tf::Vector3 planeNormalCamera(plane_model.values[0], plane_model.values[1], plane_model.values[2]);
+	//			tf::Vector3 planeNormalWorld = rotationMapCamera * planeNormalCamera;
+
+	//			pcl::PointXYZRGB point = (*filtered_input_cloud)[(inliers->indices[inliers->indices.size() / 2])];
+	//			tf::Vector3 planePointCamera(point.x, point.y, point.z);
+	//			tf::Vector3 planePointWorld = transform_map_camera * planePointCamera;
+	//			//std::cout << "normCam: " << planeNormalCamera.getX() << ", " << planeNormalCamera.getY() << ", " << planeNormalCamera.getZ() << "  normW: " << planeNormalWorld.getX() << ", " << planeNormalWorld.getY() << ", " << planeNormalWorld.getZ() << "   point[half]: " << planePointWorld.getX() << ", " << planePointWorld.getY() << ", " << planePointWorld.getZ() << std::endl;
+
+				// verify that the found plane is a valid ground plane
+				//if ((int)inliers->indices.size()>min_plane_points_ && planeNormalWorld.getZ()<plane_normal_max_z_ && abs(planePointWorld.getZ())<plane_max_height_)  // add optional check if a preferred plane-normal direction is provided relative to camera and a height of camera above plan
+				if ((int) inliers->indices.size() > min_plane_points_)
+				{
+					found_plane = true;
+					break;
+				}
+				else
+				{
+	//				// the plane is not the ground plane -> remove that plane from the point cloud
+	//				for (size_t i=0; i<inliers->indices.size(); i++)
+	//				{
+	//					// set all inliers to invalid
+	//					pcl::PointXYZRGB& point = (*filtered_input_cloud)[(inliers->indices[i])];
+	//					point.x = 0;
+	//					point.y = 0;
+	//					point.z = 0;
+	//				}
+
+					// Extract the planar inliers from the input cloud
+					pcl::ExtractIndices<pcl::PointXYZRGB> extract;
+					extract.setInputCloud(filtered_input_cloud);
+					extract.setIndices(inliers);
+
+					// Remove the planar inliers, extract the rest
+					pcl::PointCloud<pcl::PointXYZRGB>::Ptr temp(new pcl::PointCloud<pcl::PointXYZRGB>);
+					extract.setNegative(true);
+					extract.filter(*temp);
+					filtered_input_cloud = temp;
+				}
 			}
 		}
 	}
@@ -449,8 +519,6 @@ bool IpaDirtDetectionPreprocessing::ClientPreprocessing::planeSegmentation(pcl::
 	// if the ground plane was found, write the respective data to the images
 	if (!found_plane)
 		return false;
-
-	pcl::PointCloud<pcl::PointXYZRGB> floor_plane;
 
 	// determine all point indices in original point cloud for plane inliers
 	inliers->indices.clear();
@@ -476,11 +544,9 @@ bool IpaDirtDetectionPreprocessing::ClientPreprocessing::planeSegmentation(pcl::
 		int u = inliers->indices[i] - v * input_cloud->width;
 
 		// cropped color image and mask
-		pcl::PointXYZRGB point = (*input_cloud)[(inliers->indices[i])];
+		const pcl::PointXYZRGB& point = (*input_cloud)[(inliers->indices[i])];
 		plane_color_image.at<cv::Vec3b>(v, u) = cv::Vec3b(point.b, point.g, point.r);
 		plane_mask.at<uchar>(v, u) = 255;
-
-		floor_plane.push_back(point);
 	}
 
 	if (debug_["save_data_for_test"] == true)
@@ -489,14 +555,17 @@ bool IpaDirtDetectionPreprocessing::ClientPreprocessing::planeSegmentation(pcl::
 		cv::imwrite("test_data/plane_mask" + bird_eye_resolution_string_ + ".jpg", plane_mask);
 	}
 
-	//display detected floor
-	//cv::imshow("floor cropped", ground_image);
+	if (debug_["publish_floor_plane"] == true)
+	{
+		pcl::PointCloud<pcl::PointXYZRGB> floor_plane;
+		for (size_t i = 0; i < inliers->indices.size(); i++)
+			floor_plane.push_back((*input_cloud)[(inliers->indices[i])]);
 
-	// todo: make parameter whether this should be published
-	sensor_msgs::PointCloud2 floor_cloud;
-	pcl::toROSMsg(floor_plane, floor_cloud);
-	floor_cloud.header = header;
-	floor_plane_pub_.publish(floor_cloud);
+		sensor_msgs::PointCloud2 floor_cloud;
+		pcl::toROSMsg(floor_plane, floor_cloud);
+		floor_cloud.header = header;
+		floor_plane_pub_.publish(floor_cloud);
+	}
 
 	return true;
 }
@@ -734,7 +803,7 @@ bool IpaDirtDetectionPreprocessing::ClientPreprocessing::computeBirdsEyePerspect
 
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, "dirt_detection_client_preprocessing");
+	ros::init(argc, argv, "dirt_detection_server_preprocessing");
 	ros::NodeHandle nh;
 
 	IpaDirtDetectionPreprocessing::ClientPreprocessing client_preprocessing(nh);
