@@ -1,9 +1,9 @@
 <root>
-	<!--<var mapEnvironment="MLWeimarerStrasse"/>-->
-	<var mapEnvironment="lab_ipa"/>
-	<var MCFFile="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/${mapEnvironment}/map.mcf"/>
-	<var cleaningMap="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/${mapEnvironment}/map-static.xml"/>
-	<var segmentationMap="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/${mapEnvironment}/map-segmentation.xml"/>
+	<var rosVersion="kinetic"/>
+	<var mapEnvironment="lab_ipa"/> <!-- lab_ipa -->
+	<var MCFFile="/home/rmb/git/care-o-bot-${rosVersion}/src/baker/mira-simulation-config/maps/${mapEnvironment}/map.mcf"/>
+	<var cleaningMap="/home/rmb/git/care-o-bot-${rosVersion}/src/baker/mira-simulation-config/maps/${mapEnvironment}/map-static.xml"/>
+	<var segmentationMap="/home/rmb/git/care-o-bot-${rosVersion}/src/baker/mira-simulation-config/maps/${mapEnvironment}/map-segmentation.xml"/>
 
 	<var useDocking="false"/>
 
@@ -14,7 +14,7 @@
 	<var frontLaser="SickS300"/>
 	<var rearLaser="SickS300"/>
 
-	<var pathPlanner="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/SmoothPathPlanner.xml"/>
+	<var pathPlanner="/home/rmb/git/care-o-bot-${rosVersion}/src/baker/mira-simulation-config/SmoothPathPlanner.xml"/>
 
 	<include file="${findpkg SCITOSSimulator}/etc/SCITOS-application.xml"/>
 
@@ -53,7 +53,7 @@
 		<namespace name="cost">
 			<parameter name="CostMapper.CostMaps[0].item.Mappers[0].item">
 				<MaxObstacleDistance>0.2</MaxObstacleDistance>
-			</parameter>	
+			</parameter>
 		</namespace>
 	</namespace>
 
@@ -96,4 +96,3 @@
 	</if_exists>
 
 </root>
-
