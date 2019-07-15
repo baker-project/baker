@@ -50,17 +50,17 @@ def make_pose_from_rpy(position, rotation, frame_id):
     orientation = convertRPYToQuat(roll=rotation[0], pitch=rotation[1], yaw=rotation[2])
     return make_pose(position, orientation, frame_id)
 
-def make_pose(position, orienatation, frame_id):
+def make_pose(position, orientation, frame_id):
     pose = PoseStamped()
     pose.header.frame_id = frame_id
     pose.pose.position.x = position[0]
     pose.pose.position.y = position[1]
     pose.pose.position.z = position[2]
 
-    pose.pose.orientation.x = orienatation[0]
-    pose.pose.orientation.y = orienatation[1]
-    pose.pose.orientation.z = orienatation[2]
-    pose.pose.orientation.w = orienatation[3]
+    pose.pose.orientation.x = orientation[0]
+    pose.pose.orientation.y = orientation[1]
+    pose.pose.orientation.z = orientation[2]
+    pose.pose.orientation.w = orientation[3]
     return pose
 
 def convertRPYToQuat(roll=0.0, pitch=0.0, yaw=0.0):

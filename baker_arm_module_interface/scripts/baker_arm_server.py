@@ -2,8 +2,10 @@
 
 import rospy
 import sys
-import actionlib
+from actionlib import SimpleActionServer, SimpleActionClient
 from threading import Thread, Lock
+
+from sensor_msgs.msg import JointState
 
 from motion_planning import planTrajectoryInCartSpace,planTrajectoryInJointSpace, executionActionServer, cartesianPlan, cartesianExecution
 from motion_planning import loadEnvironment, unloadEnvironment, addCollisionObject, removeCollisionObject, attachObject, detachObject
@@ -32,6 +34,8 @@ def log(funct):
 class BakerArmServer(script):
 
     DOF = 5
+    DEFAULT_POSITION = [0.6, 1., -2., 1., 0.]
+    TRANSPORT_POSITION = [0.9, 1., -2., 1., 0.]
 
     def __init__(self, name):
 
@@ -41,7 +45,10 @@ class BakerArmServer(script):
         self.displayParameters()
         self.initServices()
         self.initServers()
-        self.joint_values = [0.0]*self.DOF
+        self.initClients()
+        self.initSubscribers()
+
+        self.joint_values_ = [0.0]*self.DOF
 
         self.mutex_ = Lock()
 
@@ -62,23 +69,40 @@ class BakerArmServer(script):
         self.sss.init('arm')
 
     @log
+    def initClients(self):
+        self.plan_client_ = SimpleActionClient('/arm_planning_node/PlanTo', PlanToAction)
+        self.plan_client_.wait_for_server(rospy.Duration(5.0))
+        self.execution_client_ = SimpleActionClient('/traj_exec', ExecuteTrajectoryAction)
+        self.execution_client_.wait_for_server(timeout=rospy.Duration(5.0))
+
+    @log
     def initServers(self):
-        self.move_to_joints_position_action_server = actionlib.SimpleActionServer('/move_to_position', ExecuteTrajectoryAction,
-            self.moveToJointsPositionCallback, False)
-        self.move_to_joints_position_action_server.start()
+        self.to_joints_position_server_ =  SimpleActionServer(self.name_ + '/move_to_position', ExecuteTrajectoryAction, self.moveToJointsPositionCallback, False)
+        self.to_joints_position_server_.start()
+
+        self.to_transport_position_server_ = SimpleActionServer(self.name_ + '/transport_position', ExecuteTrajectoryAction, self.moveToTransportPositionCallback, False)
+        self.to_transport_position_server_.start()
+
+        self.to_rest_position_server_ = SimpleActionServer(self.name_ + '/rest_position', ExecuteTrajectoryAction, self.moveToRestPositionCallback, False)
+        self.to_rest_position_server_.start()
+
+        self.catch_trashcan_server_ = SimpleActionServer(self.name_ + '/catch_trashcan', ExecuteTrajectoryAction, self.catchTrashcanCallback, False)
+        self.catch_trashcan_server_.start()
+
+        self.leave_trashcan_server_ = SimpleActionServer(self.name_ + '/leave_trashcan', ExecuteTrajectoryAction, self.leaveTrashcanCallback, False)
+        self.leave_trashcan_server_.start()
+
+        self.empty_trashcan_server_ = SimpleActionServer(self.name_ + '/empty_trashcan', ExecuteTrajectoryAction, self.emptyTrashcanCallback, False)
+        self.empty_trashcan_server_.start()
 
     @log
     def initServices(self):
-        rospy.Service(self.name_ + '/take_trashcan', Trigger, self.handleTakeTrashcanService)
-        rospy.Service(self.name_ + '/empty_trashcan', Trigger, self.handleEmptyTrashcanService)
-        rospy.Service(self.name_ + '/rest_position', Trigger, self.handleRestPositionService)
-        rospy.Service(self.name_ + '/transport_position', Trigger, self.handleTransportPositionService)
-        rospy.Service(self.name_ + '/leave_trashcan', Trigger, self.handleLeaveTrashcanService)
+        # todo rmb-ma delete if still empty
+        pass
 
-        self.plan_client_ = actionlib.SimpleActionClient('/arm_planning_node/PlanTo', PlanToAction)
-        self.plan_client_.wait_for_server(rospy.Duration(5.0))
-        self.execution_client_ = actionlib.SimpleActionClient('/traj_exec', ExecuteTrajectoryAction)
-        self.execution_client_.wait_for_server(timeout=rospy.Duration(5.0))
+    @log
+    def initSubscribers(self):
+        rospy.Subscriber("/arm/joint_states", JointState, self.jointStateCallback)
 
     def jointStateCallback(self,msg):
         '''
@@ -86,7 +110,7 @@ class BakerArmServer(script):
             @param msg containts joint position, velocity, effort, names
         '''
         for i in range(0,len(msg.position)):
-            self.joint_values[i] = msg.position[i]
+            self.joint_values_[i] = msg.position[i]
 
     def gripperHandler(self, client, finger_value=0.01, finger_open=False, finger_close=True):
         '''
@@ -119,8 +143,8 @@ class BakerArmServer(script):
         self.sss.move('gripper',[[finger_value]])
         return response.success
 
+    @log
     def planAndExecuteTrajectoryInJointSpaces(self, target_joints):
-
         (trajectory, is_planned) = planTrajectoryInJointSpace(client=self.plan_client_, object_pose=target_joints,  bdmp_goal=None, bdmp_action='')
         if not is_planned:
             rospy.logerr('Trajectory in joint spaces execution failed')
@@ -131,6 +155,7 @@ class BakerArmServer(script):
             rospy.logerr('Can not find valid trajectory at joint space')
             raise Exception('Trajectory Execution failed')
 
+    @log
     def planAndExecuteTrajectoryInCartesianSpace(self, target_pose):
         (trajectory, is_planned) = planTrajectoryInCartSpace(client=self.plan_client_, object_pose=target_pose, bdmp_goal=None, bdmp_action='')
         if not is_planned:
@@ -143,11 +168,8 @@ class BakerArmServer(script):
             raise Exception('Trajectory Execution Failed')
 
     @log
-    def handleTakeTrashcanService(self, request):
+    def catchTrashcanCallback(self, goal):
         rospy.loginfo("Plan trajectory and move to pick dustbin ...")
-
-
-        rospy.loginfo('All action clients become available ...')
 
         # rpy means roll - pitch - yaw
         # 1.
@@ -166,39 +188,55 @@ class BakerArmServer(script):
         target_pose = make_pose(position=[0.000,-0.00,0.030], orientation=[0.0,0.0,0.0,1.0], frame_id='gripper')
         self.planAndExecuteTrajectoryInCartesianSpace(target_pose)
 
-        return TriggerResponse()
+        self.catch_trashcan_server_.set_succeeded()
 
     @log
-    def handleEmptyTrashcanService(self, request):
-        # todo rmb-ma
-        return TriggerResponse()
+    def emptyTrashcanCallback(self, goal):
+        target_pose = make_pose_from_rpy(position=[0.800, 0.600, 0.80], rotation=[-0.000, 0.000, 0.401, 0.916], frame_id='world')
+        self.planAndExecuteTrajectoryInCartesianSpace(target_pose)
 
-    @log
-    def handleRestPositionService(self, request):
-        target_joints = [0.8, pi/2., -2, 0., 0.]
+        target_joints = self.joint_values_[0:-1] + [3.]
         self.planAndExecuteTrajectoryInJointSpaces(target_joints)
 
-        return TriggerResponse()
+        rospy.sleep(5)
+        target_joints = self.joint_values_[0:-1] + [0]
+        self.planAndExecuteTrajectoryInJointSpaces(target_joints)
+        self.empty_trashcan_server_.set_succeeded()
 
     @log
-    def handleTransportPositionService(self, request):
-        # todo rmb-ma
-        return TriggerResponse()
+    def moveToRestPositionCallback(self, goal):
+        self.planAndExecuteTrajectoryInJointSpaces(self.DEFAULT_POSITION)
+        self.to_rest_position_server_.set_succeeded()
 
     @log
-    def handleLeaveTrashcanService(self, request):
-        # todo rmb-ma
-        return TriggerResponse()
+    def moveToTransportPositionCallback(self, goal):
+        self.planAndExecuteTrajectoryInJointSpaces(self.TRANSPORT_POSITION)
+        self.to_transport_position_server_.set_succeeded()
+
+    @log
+    def leaveTrashcanCallback(self, goal):
+
+        target_pose = make_pose_from_rpy(position=[0.75,-0.60, 0.505], rotation=[0.0, 0.0, 3.92], frame_id='world')
+        self.planAndExecuteTrajectoryInCartesianSpace(target_pose)
+
+        target_pose = make_pose(position=[0.000,-0.00,0.030], orientation=[0.0,0.0,0.0,1.0], frame_id='gripper')
+        self.planAndExecuteTrajectoryInCartesianSpace(target_pose)
+
+        target_pose = make_pose(position=[0.020,-0.00,0.00], orientation=[0.0,0.0,0.0,1.0], frame_id='gripper')
+        self.planAndExecuteTrajectoryInCartesianSpace(target_pose)
+
+        target_pose = make_pose(position=[0.00,-0.00,-0.07], orientation=[0.0,0.0,0.0,1.0], frame_id='gripper')
+        self.planAndExecuteTrajectoryInCartesianSpace(target_pose)
 
     @log
     def moveToJointsPositionCallback(self, goal):
-
-        self.move_to_joints_position_action_server.set_succeeded()
-
-
-
+        target_joints = goal.trajectory.joint_trajectory.points[0].positions
+        print(target_joints)
+        self.planAndExecuteTrajectoryInJointSpaces(target_joints)
+        self.to_joints_position_server_.set_succeeded()
 
 if __name__ == "__main__":
+
     try:
         rospy.init_node('baker_arm_module_interface', anonymous=True)
         BakerArmServer('baker_arm_module_interface')
