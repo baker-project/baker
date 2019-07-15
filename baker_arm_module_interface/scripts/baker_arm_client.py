@@ -12,6 +12,8 @@ def executeAction(actionName, goal=ExecuteTrajectoryGoal()):
     client = actionlib.SimpleActionClient(actionName, ExecuteTrajectoryAction)
     client.wait_for_server()
     client.send_goal(goal)
+    rospy.sleep(10)
+    client.cancel_goal()
     client.wait_for_result()
     return client.get_result()
 
