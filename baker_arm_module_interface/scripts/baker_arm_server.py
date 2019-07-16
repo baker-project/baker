@@ -1,28 +1,28 @@
 #!/usr/bin/env python
 
 import rospy
-import sys
-from actionlib import SimpleActionServer, SimpleActionClient
-from threading import Thread, Lock
 
-from sensor_msgs.msg import JointState
-
+from simple_script_server import script
 from motion_planning import planTrajectoryInCartSpace,planTrajectoryInJointSpace, cartesianPlan, cartesianExecution
-from motion_planning import loadEnvironment, unloadEnvironment, addCollisionObject, removeCollisionObject, attachObject, detachObject
 from motion_planning import ikService
-from motion_planning import make_bounding_box, make_pose, make_pose_from_rpy, create_transformation_frame, convertRPYToQuat
+from motion_planning import make_pose, make_pose_from_rpy, create_transformation_frame
 
-from ipa_manipulation_msgs.msg import CollisionBox, PlanToAction, MoveToAction, ExecuteTrajectoryAction, ExecuteTrajectoryGoal
-from ipa_manipulation_msgs.srv import AddCollisionObject, RemoveCollisionObject
+from actionlib import SimpleActionServer, SimpleActionClient
+from ipa_manipulation_msgs.msg import MoveToAction, MoveToActionGoal, MoveToResult
+from ipa_manipulation_msgs.msg import ExecuteTrajectoryAction, ExecuteTrajectoryGoal, ExecuteTrajectoryResult
+from ipa_manipulation_msgs.msg import PlanToAction
+
 from canopen_chain_node.srv import SetObject, SetObjectRequest, SetObjectResponse
-
 from std_srvs.srv import Trigger, TriggerResponse
+from ipa_manipulation_msgs.srv import AddCollisionObject, RemoveCollisionObject
+
 from geometry_msgs.msg import PoseStamped, Point, Pose
+from sensor_msgs.msg import JointState
 
 import random
 from math import pi
-
-from simple_script_server import script
+from threading import Thread, Lock
+import sys
 
 def log(funct):
     def funct_wrapper(self, *args, **kwargs):
@@ -82,28 +82,28 @@ class BakerArmServer(script):
 
     @log
     def initServers(self):
-        self.to_joints_position_server_ =  SimpleActionServer(self.name_ + '/move_to_position', ExecuteTrajectoryAction, self.moveToJointsPositionCallback, False)
+        self.to_joints_position_server_ =  SimpleActionServer(self.name_ + '/set_joints_values', ExecuteTrajectoryAction, self.moveToJointsPositionCallback, False)
         self.to_joints_position_server_.start()
 
-        self.to_transport_position_server_ = SimpleActionServer(self.name_ + '/transport_position', ExecuteTrajectoryAction, self.moveToTransportPositionCallback, False)
+        self.to_transport_position_server_ = SimpleActionServer(self.name_ + '/transport_position', MoveToAction, self.moveToTransportPositionCallback, False)
         self.to_transport_position_server_.start()
 
-        self.to_rest_position_server_ = SimpleActionServer(self.name_ + '/rest_position', ExecuteTrajectoryAction, self.moveToRestPositionCallback, False)
+        self.to_rest_position_server_ = SimpleActionServer(self.name_ + '/rest_position', MoveToAction, self.moveToRestPositionCallback, False)
         self.to_rest_position_server_.start()
 
-        self.catch_trashcan_server_ = SimpleActionServer(self.name_ + '/catch_trashcan', ExecuteTrajectoryAction, self.catchTrashcanCallback, False)
+        self.catch_trashcan_server_ = SimpleActionServer(self.name_ + '/catch_trashcan', MoveToAction, self.catchTrashcanCallback, False)
         self.catch_trashcan_server_.start()
 
-        self.leave_trashcan_server_ = SimpleActionServer(self.name_ + '/leave_trashcan', ExecuteTrajectoryAction, self.leaveTrashcanCallback, False)
+        self.leave_trashcan_server_ = SimpleActionServer(self.name_ + '/leave_trashcan', MoveToAction, self.leaveTrashcanCallback, False)
         self.leave_trashcan_server_.start()
 
-        self.empty_trashcan_server_ = SimpleActionServer(self.name_ + '/empty_trashcan', ExecuteTrajectoryAction, self.emptyTrashcanCallback, False)
+        self.empty_trashcan_server_ = SimpleActionServer(self.name_ + '/empty_trashcan', MoveToAction, self.emptyTrashcanCallback, False)
         self.empty_trashcan_server_.start()
 
     @log
     def initServices(self):
-        rospy.Service(self.name_ + '/interrupt_execution', Trigger, self.handleInterruptService)
-
+        pass
+        
     @log
     def initSubscribers(self):
         rospy.Subscriber("/arm/joint_states", JointState, self.jointStateCallback)
@@ -177,7 +177,7 @@ class BakerArmServer(script):
             self.execution_client_.cancel_goal()
 
             self.execution_client_.wait_for_result()
-            print("trajectory preeempted and succeded")
+            print("EXECUTION PREEMPTED")
             return True
 
         result = self.execution_client_.get_result()
@@ -195,12 +195,15 @@ class BakerArmServer(script):
         (trajectory, is_planned) = planTrajectoryInJointSpace(client=self.plan_client_, object_pose=target_joints,  bdmp_goal=None, bdmp_action='')
         if not is_planned:
             rospy.logerr('Trajectory in joint spaces execution failed')
-            raise Exception('Trajectory in joint spaces execution failed')
+            raise Exceptctioion('Trajectory in joint spaces execution failed')
+
         self.confirm()
         is_execution_successful = self.executeTrajectory(trajectory=trajectory, server=server)
         if not is_execution_successful:
             rospy.logerr('Can not find valid trajectory at joint space')
             raise Exception('Trajectory Execution failed')
+
+        return not server.is_preempt_requested()
 
     @log
     def planAndExecuteTrajectoryInCartesianSpace(self, target_pose, server):
@@ -208,56 +211,98 @@ class BakerArmServer(script):
         if not is_planned:
             rospy.logerr('Cannot find valid trajectory at cartesianSpace')
             raise Exception('Cannot find valid trajectory at cartesian space')
+
         self.confirm()
         is_execution_successful = self.executeTrajectory(trajectory=trajectory, server=server)
         if not is_execution_successful:
             rospy.logerr("Trajectory Execution Failed")
             raise Exception('Trajectory Execution Failed')
 
+        return not server.is_preempt_requested()
+
+    @staticmethod
+    def poseToLists(pose):
+        position = [pose.position.x, pose.position.y, pose.position.z]
+        orientation = [pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w]
+        return (position, orientation)
+
     @log
     def catchTrashcanCallback(self, goal):
-        # rpy means roll - pitch - yaw
-        # 1.
-        target_pose = make_pose_from_rpy(position=[0.75,-0.60, 0.505], rotation=[0.0, 0.0, 3.92], frame_id='world')
-        self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.catch_trashcan_server_)
+        result = MoveToResult()
+        (target_position, target_orientation) = self.poseToLists(goal.target_pos.pose)
+        frame_id = goal.target_pos.header.frame_id
+        try:
+            target_pose = make_pose(position=target_position, orientation=target_orientation, frame_id=frame_id)
+            self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.catch_trashcan_server_)
+        except Exception as e:
+            print(e.message)
+            result.arrived = False
+            self.catch_trashcan_server_.set_aborted(result)
+            return
 
         if self.catch_trashcan_server_.is_preempt_requested():
             self.catch_trashcan_server_.set_preempted()
             return
 
-        # 2.
-        target_pose = make_pose(position=[0.00,-0.00,-0.07], orientation=[0.0,0.0,0.0,1.0], frame_id='gripper')
-        self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.catch_trashcan_server_)
+        try:
+            target_pose = make_pose(position=[0.00,-0.00,-0.07], orientation=[0.0,0.0,0.0,1.0], frame_id='gripper')
+            self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.catch_trashcan_server_)
+        except:
+            result.arrived = False
+            self.catch_trashcan_server_.set_aberted(result)
+            return
 
         if self.catch_trashcan_server_.is_preempt_requested():
             self.catch_trashcan_server_.set_preempted()
             return
 
-        # 3.
-        target_pose = make_pose(position=[0.020,-0.00,0.00], orientation=[0.0,0.0,0.0,1.0], frame_id='gripper')
-        self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.catch_trashcan_server_)
+        try:
+            target_pose = make_pose(position=[0.020,-0.00,0.00], orientation=[0.0,0.0,0.0,1.0], frame_id='gripper')
+            self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.catch_trashcan_server_)
+        except:
+            result.arrived = False
+            self.catch_trashcan_server_.set_aborted(result)
+            return
 
         if self.catch_trashcan_server_.is_preempt_requested():
             self.catch_trashcan_server_.set_preempted()
             return
 
-        # 4.
-        target_pose = make_pose(position=[0.000,-0.00,0.030], orientation=[0.0,0.0,0.0,1.0], frame_id='gripper')
-        self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.catch_trashcan_server_)
+        try:
+            target_pose = make_pose(position=[0.000,-0.00,0.030], orientation=[0.0,0.0,0.0,1.0], frame_id='gripper')
+            self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.catch_trashcan_server_)
+        except:
+            result.arrived = False
+            self.catch_trashcan_server_.set_aborted(result)
+            return
 
-        self.catch_trashcan_server_.set_succeeded()
+        self.catch_trashcan_server_.set_succeeded(result)
 
     @log
     def emptyTrashcanCallback(self, goal):
-        target_pose = make_pose_from_rpy(position=[0.800, 0.600, 0.80], rotation=[-0.000, 0.000, 0.401, 0.916], frame_id='world')
-        self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.empty_trashcan_server_)
+
+        (target_position, target_orientation) = self.poseToLists(goal.target_pos.pose)
+        frame_id = goal.target_pos.header.frame_id
+
+        try:
+            target_pose = make_pose(position=target_position, orientation=target_orientation, frame_id=frame_id)
+            self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.empty_trashcan_server_)
+        except:
+            result.arrived = False
+            self.empty_trashcan_server_.set_aborted(result)
+            return
 
         if self.empty_trashcan_server_.is_preempt_requested():
             self.empty_trashcan_server_.set_preempted()
             return
 
-        target_joints = self.joint_values_[0:-1] + [3.]
-        self.planAndExecuteTrajectoryInJointSpaces(target_joints, self.empty_trashcan_server_)
+        try:
+            target_joints = self.joint_values_[0:-1] + [3.]
+            self.planAndExecuteTrajectoryInJointSpaces(target_joints, self.empty_trashcan_server_)
+        except:
+            result.arrived = False
+            self.empty_trashcan_server_.set_aborted(result)
+            return
 
         if self.empty_trashcan_server_.is_preempt_requested():
             self.empty_trashcan_server_.set_preempted()
@@ -270,7 +315,12 @@ class BakerArmServer(script):
 
     @log
     def moveToRestPositionCallback(self, goal):
-        self.planAndExecuteTrajectoryInJointSpaces(self.DEFAULT_POSITION, self.to_rest_position_server_)
+        try:
+            self.planAndExecuteTrajectoryInJointSpaces(self.DEFAULT_POSITION, self.to_rest_position_server_)
+        except:
+            result.arrived = False
+            self.to_rest_position_server_.set_aborted(result)
+            return
 
         if self.to_rest_position_server_.is_preempt_requested():
             self.to_rest_position_server_.set_preempted()
@@ -280,17 +330,26 @@ class BakerArmServer(script):
 
     @log
     def moveToTransportPositionCallback(self, goal):
-        self.planAndExecuteTrajectoryInJointSpaces(self.TRANSPORT_POSITION, self.to_transport_position_server_)
+        result = MoveToResult()
+        try:
+            result.arrived = self.planAndExecuteTrajectoryInJointSpaces(self.TRANSPORT_POSITION, self.to_transport_position_server_)
+        except:
+            result.arrived = False
+            self.to_transport_position_server_.set_aborted(result)
+            return
 
         if self.to_transport_position_server_.is_preempt_requested():
             self.to_transport_position_server_.set_preempted()
             return
 
-        self.to_transport_position_server_.set_succeeded()
+        self.to_transport_position_server_.set_succeeded(result)
 
     @log
     def leaveTrashcanCallback(self, goal):
-        target_pose = make_pose_from_rpy(position=[0.75,-0.60, 0.505], rotation=[0.0, 0.0, 3.92], frame_id='world')
+        (target_position, target_orientation) = self.poseToLists(goal.target_pos.pose)
+        frame_id = goal.target_pos.header.frame_id
+        target_pose = make_pose(position=target_position, orientation=target_orientation, frame_id=frame_id)
+
         self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.leave_trashcan_server_)
 
         if self.leave_trashcan_server_.is_preempt_requested():

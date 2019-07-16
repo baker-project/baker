@@ -359,7 +359,7 @@ def planTrajectoryInJointSpace(client, bdmp_goal=None, bdmp_action='', object_po
     valid = result.got_plan
 
     if (time and result.got_plan and state is 3):
-        rospy.loginfo('===== planTrajectoryInCartSpace: SUCCESSED =======')
+        rospy.loginfo('===== planTrajectoryInJointSpace: SUCCESSED =======')
         rospy.loginfo(result.message)
         rospy.loginfo(result.trajectory_planning_time)
         return result.planned_trajectory, valid
