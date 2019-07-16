@@ -152,18 +152,7 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 		assert(DryCleaningBehavior.containsTrashcanTask(cleaning_tasks) or DryCleaningBehavior.containsDirtTask(cleaning_tasks))
 
 		self.printMsg('Starting Dry Cleaning of room ID {}'.format(room_id))
-
-		starting_position = self.room_information_in_meter_[room_id].room_center
-		self.move_base_handler_.setParameters(
-			goal_position=starting_position,
-			goal_orientation=Quaternion(x=0., y=0., z=0., w=1.),
-			header_frame_id='base_link',
-			goal_position_tolerance=2.0,
-			goal_angle_tolerance=2*pi
-		)
-
-		thread_move_to_the_room = Thread(target=self.move_base_handler_.executeBehavior)
-		thread_move_to_the_room.start()
+		self.startMoveToTheRoom(room_id)
 
 		path = self.computeCoveragePath(room_id=room_id)
 
@@ -179,7 +168,7 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 		if DryCleaningBehavior.containsDirtTask(cleaning_tasks):
 			self.dirt_topic_subscriber_ = rospy.Subscriber('/dirt_detection_server_preprocessing/dirt_detector_topic', DetectionArray, self.dirtDetectionCallback)
 
-		thread_move_to_the_room.join()  # don't start the detections before
+		self.waitMoveToTheRoom()
 		if self.move_base_handler_.failed():
 			self.printMsg('Room center is not accessible. Failed to clean room {}'.format(room_id))
 			return

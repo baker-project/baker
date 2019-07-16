@@ -60,27 +60,16 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		self.callTriggerService(self.stop_cleaning_service_str_)
 
 	def executeCustomBehaviorInRoomId(self, room_id):
-
 		# todo (rmb-ma) create a abstract_cleaning common method go to the room and compute path
 		self.printMsg('Starting Wet Cleaning of room ID {}'.format(room_id))
-		starting_position = self.room_information_in_meter_[room_id].room_center
-		self.move_base_handler_.setParameters(
-			goal_position=starting_position,
-			goal_orientation=Quaternion(x=0., y=0., z=0., w=1.),
-			header_frame_id='base_link',
-			goal_angle_tolerance=2*pi,
-			goal_position_tolerance=0.5
-		)
-
-		thread_move_to_the_room = Thread(target=self.move_base_handler_.executeBehavior)
-		thread_move_to_the_room.start()
+		self.startMoveToTheRoom(room_id)
 
 		path = self.computeCoveragePath(room_id=room_id)
 
 		if len(path) == 0 or self.handleInterrupt() >= 1:
 			return
 
-		thread_move_to_the_room.join()
+		self.waitMoveToTheRoom()
 
 		if self.move_base_handler_.failed():
 			self.printMsg('Room center is not accessible. Failed to clean room {}'.format(room_id))
@@ -105,7 +94,7 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		)
 
 		path_follower.setInterruptVar(self.interrupt_var_)
-		#path_follower.executeBehavior()
+		path_follower.executeBehavior()
 		if self.handleInterrupt() >= 1:
 			return
 
