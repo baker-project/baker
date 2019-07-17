@@ -18,11 +18,20 @@ from ipa_manipulation_msgs.srv import AddCollisionObject, RemoveCollisionObject
 
 from geometry_msgs.msg import PoseStamped, Point, Pose
 from sensor_msgs.msg import JointState
+from std_msgs.msg import Int32
 
 import random
 from math import pi
 from threading import Thread, Lock
 import sys
+
+from enum import Enum
+
+class ArmStatus(Enum):
+    NO_TRASHCAN = 0
+    EMPTY_TRASHCAN = 1
+    FULL_TRASHCAN = 2
+
 
 def log(funct):
     def funct_wrapper(self, *args, **kwargs):
@@ -39,20 +48,21 @@ class BakerArmServer(script):
     TRANSPORT_POSITION = [0.9, 1., -2., 1., 0.]
     IS_GRIPPER_AVAILABLE = False
 
-    def __init__(self, name):
-
+    def __init__(self, name, status=ArmStatus.NO_TRASHCAN):
         self.verbose_ = True
         self.confirm_ = False
         self.name_ = name
+        self.carries_trashcan_ = False
+        self.status_ = status
+        self.joint_values_ = [0.0]*self.DOF
+        self.mutex_ = Lock()
+
         self.displayParameters()
         self.initServices()
         self.initServers()
         self.initClients()
         self.initSubscribers()
-
-        self.joint_values_ = [0.0]*self.DOF
-
-        self.mutex_ = Lock()
+        self.initTopics()
 
     def confirm(self):
         if not self.confirm_:
@@ -103,7 +113,19 @@ class BakerArmServer(script):
     @log
     def initServices(self):
         pass
-        
+
+    @log
+    def initTopics(self):
+        Thread(target=self.statusTalker).start()
+
+    @log
+    def statusTalker(self):
+        publisher = rospy.Publisher(self.name_ + '/status', Int32)
+        rate = rospy.Rate(5)
+        while not rospy.is_shutdown():
+            publisher.publish(self.status_)
+            rate.sleep()
+
     @log
     def initSubscribers(self):
         rospy.Subscriber("/arm/joint_states", JointState, self.jointStateCallback)
@@ -177,7 +199,6 @@ class BakerArmServer(script):
             self.execution_client_.cancel_goal()
 
             self.execution_client_.wait_for_result()
-            print("EXECUTION PREEMPTED")
             return True
 
         result = self.execution_client_.get_result()
@@ -229,6 +250,13 @@ class BakerArmServer(script):
     @log
     def catchTrashcanCallback(self, goal):
         result = MoveToResult()
+
+        #The arm canot carry a new trashcan as it already carries one
+        if self.carries_trashcan_:
+            result.arrived = False
+            self.catch_trashcan_server_.set_aborted(result)
+            return
+
         (target_position, target_orientation) = self.poseToLists(goal.target_pos.pose)
         frame_id = goal.target_pos.header.frame_id
         try:
@@ -249,7 +277,7 @@ class BakerArmServer(script):
             self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.catch_trashcan_server_)
         except:
             result.arrived = False
-            self.catch_trashcan_server_.set_aberted(result)
+            self.catch_trashcan_server_.set_aborted(result)
             return
 
         if self.catch_trashcan_server_.is_preempt_requested():
@@ -268,6 +296,9 @@ class BakerArmServer(script):
             self.catch_trashcan_server_.set_preempted()
             return
 
+        self.closeGripper()
+        self.carries_trashcan_ = True
+
         try:
             target_pose = make_pose(position=[0.000,-0.00,0.030], orientation=[0.0,0.0,0.0,1.0], frame_id='gripper')
             self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.catch_trashcan_server_)
@@ -280,6 +311,12 @@ class BakerArmServer(script):
 
     @log
     def emptyTrashcanCallback(self, goal):
+        result = MoveToResult()
+        #Trashcan emptying while the arm doesnt carry any trashcan
+        if not self.carries_trashcan_:
+            result.arrived = False
+            self.empty_trashcan_server_.set_aborted(result)
+            return
 
         (target_position, target_orientation) = self.poseToLists(goal.target_pos.pose)
         frame_id = goal.target_pos.header.frame_id
@@ -311,10 +348,17 @@ class BakerArmServer(script):
         rospy.sleep(5)
         target_joints = self.joint_values_[0:-1] + [0]
         self.planAndExecuteTrajectoryInJointSpaces(target_joints, self.empty_trashcan_server_)
-        self.empty_trashcan_server_.set_succeeded()
+        self.empty_trashcan_server_.set_succeeded(result)
 
     @log
     def moveToRestPositionCallback(self, goal):
+        result = MoveToResult()
+        # Rest position is unavailable if the arm carries a trashcan
+        if self.carries_trashcan_:
+            result.arrived = False
+            self.to_rest_position_server_.set_aborted(result)
+            return
+
         try:
             self.planAndExecuteTrajectoryInJointSpaces(self.DEFAULT_POSITION, self.to_rest_position_server_)
         except:
@@ -331,6 +375,12 @@ class BakerArmServer(script):
     @log
     def moveToTransportPositionCallback(self, goal):
         result = MoveToResult()
+        # Transport position is unavailable if the arm doesnt carry a trashcan
+        if not self.carries_trashcan_:
+            result.arrived = False
+            self.to_transport_position_server_.set_aborted(result)
+            return
+
         try:
             result.arrived = self.planAndExecuteTrajectoryInJointSpaces(self.TRANSPORT_POSITION, self.to_transport_position_server_)
         except:
@@ -346,6 +396,13 @@ class BakerArmServer(script):
 
     @log
     def leaveTrashcanCallback(self, goal):
+        result = MoveToResult()
+        # The arm cannot leave a trashcan if it doesnt carry one
+        if not self.carries_trashcan_:
+            result.arrived = False
+            self.leave_trashcan_server_.set_aborted(result)
+            return
+
         (target_position, target_orientation) = self.poseToLists(goal.target_pos.pose)
         frame_id = goal.target_pos.header.frame_id
         target_pose = make_pose(position=target_position, orientation=target_orientation, frame_id=frame_id)
@@ -357,6 +414,7 @@ class BakerArmServer(script):
             return
 
         self.openGripper()
+        self.carries_trashcan_ = False
 
         if self.leave_trashcan_server_.is_preempt_requested():
             self.leave_trashcan_server_.set_preempted()
@@ -376,7 +434,8 @@ class BakerArmServer(script):
             self.leave_trashcan_server_.set_preempted()
             return
 
-        self.leave_trashcan_server_.set_succeeded()
+        result.arrived = True
+        self.leave_trashcan_server_.set_succeeded(result)
 
     @log
     def moveToJointsPositionCallback(self, goal):
