@@ -120,10 +120,10 @@ class BakerArmServer(script):
 
     @log
     def statusTalker(self):
-        publisher = rospy.Publisher(self.name_ + '/status', Int32)
+        publisher = rospy.Publisher(self.name_ + '/status', Int32, queue_size=10)
         rate = rospy.Rate(5)
         while not rospy.is_shutdown():
-            publisher.publish(self.status_)
+            publisher.publish(self.status_.value)
             rate.sleep()
 
     @log
@@ -252,7 +252,7 @@ class BakerArmServer(script):
         result = MoveToResult()
 
         #The arm canot carry a new trashcan as it already carries one
-        if self.carries_trashcan_:
+        if self.status_ != ArmStatus.NO_TRASHCAN:
             result.arrived = False
             self.catch_trashcan_server_.set_aborted(result)
             return
@@ -297,7 +297,7 @@ class BakerArmServer(script):
             return
 
         self.closeGripper()
-        self.carries_trashcan_ = True
+        self.status_ = ArmStatus.FULL_TRASHCAN
 
         try:
             target_pose = make_pose(position=[0.000,-0.00,0.030], orientation=[0.0,0.0,0.0,1.0], frame_id='gripper')
@@ -307,13 +307,14 @@ class BakerArmServer(script):
             self.catch_trashcan_server_.set_aborted(result)
             return
 
+        result.arrived = True
         self.catch_trashcan_server_.set_succeeded(result)
 
     @log
     def emptyTrashcanCallback(self, goal):
         result = MoveToResult()
         #Trashcan emptying while the arm doesnt carry any trashcan
-        if not self.carries_trashcan_:
+        if self.status_ != ArmStatus.FULL_TRASHCAN:
             result.arrived = False
             self.empty_trashcan_server_.set_aborted(result)
             return
@@ -346,15 +347,18 @@ class BakerArmServer(script):
             return
 
         rospy.sleep(5)
+        self.status_ = ArmStatus.FULL_TRASHCAN
         target_joints = self.joint_values_[0:-1] + [0]
         self.planAndExecuteTrajectoryInJointSpaces(target_joints, self.empty_trashcan_server_)
+
+        result.arrived = True
         self.empty_trashcan_server_.set_succeeded(result)
 
     @log
     def moveToRestPositionCallback(self, goal):
         result = MoveToResult()
         # Rest position is unavailable if the arm carries a trashcan
-        if self.carries_trashcan_:
+        if self.status_ != ArmStatus.NO_TRASHCAN:
             result.arrived = False
             self.to_rest_position_server_.set_aborted(result)
             return
@@ -376,7 +380,7 @@ class BakerArmServer(script):
     def moveToTransportPositionCallback(self, goal):
         result = MoveToResult()
         # Transport position is unavailable if the arm doesnt carry a trashcan
-        if not self.carries_trashcan_:
+        if self.status_ == ArmStatus.NO_TRASHCAN:
             result.arrived = False
             self.to_transport_position_server_.set_aborted(result)
             return
@@ -398,7 +402,7 @@ class BakerArmServer(script):
     def leaveTrashcanCallback(self, goal):
         result = MoveToResult()
         # The arm cannot leave a trashcan if it doesnt carry one
-        if not self.carries_trashcan_:
+        if self.status_ != ArmStatus.EMPTY_TRASHCAN:
             result.arrived = False
             self.leave_trashcan_server_.set_aborted(result)
             return
@@ -414,7 +418,7 @@ class BakerArmServer(script):
             return
 
         self.openGripper()
-        self.carries_trashcan_ = False
+        self.status_ = ArmStatus.NO_TRASHCAN
 
         if self.leave_trashcan_server_.is_preempt_requested():
             self.leave_trashcan_server_.set_preempted()
