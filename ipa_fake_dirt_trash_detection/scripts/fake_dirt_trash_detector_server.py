@@ -11,7 +11,7 @@ import random
 
 class Detector:
 
-    def __init__(self, name, topic, frequency=0.2):
+    def __init__(self, name, topic, detector_frame_id, frequency=0.2):
         self.name_ = name
         self.rate_ = frequency
         self.mutex_ = Lock()
@@ -41,8 +41,8 @@ class Detector:
 
             detection = Detection()
 
-            detection.header.frame_id = 'base_link'
-            detection.pose.header.frame_id = 'base_link'
+            detection.header.frame_id = 'camera2_optical_frame'
+            detection.pose.header.frame_id = 'camera2_optical_frame'
             detection.pose.pose.position.x = round(random.random()*0.02, 2)
             detection.pose.pose.position.y = round(random.random()*0.02 - 0.01, 2)
             detection.bounding_box_lwh.x = 1
@@ -76,12 +76,12 @@ class Detector:
 
 if __name__ == "__main__":
     try:
-        rospy.init_node('fake_trash_dirt_detector', anonymous=True)
-
         args = rospy.myargv(argv=sys.argv)
         if '--dirt' in args:
-            dirt_detector = Detector('dirt_detection_server_preprocessing', '/dirt_detection_server_preprocessing/dirt_detector_topic', 1)
+            rospy.init_node('fake_dirt_detector', anonymous=True)
+            dirt_detector = Detector('dirt_detection_server_preprocessing', '/dirt_detection_server_preprocessing/dirt_detector_topic','dirt_detector_frame_id', 1)
         if '--trash' in args:
+            rospy.init_node('trashcan_dirt_detector', anonymous=True)
             trash_detector = Detector('trash_detector', 'trash_detector_topic', 1000)
         rospy.spin()
 
