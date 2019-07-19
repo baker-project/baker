@@ -41,9 +41,13 @@ class Detector:
 
             detection = Detection()
 
-            detection.pose.header.frame_id = 'base_link';
+            detection.header.frame_id = 'base_link'
+            detection.pose.header.frame_id = 'base_link'
             detection.pose.pose.position.x = round(random.random()*0.02, 2)
             detection.pose.pose.position.y = round(random.random()*0.02 - 0.01, 2)
+            detection.bounding_box_lwh.x = 1
+            detection.bounding_box_lwh.y = 1
+            detection.bounding_box_lwh.z = 0.2
 
             detections = DetectionArray()
             detections.detections = [detection]
@@ -69,15 +73,16 @@ class Detector:
         self.mutex_.release()
         return TriggerResponse()
 
+
 if __name__ == "__main__":
     try:
         rospy.init_node('fake_trash_dirt_detector', anonymous=True)
 
         args = rospy.myargv(argv=sys.argv)
         if '--dirt' in args:
-            dirt_detector = Detector('dirt_detection_server_preprocessing', '/dirt_detection_server_preprocessing/dirt_detector_topic', 5000)
+            dirt_detector = Detector('dirt_detection_server_preprocessing', '/dirt_detection_server_preprocessing/dirt_detector_topic', 1)
         if '--trash' in args:
-            trash_detector = Detector('trash_detector', 'trash_detector_topic', 1)
+            trash_detector = Detector('trash_detector', 'trash_detector_topic', 1000)
         rospy.spin()
 
     except rospy.ROSInterruptException:

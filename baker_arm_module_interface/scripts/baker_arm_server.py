@@ -8,7 +8,7 @@ from motion_planning import ikService
 from motion_planning import make_pose, make_pose_from_rpy, create_transformation_frame
 
 from actionlib import SimpleActionServer, SimpleActionClient
-from ipa_manipulation_msgs.msg import MoveToAction, MoveToActionGoal, MoveToResult
+from ipa_manipulation_msgs.msg import MoveToAction, MoveToGoal, MoveToResult
 from ipa_manipulation_msgs.msg import ExecuteTrajectoryAction, ExecuteTrajectoryGoal, ExecuteTrajectoryResult
 from ipa_manipulation_msgs.msg import PlanToAction
 
