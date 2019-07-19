@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+
+<launch>
+	<!-- visualizer for object detection results publishes data for RViz visualization -->
+	<node name="dirt_detection_visualizer" pkg="cob_object_detection_visualizer" type="object_detection_visualizer" output="screen">
+		<remap from="detection_array_topic" to="/dirt_detection_server_preprocessing/dirt_detector_topic"/>
+		<remap from="/object_detection_marker_array" to="/dirt_detection_marker_array"/>
+		<param name="display_rviz_markers" value="true" />
+		<param name="display_detection_image" value="false" />
+	</node>
+
+	<node name="trashcan_detection_visualizer" pkg="cob_object_detection_visualizer" type="object_detection_visualizer" output="screen">
+		<remap from="detection_array_topic" to="/trash_detector_topic"/>
+		<remap from="/object_detection_marker_array" to="/trash_detection_marker_array"/>
+		<param name="display_rviz_markers" value="true"/>
+		<param name="display_detection_image" value="false"/>
+	</node>
+</launch>

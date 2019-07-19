@@ -35,8 +35,8 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 		self.rest_position_service_str_ = srv.REST_POSITION_STR
 
 	# Method for setting parameters for the behavior
-	def setParameters(self, trashcan_position, trolley_position):
-		self.trashcan_position_ = trashcan_position
+	def setParameters(self, trashcan_pose, trolley_position):
+		self.trashcan_pose_ = trashcan_pose
 		self.trolley_position_ = trolley_position
 
 	# Method for returning to the standard pose of the robot
@@ -56,36 +56,24 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 	def catchTrashcan(self):
 		return self.executeAction(self.catch_trashcan_service_str_, position=[0.75,-0.60, 0.505], rotation=[0.0, 0.0, 3.92])
 
-
-	def executeAction(self, action_name, position=None, rotation=None):
+	def executeAction(self, action_name, target_pose=None):
 
 		goal = MoveToGoal()
-		if position is not None or rotation is not None:
+		if target_pose is not None:
 			goal = MoveToGoal()
-			orientation = quaternion_from_euler(*rotation)
+			goal.target_pos.pose = target_pose
 
-			goal.target_pos.pose.position.x = position[0]
-			goal.target_pos.pose.position.y = position[1]
-			goal.target_pos.pose.position.z = position[2]
-
-			goal.target_pos.pose.orientation.x = orientation[0]
-			goal.target_pos.pose.orientation.y = orientation[1]
-			goal.target_pos.pose.orientation.z = orientation[2]
-			goal.target_pos.pose.orientation.w = orientation[3]
-
-			goal.target_pos.header.frame_id = 'world'
 		client = actionlib.SimpleActionClient(action_name, MoveToAction)
-
 		client.wait_for_server()
 		client.send_goal(goal)
 		client.wait_for_result()
 		return client.get_result()
 
 	def emptyTrashcan(self):
-		return self.executeAction(self.empty_trashcan_service_str_, position=[0.800, 0.600, 0.80], rotation=[-0., 0., 0.401])
+		return self.executeAction(self.empty_trashcan_service_str_, self.trashcan_pose_) # todo rmb-ma (not trashcan position)
 
 	def leaveTrashcan(self):
-		return self.executeAction(self.leave_trashcan_service_str_, position=[0.75,-0.60, 0.505], rotation=[0.0, 0.0, 3.92])
+		return self.executeAction(self.leave_trashcan_service_str_, self.trashcan_pose_)
 
 	def transportPosition(self):
 		return self.executeAction(self.transport_position_service_str_)
@@ -95,9 +83,9 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 
 	# Implemented Behavior
 	def executeCustomBehavior(self):
-		assert(self.trashcan_position_ is not None and self.trolley_position_ is not None)
+		assert(self.trashcan_pose_ is not None and self.trolley_position_ is not None)
 
-		self.printMsg("Executing trashcan behavior located on ({}, {})".format(self.trashcan_position_.x, self.trashcan_position_.y))
+		self.printMsg("Executing trashcan behavior located on ({}, {})".format(self.trashcan_pose_.x, self.trashcan_pose_.y))
 
 		# todo (rmb-ma): see how we can go there + see the locations to clean it
 

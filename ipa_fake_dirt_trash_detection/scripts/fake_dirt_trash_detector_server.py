@@ -11,7 +11,7 @@ import random
 
 class Detector:
 
-    def __init__(self, name, topic, detector_frame_id, frequency=0.2):
+    def __init__(self, name, topic, frequency=0.2):
         self.name_ = name
         self.rate_ = frequency
         self.mutex_ = Lock()
@@ -43,46 +43,53 @@ class Detector:
 
             detection.header.frame_id = 'camera2_optical_frame'
             detection.pose.header.frame_id = 'camera2_optical_frame'
-            detection.pose.pose.position.x = round(random.random()*0.02, 2)
-            detection.pose.pose.position.y = round(random.random()*0.02 - 0.01, 2)
-            detection.bounding_box_lwh.x = 1
-            detection.bounding_box_lwh.y = 1
-            detection.bounding_box_lwh.z = 0.2
+            detection.pose.pose.position.x = round(random.random()*0.2 - 0.01, 2)
+            detection.pose.pose.position.y = round(random.random()*0.2 - 0.01, 2)
+            detection.pose.pose.position.z = 1.2#round(random.random()*0.2 - 0.01, 2)
+            detection.bounding_box_lwh.x = 0.1
+            detection.bounding_box_lwh.y = 0.1
+            detection.bounding_box_lwh.z = 0.1
 
             detections = DetectionArray()
+            detections.header.frame_id = 'camera2_optical_frame'
             detections.detections = [detection]
 
             self.publisher_.publish(detections)
 
     def handleStartService(self, request):
         print('[Service {}] Starting Detection'.format(self.name_))
+        response = TriggerResponse()
+
         self.mutex_.acquire()
         if self.is_running_:
             self.mutex_.release()
-            return TriggerResponse()
+            response.success = False
+            return response
 
         self.mutex_.release()
         self.is_running_ = True
         Thread(target=self.talker).start()
-        return TriggerResponse()
+        response.success = True
+        return response
 
     def handleStopService(self, request):
+        response =  TriggerResponse()
         print('[Service {}] Stopping Detection'.format(self.name_))
         self.mutex_.acquire()
         self.is_running_ = False
         self.mutex_.release()
-        return TriggerResponse()
-
+        response.success = True
+        return response
 
 if __name__ == "__main__":
     try:
         args = rospy.myargv(argv=sys.argv)
         if '--dirt' in args:
             rospy.init_node('fake_dirt_detector', anonymous=True)
-            dirt_detector = Detector('dirt_detection_server_preprocessing', '/dirt_detection_server_preprocessing/dirt_detector_topic','dirt_detector_frame_id', 1)
+            dirt_detector = Detector('dirt_detection_server_preprocessing', '/dirt_detection_server_preprocessing/dirt_detector_topic', 200)
         if '--trash' in args:
             rospy.init_node('trashcan_dirt_detector', anonymous=True)
-            trash_detector = Detector('trash_detector', 'trash_detector_topic', 1000)
+            trash_detector = Detector('trash_detector', 'trash_detector_topic', 200)
         rospy.spin()
 
     except rospy.ROSInterruptException:

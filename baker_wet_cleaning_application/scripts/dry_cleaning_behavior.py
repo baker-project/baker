@@ -60,11 +60,9 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 
 		self.found_trashcans_.append(detected_trash)
 		trashcan_emptier = TrashcanEmptyingBehavior("TrashcanEmptyingBehavior", self.interrupt_var_, srv.MOVE_BASE_SERVICE_STR)
-
-		position = detected_trash.pose.pose.position
 		checkpoint_position = self.getCheckpointForRoomId(room_id).checkpoint_position_in_meter
 
-		trashcan_emptier.setParameters(trashcan_position=position, trolley_position=checkpoint_position)
+		trashcan_emptier.setParameters(trashcan_pose=detected_trash.pose, trolley_position=checkpoint_position)
 
 		trashcan_emptier.executeBehavior()
 

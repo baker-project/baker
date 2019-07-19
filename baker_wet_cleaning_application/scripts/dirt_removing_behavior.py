@@ -79,15 +79,16 @@ class DirtRemovingBehavior(behavior_container.BehaviorContainer):
 	def removeDirt(self):
 		clean_pattern = rospy.ServiceProxy(self.clean_pattern_str_, CleanPattern)
 
-		request = CleanPatternRequest()
+		#request = CleanPatternRequest()
 
-		request.clean_pattern_params.directions = [ 0.0 ]
-		request.clean_pattern_params.repetitions = [ 2 ]
-		request.clean_pattern_params.retract = True
+		#request.clean_pattern_params.directions = [ 0.0 ]
+		#request.clean_pattern_params.repetitions = [ 2 ]
+		#request.clean_pattern_params.retract = True
 
-		response = clean_pattern(request)
+		#response = clean_pattern(request)
 
-		return response.success
+		#return response.success
+		return True
 		# todo (rmb-ma)
 # 		print("############################################################################")
 # 		print("Cleaning now")
@@ -140,8 +141,6 @@ class DirtRemovingBehavior(behavior_container.BehaviorContainer):
 		self.printMsg("> Todo. Checkout the dirt")
 		self.checkoutDirt()
 
-
-print "Test"
 if __name__ == '__main__':
 	print "Test"
 	dirt_remover = DirtRemovingBehavior(
@@ -150,4 +149,3 @@ if __name__ == '__main__':
 		map_accessibility_service_str=None,
 		clean_pattern_str='/vacuum_cleaning_module_interface/clean_pattern')
 	dirt_remover.removeDirt()
-
