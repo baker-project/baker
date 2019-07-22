@@ -3,6 +3,8 @@
 import actionlib
 import rospy
 from scitos_msgs.msg import MoveBaseGoal, MoveBaseAction
+from geometry_msgs.msg import PoseStamped
+from utils import projectToFrame
 from math import pi
 
 from behavior_container import BehaviorContainer
@@ -11,7 +13,7 @@ class MoveBaseBehavior(BehaviorContainer):
 
 	# ========================================================================
 	# Description:
-	# Class which contains the behavior for moving the robot to 
+	# Class which contains the behavior for moving the robot to
 	# a specified position
 	# ========================================================================
 
@@ -24,8 +26,19 @@ class MoveBaseBehavior(BehaviorContainer):
 		(self.goal_position_tolerance_, self.goal_angle_tolerance_) = (None, None)
 
 	# Method for returning to the standard pose of the robot
-	def setParameters(self, goal_position, goal_orientation, header_frame_id,
-					  goal_position_tolerance=0.2, goal_angle_tolerance=0.2):
+	def setParameters(self, goal_position, goal_orientation, header_frame_id='map',
+					  goal_position_tolerance=0.2, goal_angle_tolerance=0.2, time=None):
+
+		if header_frame_id != 'map':
+			goal_pose = PoseStamped()
+			goal_pose.pose.position = goal_position
+			goal_pose.pose.orientation = goal_orientation
+			goal_pose.header.frame_id = header_frame_id
+			goal_pose.header.stamp = time
+			goal_pose = projectToFrame(pose=goal_pose, targeted_frame='map')
+			goal_position = goal_pose.pose.position
+			goal_orientation = goal_pose.pose.orientation
+
 		self.goal_position_ = goal_position
 		self.goal_orientation_ = goal_orientation
 		self.header_frame_id_ = header_frame_id

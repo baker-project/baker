@@ -62,7 +62,7 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 		trashcan_emptier = TrashcanEmptyingBehavior("TrashcanEmptyingBehavior", self.interrupt_var_, srv.MOVE_BASE_SERVICE_STR)
 		checkpoint_position = self.getCheckpointForRoomId(room_id).checkpoint_position_in_meter
 
-		trashcan_emptier.setParameters(trashcan_pose=detected_trash.pose, trolley_position=checkpoint_position)
+		trashcan_emptier.setParameters(trashcan_stamped_pose=detected_trash.pose, trolley_position=checkpoint_position)
 
 		trashcan_emptier.executeBehavior()
 
@@ -133,7 +133,7 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 		if len(detections) == 0:
 			return
 		self.printMsg("Trash(S) DETECTED!!")
-
+		print(detections)
 		# 1. Stop the dirt and the trash detections
 		self.stopDetections()
 
@@ -224,7 +224,6 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 			self.move_base_handler_.setParameters(
 				goal_position=path[0].pose.position,
 				goal_orientation=path[0].pose.orientation,
-				header_frame_id='base_link',
 				goal_position_tolerance=0.2,
 				goal_angle_tolerance=0.17
 			)

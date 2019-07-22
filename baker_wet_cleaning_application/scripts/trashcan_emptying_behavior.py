@@ -9,6 +9,7 @@ from move_base_behavior import MoveBaseBehavior
 from ipa_manipulation_msgs.msg import MoveToAction, MoveToGoal
 import services_params as srv
 from tf.transformations import quaternion_from_euler
+from utils import projectToFrame
 
 class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 
@@ -35,8 +36,8 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 		self.rest_position_service_str_ = srv.REST_POSITION_STR
 
 	# Method for setting parameters for the behavior
-	def setParameters(self, trashcan_pose, trolley_position):
-		self.trashcan_pose_ = trashcan_pose
+	def setParameters(self, trashcan_stamped_pose, trolley_position):
+		self.trashcan_stamped_pose_ = trashcan_stamped_pose
 		self.trolley_position_ = trolley_position
 
 	# Method for returning to the standard pose of the robot
@@ -45,16 +46,13 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 		# undo or check whether everything has been undone
 		pass
 
-	def moveToGoal(self, goal):
+	def moveToGoalPosition(self, goal):
 		self.move_base_handler_.setParameters(
-			goal_position=goal,
-			goal_orientation=Quaternion(x=0., y=0., z=0., w=1.),
-			header_frame_id='base_link'
+			goal_position=goal.position,
+			goal_orientation=goal.orientation
 		)
 		self.move_base_handler_.executeBehavior()
 
-	def catchTrashcan(self):
-		return self.executeAction(self.catch_trashcan_service_str_, position=[0.75,-0.60, 0.505], rotation=[0.0, 0.0, 3.92])
 
 	def executeAction(self, action_name, target_pose=None):
 
@@ -70,10 +68,10 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 		return client.get_result()
 
 	def emptyTrashcan(self):
-		return self.executeAction(self.empty_trashcan_service_str_, self.trashcan_pose_) # todo rmb-ma (not trashcan position)
+		return self.executeAction(self.empty_trashcan_service_str_, self.trashcan_stamped_pose_) # todo rmb-ma (not trashcan position)
 
 	def leaveTrashcan(self):
-		return self.executeAction(self.leave_trashcan_service_str_, self.trashcan_pose_)
+		return self.executeAction(self.leave_trashcan_service_str_, self.trashcan_stamped_pose_)
 
 	def transportPosition(self):
 		return self.executeAction(self.transport_position_service_str_)
@@ -81,18 +79,31 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 	def restPosition(self):
 		return self.executeAction(self.rest_position_service_str_)
 
+	def catchTrashcan(self):
+		return self.executeAction(self.catch_trashcan_service_str_, self.trashcan_stamped_pose_)
+
+	def computeRobotGoalPose(self):
+		trash_in_map = projectToFrame(self.trashcan_stamped_pose_, 'map')
+		trash_in_map.pose.position.z = 0
+		return trash_in_map
+
 	# Implemented Behavior
 	def executeCustomBehavior(self):
-		assert(self.trashcan_pose_ is not None and self.trolley_position_ is not None)
-
-		self.printMsg("Executing trashcan behavior located on ({}, {})".format(self.trashcan_pose_.x, self.trashcan_pose_.y))
+		assert(self.trashcan_stamped_pose_ is not None and self.trolley_position_ is not None)
+		print("CLEANING CLEANING CLEANING CLEANING CLEANING CLEANING CLEANINING")
+		print(self.trashcan_stamped_pose_)
+		self.printMsg("Executing trashcan behavior located on ({}, {})".format(self.trashcan_stamped_pose_.pose.position.x, self.trashcan_stamped_pose_.pose.position.y))
 
 		# todo (rmb-ma): see how we can go there + see the locations to clean it
+		print("> Computing robot goal position")
+		robot_goal_pose = self.computeRobotGoalPose()
 
 		self.printMsg("> Moving to the trashcan")
-		self.moveToGoal(self.trashcan_position_)
+		print(robot_goal_pose.pose)
+		self.moveToGoalPosition(robot_goal_pose.pose)
+
 		if self.move_base_handler_.failed():
-			self.printMsg('Trashcan is not accessible. Failed to for emptying trashcan ({}, {})'.format(self.trashcan_position_.x, self.trashcan_position_.y))
+			self.printMsg('Trashcan is not accessible. Failed to for emptying trashcan ({}, {})'.format(self.trashcan_stamped_pose_.pose.position.x, self.trashcan_stamped_pose_.pose.position.y))
 			self.state_ = 4
 			return
 		if self.handleInterrupt() >= 1:
@@ -109,9 +120,9 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 			return
 
 		self.printMsg("> Moving to the trolley located on ({}, {})".format(self.trolley_position_.x, self.trolley_position_.y))
-		self.moveToGoal(self.trolley_position_)
+		#self.moveToGoalPosition(self.trolley_position_)
 		if self.move_base_handler_.failed():
-			self.printMsg('Trolley is not accessible. Failed to for emptying trashcan ({}, {})'.format(self.trashcan_position_.x, self.trashcan_position_.y))
+			self.printMsg('Trolley is not accessible. Failed to for emptying trashcan ({}, {})'.format(self.trashcan_stamped_pose_.position.x, self.trashcan_stamped_pose_.position.y))
 			self.state_ = 4
 			return
 		if self.handleInterrupt() >= 1:
@@ -128,11 +139,11 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 			return
 
 		self.printMsg("> Going to the trashcan location")
-		self.moveToGoal(self.trashcan_position_)
+		self.moveToGoalPosition(self.trashcan_stamped_pose_.position)
 		if self.handleInterrupt() >= 1:
 			return
 		if self.move_base_handler_.failed():
-			self.printMsg('Trashcan location is not accessible. Failed to for emptying trashcan ({}, {})'.format(self.trashcan_position_.x, self.trashcan_position_.y))
+			self.printMsg('Trashcan location is not accessible. Failed to for emptying trashcan ({}, {})'.format(self.trashcan_position_.position.x, self.trashcan_position_.position.y))
 			self.state_ = 4
 			return
 

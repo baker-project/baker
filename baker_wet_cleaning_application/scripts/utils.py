@@ -17,15 +17,30 @@ def getTransformListener():
 			_tl = tf.TransformListener(interpolate=True, cache_time=rospy.Duration(40.0))
 		return _tl
 
+def projectToFrame(pose, targeted_frame):
+	time = pose.header.stamp
+	frame_id = pose.header.frame_id
+	try:
+		print("BEFORE BEFORE BEFORE BEFORE BEFORE BEFORE BEFORE BEFORE BEFORE BEFORE BEFORE BEFORE BEFORE")
+		print(pose)
+		listener = getTransformListener()
+		listener.waitForTransform(targeted_frame, frame_id, time, rospy.Duration(10))
+		pose = listener.transformPose(targeted_frame, pose)
+		print("AFTER AFTER AFTER AFTER AFTER AFTER AFTER AFTER AFTER AFTER AFTER AFTER AFTER AFTER AFTER AFTER")
+		print(pose)
+		return pose
+	except (tf.Exception, tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException,), e:
+		print "Could not lookup robot pose: %s" % e
+		return None
 
+# todo rmb-ma : merge with project to frame
 def projectToCamera(detection):
-
 	time = detection.header.stamp
 	camera_frame = detection.header.frame_id
 	try:
 		print("before {}".format(detection))
 		listener = getTransformListener()
-		listener.waitForTransform('/map', camera_frame, time, rospy.Duration(10))
+		listener.waitForTransform('/map', camera_frame, time, rospy.Duration(20))
 		detection.pose = listener.transformPose('/map', detection.pose)
 		#detection.header.frame_id = '/map'
 		print("after {}".format(detection))

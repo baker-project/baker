@@ -153,8 +153,9 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 
 	def initializeArm(self):
 		trashcan_emptier = TrashcanEmptyingBehavior("TrashcanEmptyingBehavior", self.application_status_, srv.MOVE_BASE_SERVICE_STR)
-		trashcan_emptier.restPosition()
-		
+		#trashcan_emptier.restPosition()
+		# todo rmb-ma - uncomment
+
 	# Implement application procedures of inherited classes here.
 	def executeCustomBehavior(self, last_execution_date_override=None):
 

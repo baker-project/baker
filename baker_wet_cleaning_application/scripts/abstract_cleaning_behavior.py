@@ -213,7 +213,6 @@ class AbstractCleaningBehavior(BehaviorContainer):
 		self.move_base_handler_.setParameters(
 			goal_position=starting_position,
 			goal_orientation=Quaternion(x=0., y=0., z=0., w=1.),
-			header_frame_id='base_link',
 			goal_angle_tolerance=2*pi,
 			goal_position_tolerance=0.5
 		)
@@ -243,7 +242,6 @@ class AbstractCleaningBehavior(BehaviorContainer):
 			self.move_base_handler_.setParameters(
 				goal_position=checkpoint.checkpoint_position_in_meter,
 				goal_orientation=Quaternion(x=0., y=0., z=0., w=1.),
-				header_frame_id='base_link',
 				goal_position_tolerance=0.5,
 				goal_angle_tolerance=2*pi
 			)
