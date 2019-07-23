@@ -41,11 +41,19 @@ class Detector:
 
             detection = Detection()
 
+            detection.header.stamp = rospy.Time.now()
             detection.header.frame_id = 'camera2_optical_frame'
+            detection.pose.header.stamp = rospy.Time.now()
             detection.pose.header.frame_id = 'camera2_optical_frame'
             detection.pose.pose.position.x = round(random.random()*0.2 - 0.01, 2)
             detection.pose.pose.position.y = round(random.random()*0.2 - 0.01, 2)
             detection.pose.pose.position.z = 1.2#round(random.random()*0.2 - 0.01, 2)
+
+            detection.pose.pose.orientation.x = 0.
+            detection.pose.pose.orientation.y = 0.
+            detection.pose.pose.orientation.z = 0.92521152
+            detection.pose.pose.orientation.w = -0.37945176
+
             detection.bounding_box_lwh.x = 0.1
             detection.bounding_box_lwh.y = 0.1
             detection.bounding_box_lwh.z = 0.1
@@ -86,10 +94,10 @@ if __name__ == "__main__":
         args = rospy.myargv(argv=sys.argv)
         if '--dirt' in args:
             rospy.init_node('fake_dirt_detector', anonymous=True)
-            dirt_detector = Detector('dirt_detection_server_preprocessing', '/dirt_detection_server_preprocessing/dirt_detector_topic', 200)
+            dirt_detector = Detector('dirt_detection_server_preprocessing', '/dirt_detection_server_preprocessing/dirt_detector_topic', 1)
         if '--trash' in args:
-            rospy.init_node('trashcan_dirt_detector', anonymous=True)
-            trash_detector = Detector('trash_detector', 'trash_detector_topic', 200)
+            rospy.init_node('fake_trashcan_detector', anonymous=True)
+            trash_detector = Detector('trash_detector', 'trash_detector_topic', 2000)
         rospy.spin()
 
     except rospy.ROSInterruptException:

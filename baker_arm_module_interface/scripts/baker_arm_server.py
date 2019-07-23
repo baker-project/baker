@@ -32,7 +32,6 @@ class ArmStatus(Enum):
     EMPTY_TRASHCAN = 1
     FULL_TRASHCAN = 2
 
-
 def log(funct):
     def funct_wrapper(self, *args, **kwargs):
         if self.verbose_:
@@ -110,6 +109,9 @@ class BakerArmServer(script):
         self.empty_trashcan_server_ = SimpleActionServer(self.name_ + '/empty_trashcan', MoveToAction, self.emptyTrashcanCallback, False)
         self.empty_trashcan_server_.start()
 
+        self.accessibility_checker_ = SimpleActionServer(self.name_ + '/accessibility_checker', MoveToAction, self.accessibilityCheckerCallback, False)
+        self.accessibility_checker_.start()
+
     @log
     def initServices(self):
         pass
@@ -170,9 +172,11 @@ class BakerArmServer(script):
         return response.success
 
     @log
-    def handleInterruptService(self, request):
-        self.stopAction()
-        return TriggerResponse()
+    def handleCheckAccessibility(self, request):
+        response = TriggerResponse()
+
+        response.success = True
+        return response
 
     @log
     def openGripper(self):
@@ -210,6 +214,11 @@ class BakerArmServer(script):
         else:
             rospy.logerr("Execution aborted!!")
             return False
+
+    @log
+    def isPoseAccessible(self, target_pose):
+        (_, is_planned) = planTrajectoryInCartSpace(client=self.plan_client_, object_pose=target_pose, bdmp_goal=None, bdmp_action='')
+        return is_planned
 
     @log
     def planAndExecuteTrajectoryInJointSpaces(self, target_joints, server):
@@ -451,6 +460,14 @@ class BakerArmServer(script):
             return
 
         self.to_joints_position_server_.set_succeeded()
+
+    @log
+    def accessibilityCheckerCallback(self, goal):
+        # todo rmb-ma REMOVE
+        target_pose = goal.target_pose.pose
+        result = MoveToResult()
+        result.arrived = self.isPoseAccessible(target_pose)
+        return result
 
 if __name__ == "__main__":
 

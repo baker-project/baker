@@ -5,9 +5,9 @@
 	<arg name="brush_cleaning_module_interface_args" default="-k127.0.0.1:1234"/>
 	<arg name="vacuum_cleaning_module_interface_args" default="-k127.0.0.1:1234"/>
 	<arg name="obstacle_map_channel" default="/navigation/laser/Map"/>	<!-- /3d/MergedMap or /navigation/laser/Map -->
-	<arg name="spectral_dirt_detection" default="True"/>
-	<arg name="robotic_arm" default="True"/>
-	<arg name="robotic_arm_simulation" default="True"/>
+	<arg name="spectral_dirt_detection" default="true"/>
+	<arg name="robotic_arm" default="true"/>
+	<arg name="robotic_arm_simulation" default="true"/>
 
 	<!-- ROS-MIRA communication -->
 	<include file="$(find scitos_mira)/launch/scitos_mira.launch">
@@ -45,50 +45,36 @@
 	<!-- include map accessibility analysis -->
 	<include file="$(find cob_map_accessibility_analysis)/ros/launch/map_accessibility_analysis.launch"/>
 
-	<!-- dirt and trash fake detector -->
-	<include file="$(find ipa_fake_dirt_trash_detection)/launch/fake_dirt_trash_detector.launch">
-		<arg name="dirt_detection" value="$(arg spectral_dirt_detection)" />
-		<arg name="trashcan_detection" value="true"/>
-	</include>
-
-  <!-- If using real dirt_detection -->
+ <!-- If using real dirt_detection -->
   <group  if="$(arg spectral_dirt_detection)">
       <!--start real dirt detector -->
       <include file="$(find ipa_dirt_detection)/ros/launch/dirt_detection_spectral.launch">
           <arg name="colored_point_cloud_topic" value="/camera2_pcl"/>
       </include>
-  </group>
+
+			<!-- Only trash fake detector -->
+			<include file="$(find ipa_fake_dirt_trash_detection)/launch/fake_dirt_trash_detector.launch">
+				<arg name="dirt_detection" value="false" />
+				<arg name="trashcan_detection" value="true"/>
+			</include>
+	</group>
+
+	<group unless="$(arg spectral_dirt_detection)">
+		<!-- Dirt and trash fake detector -->
+		<include file="$(find ipa_fake_dirt_trash_detection)/launch/fake_dirt_trash_detector.launch">
+			<arg name="dirt_detection" value="true" />
+			<arg name="trashcan_detection" value="true"/>
+		</include>
+	</group>
+
+	<!-- Display detections -->
+	<include file="$(find baker_wet_cleaning_application)/launch/detections_visualizer.launch"/>
 
 	<!-- Start the robotic arm -->
-	<group if="$(arg robotic_arm)">
-		<!-- Start the simulation or the real robot -->
-		<include if="$(arg robotic_arm_simulation)" file="$(find cob_bringup_sim)/launch/robot.launch">
-			<arg name="robot" value="baker"/>
-			<arg name="gui" value="false"/>
-		</include>
+	<!-- <include if="$(arg robotic_arm)" file="$(find baker_wet_cleaning_application)/launch/robotic_arm.launch">
+		<arg name="robotic_arm_simulation" value="$(arg robotic_arm_simulation)"/>
+	</include> -->
 
-		<!-- Start the planning -->
-		<include file="$(find ipa_arm_planning_demo)/launch/baker/baker_arm_planning.launch">
-			<arg name="rviz" value="false"/>
-			<arg name="pipeline" value="stomp_linear_interp"/>
-			<arg name="base_link" value="base_link"/>
-		</include>
-
-		<!-- visualization -->
-		<node type="rviz" name="rviz" pkg="rviz" args="-d $(find baker_arm_module_interface)/rviz-config/arm_with_map.rviz" />
-
-		<!-- Start the trajectory execution -->
-		<include file="$(find ipa_execute_trajectory)/launch/trajectory_execution.launch"/>
-
-		<!-- Start the baker module interface -->
-		<!-- Commented during development
-			<node pkg="baker_arm_module_interface" type="baker_arm_server.py" name="baker_arm_server" output="screen" respawn="true" respawn_delay="2"/>
-		-->
-
-		<!-- Tf transform: robotic arm on the baker arm -->
-		<node pkg="baker_arm_module_interface" type="tf_publisher.py" name="tf_publisher" output="screen" respawn="true" respawn_delay="2"/>
-
-	</group>
 	<!-- application script -->
 	<node pkg="baker_wet_cleaning_application" type="application_wet_cleaning.py" name="application_wet_cleaning" output="screen" respawn="true" respawn_delay="2"/>
 
