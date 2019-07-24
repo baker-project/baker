@@ -1,0 +1,26 @@
+digraph G {
+"world" -> "arm_base_link"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 2192.168 sec old)\nBuffer length: 0.000 sec\n"];
+"base_link" -> "world"[label="Broadcaster: /tf_publisher\nAverage rate: 10.228 Hz\nMost recent transform: 2192.102 ( 0.066 sec old)\nBuffer length: 4.302 sec\n"];
+"arm_gripper" -> "gripper_base_link"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 2192.168 sec old)\nBuffer length: 0.000 sec\n"];
+"arm_link3" -> "arm_gripper"[label="Broadcaster: /robot_state_publisher\nAverage rate: 42.404 Hz\nMost recent transform: 2192.137 ( 0.031 sec old)\nBuffer length: 4.410 sec\n"];
+"gripper_base_link" -> "gripper"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 2192.168 sec old)\nBuffer length: 0.000 sec\n"];
+"base_link" -> "camera2_optical_frame"[label="Broadcaster: /scitos_node\nAverage rate: 1517.193 Hz\nMost recent transform: 1563966796.733 ( -1563964604.565 sec old)\nBuffer length: 4.986 sec\n"];
+"map" -> "base_link"[label="Broadcaster: /scitos_node\nAverage rate: 20.202 Hz\nMost recent transform: 1563966796.695 ( -1563964604.527 sec old)\nBuffer length: 4.950 sec\n"];
+"arm_base_link" -> "arm_flange"[label="Broadcaster: /robot_state_publisher\nAverage rate: 42.404 Hz\nMost recent transform: 2192.137 ( 0.031 sec old)\nBuffer length: 4.410 sec\n"];
+"arm_flange" -> "arm_link1"[label="Broadcaster: /robot_state_publisher\nAverage rate: 42.404 Hz\nMost recent transform: 2192.137 ( 0.031 sec old)\nBuffer length: 4.410 sec\n"];
+"arm_link1" -> "arm_link2"[label="Broadcaster: /robot_state_publisher\nAverage rate: 42.404 Hz\nMost recent transform: 2192.137 ( 0.031 sec old)\nBuffer length: 4.410 sec\n"];
+"arm_link2" -> "arm_link3"[label="Broadcaster: /robot_state_publisher\nAverage rate: 42.404 Hz\nMost recent transform: 2192.137 ( 0.031 sec old)\nBuffer length: 4.410 sec\n"];
+"gripper_finger1_knuckle_link" -> "gripper_finger1_finger_link"[label="Broadcaster: /robot_state_publisher\nAverage rate: 42.404 Hz\nMost recent transform: 2192.137 ( 0.031 sec old)\nBuffer length: 4.410 sec\n"];
+"gripper_base_link" -> "gripper_finger1_knuckle_link"[label="Broadcaster: /robot_state_publisher\nAverage rate: 42.404 Hz\nMost recent transform: 2192.137 ( 0.031 sec old)\nBuffer length: 4.410 sec\n"];
+"gripper_finger2_knuckle_link" -> "gripper_finger2_finger_link"[label="Broadcaster: /robot_state_publisher\nAverage rate: 42.404 Hz\nMost recent transform: 2192.137 ( 0.031 sec old)\nBuffer length: 4.410 sec\n"];
+"gripper_base_link" -> "gripper_finger2_knuckle_link"[label="Broadcaster: /robot_state_publisher\nAverage rate: 42.404 Hz\nMost recent transform: 2192.137 ( 0.031 sec old)\nBuffer length: 4.410 sec\n"];
+"odom" -> "base_footprint"[label="Broadcaster: /scitos_node\nAverage rate: 20.202 Hz\nMost recent transform: 1563966796.695 ( -1563964604.527 sec old)\nBuffer length: 4.950 sec\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 2192.168"[ shape=plaintext ] ;
+ }->"odom";
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 2192.168"[ shape=plaintext ] ;
+ }->"map";
+}

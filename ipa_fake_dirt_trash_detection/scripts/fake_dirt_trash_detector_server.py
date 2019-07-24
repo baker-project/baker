@@ -42,12 +42,14 @@ class Detector:
             detection = Detection()
 
             detection.header.stamp = rospy.Time.now()
+            # detection.header.frame_id = 'camera2_optical_frame'
             detection.header.frame_id = 'camera2_optical_frame'
             detection.pose.header.stamp = rospy.Time.now()
+            # detection.pose.header.frame_id = 'camera2_optical_frame'
             detection.pose.header.frame_id = 'camera2_optical_frame'
             detection.pose.pose.position.x = round(random.random()*0.2 - 0.01, 2)
             detection.pose.pose.position.y = round(random.random()*0.2 - 0.01, 2)
-            detection.pose.pose.position.z = 1.2#round(random.random()*0.2 - 0.01, 2)
+            detection.pose.pose.position.z = 0.6#round(random.random()*0.2 - 0.01, 2)
 
             detection.pose.pose.orientation.x = 0.
             detection.pose.pose.orientation.y = 0.
@@ -59,6 +61,7 @@ class Detector:
             detection.bounding_box_lwh.z = 0.1
 
             detections = DetectionArray()
+            # detections.header.frame_id = 'camera2_optical_frame'
             detections.header.frame_id = 'camera2_optical_frame'
             detections.detections = [detection]
 

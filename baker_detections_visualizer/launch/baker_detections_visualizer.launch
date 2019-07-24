@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+	<node pkg="baker_detections_visualizer" type="trashcan_visualizer.py"/>
+</launch>
