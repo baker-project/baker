@@ -13,7 +13,7 @@ class TrashcanVisualizer:
     def __init__(self, detection_topic, visualizer_topic):
         self.detection_topic_ = detection_topic
         self.visualizer_topic_ = visualizer_topic
-        self.lifetime_ = 50
+        self.lifetime_ = 500000
         rospy.Subscriber(detection_topic, DetectionArray,self.talker)
         self.publisher_ = rospy.Publisher(visualizer_topic, MarkerArray, queue_size=10)
 
