@@ -6,6 +6,7 @@
   <include if="$(arg robotic_arm_simulation)" file="$(find cob_bringup_sim)/launch/robot.launch">
     <arg name="robot" value="baker"/>
     <arg name="gui" value="false"/>
+		<arg name="use_sim_time" value="false"/>
   </include>
 
   <!-- Start the planning -->

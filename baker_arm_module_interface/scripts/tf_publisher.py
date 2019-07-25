@@ -18,15 +18,25 @@
 import rospy
 import tf
 
+# class TfPublisher:
+#     def __init__(self, transformTopic):
+#         self.listener_ = tf.TransformListener()
+#         self.broadcaster_ = tf.TransformBroadcaster()
+#
+#
+#     def talker(self, detections):
+
+
 if __name__ == '__main__':
-    rospy.init_node('my_tf_broadcaster')
+    rospy.init_node('tf_publisher')
     br = tf.TransformBroadcaster()
-    rate = rospy.Rate(10.0)
+    rate = rospy.Rate(1.0)
     while not rospy.is_shutdown():
+        print('send {}'.format(rospy.Time.now()))
         br.sendTransform((0,0,0.01),
                          (0.0, 0.0, 0.0, 1.0),
                          rospy.Time.now(),
-                         "world",
+                         "arm_base_link",
                          "base_link")
 
         try:
