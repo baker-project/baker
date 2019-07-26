@@ -12,7 +12,7 @@ def getTransformListener():
 	global _tl
 	with _tl_creation_lock:
 		if _tl is None:
-			_tl = tf.TransformListener(interpolate=True, cache_time=rospy.Duration(10.0))
+			_tl = tf.TransformListener(interpolate=True, cache_time=rospy.Duration(40.))
 		return _tl
 
 def projectToFrame(pose, targeted_frame):
@@ -21,7 +21,7 @@ def projectToFrame(pose, targeted_frame):
 	try:
 		listener = getTransformListener()
 		print("listener got")
-		listener.waitForTransform(targeted_frame, frame_id, time, rospy.Duration(10))
+		listener.waitForTransform(targeted_frame, frame_id, time, rospy.Duration(5.))
 		print("waited")
 		pose = listener.transformPose(targeted_frame, pose)
 		print("transformed")

@@ -11,7 +11,7 @@ from abstract_cleaning_behavior import AbstractCleaningBehavior
 from trashcan_emptying_behavior import TrashcanEmptyingBehavior
 
 from threading import Lock, Thread
-from utils import projectToCamera
+from utils import projectToCamera, projectToFrame, getCurrentRobotPosition
 import services_params as srv
 from math import pi
 
@@ -62,7 +62,10 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 		trashcan_emptier = TrashcanEmptyingBehavior("TrashcanEmptyingBehavior", self.interrupt_var_, srv.MOVE_BASE_SERVICE_STR)
 		checkpoint_position = self.getCheckpointForRoomId(room_id).checkpoint_position_in_meter
 
-		trashcan_emptier.setParameters(trashcan_stamped_pose=detected_trash.pose, trolley_position=checkpoint_position)
+		traschan_pose = projectToFrame(detected_trash.pose, 'map').pose
+		print(getCurrentRobotPosition())
+		print("===========================================================")
+		trashcan_emptier.setParameters(trashcan_pose=traschan_pose, trolley_position=checkpoint_position)
 
 		trashcan_emptier.executeBehavior()
 

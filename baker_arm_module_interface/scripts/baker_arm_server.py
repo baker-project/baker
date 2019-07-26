@@ -259,50 +259,45 @@ class BakerArmServer(script):
     @log
     def catchTrashcanCallback(self, goal):
         result = MoveToResult()
+        result.arrived = False
 
         #The arm canot carry a new trashcan as it already carries one
         if self.status_ != ArmStatus.NO_TRASHCAN:
-            result.arrived = False
             self.catch_trashcan_server_.set_aborted(result)
-            return
-
-        (target_position, target_orientation) = self.poseToLists(goal.target_pos.pose)
-        frame_id = goal.target_pos.header.frame_id
         try:
-            target_pose = make_pose(position=target_position, orientation=target_orientation, frame_id=frame_id)
-            self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.catch_trashcan_server_)
+            self.planAndExecuteTrajectoryInCartesianSpace(goal.target_pos, self.catch_trashcan_server_)
         except Exception as e:
             print(e.message)
-            result.arrived = False
             self.catch_trashcan_server_.set_aborted(result)
             return
 
         if self.catch_trashcan_server_.is_preempt_requested():
-            self.catch_trashcan_server_.set_preempted()
+            result.arrived = True
+            self.catch_trashcan_server_.set_preempted(result)
             return
 
         try:
             target_pose = make_pose(position=[0.00,-0.00,-0.07], orientation=[0.0,0.0,0.0,1.0], frame_id='gripper')
             self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.catch_trashcan_server_)
         except:
-            result.arrived = False
             self.catch_trashcan_server_.set_aborted(result)
             return
 
         if self.catch_trashcan_server_.is_preempt_requested():
-            self.catch_trashcan_server_.set_preempted()
+            result.arrived = True
+            self.catch_trashcan_server_.set_preempted(result)
             return
 
         try:
             target_pose = make_pose(position=[0.020,-0.00,0.00], orientation=[0.0,0.0,0.0,1.0], frame_id='gripper')
             self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.catch_trashcan_server_)
         except:
-            result.arrived = False
             self.catch_trashcan_server_.set_aborted(result)
             return
 
         if self.catch_trashcan_server_.is_preempt_requested():
-            self.catch_trashcan_server_.set_preempted()
+            result.arrived = True
+            self.catch_trashcan_server_.set_preempted(result)
             return
 
         self.closeGripper()
@@ -312,7 +307,6 @@ class BakerArmServer(script):
             target_pose = make_pose(position=[0.000,-0.00,0.030], orientation=[0.0,0.0,0.0,1.0], frame_id='gripper')
             self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.catch_trashcan_server_)
         except:
-            result.arrived = False
             self.catch_trashcan_server_.set_aborted(result)
             return
 
@@ -328,12 +322,8 @@ class BakerArmServer(script):
             self.empty_trashcan_server_.set_aborted(result)
             return
 
-        (target_position, target_orientation) = self.poseToLists(goal.target_pos.pose)
-        frame_id = goal.target_pos.header.frame_id
-
         try:
-            target_pose = make_pose(position=target_position, orientation=target_orientation, frame_id=frame_id)
-            self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.empty_trashcan_server_)
+            self.planAndExecuteTrajectoryInCartesianSpace(goal.target_pos, self.empty_trashcan_server_)
         except:
             result.arrived = False
             self.empty_trashcan_server_.set_aborted(result)
@@ -416,11 +406,7 @@ class BakerArmServer(script):
             self.leave_trashcan_server_.set_aborted(result)
             return
 
-        (target_position, target_orientation) = self.poseToLists(goal.target_pos.pose)
-        frame_id = goal.target_pos.header.frame_id
-        target_pose = make_pose(position=target_position, orientation=target_orientation, frame_id=frame_id)
-
-        self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.leave_trashcan_server_)
+        self.planAndExecuteTrajectoryInCartesianSpace(goal.target_pos, self.leave_trashcan_server_)
 
         if self.leave_trashcan_server_.is_preempt_requested():
             self.leave_trashcan_server_.set_preempted()

@@ -23,11 +23,12 @@ def executeAction(actionName, goal=MoveToGoal(), action_type=MoveToAction):
     return client.get_result()
 
 def setJointsValues(joint_values):
-    goal = MoveToGoal()
+    print('joint values {}'.format(joint_values))
+    goal = ExecuteTrajectoryGoal()
     target_point = JointTrajectoryPoint()
     target_point.positions = joint_values
     goal.trajectory.joint_trajectory.points.append(target_point)
-    return executeAction('baker_arm_module_interface/move_to_position', goal, action_type=ExecuteTrajectoryAction)
+    return executeAction('baker_arm_module_interface/set_joints_values', goal, action_type=ExecuteTrajectoryAction)
 
 def moveToRestPosition():
     return executeAction('baker_arm_module_interface/rest_position')
@@ -35,7 +36,7 @@ def moveToRestPosition():
 def moveToTransportPosition():
     return executeAction('baker_arm_module_interface/transport_position')
 
-def createGoal(position, rotation, frame_id):
+def createGoal(position, rotation, frame_id, orientation=None):
     goal = MoveToGoal()
     orientation = quaternion_from_euler(*rotation)
 
@@ -63,6 +64,41 @@ def leaveTrashcan():
     goal = createGoal(position=[0.75,-0.60, 0.505], rotation=[0.0, 0.0, 3.92], frame_id='world')
     return executeAction('baker_arm_module_interface/leave_trashcan', goal=goal, action_type=MoveToAction)
 
+def test():
+    goal = MoveToGoal()
+
+  #   pose:
+  # position:
+  #   x: 0.801407
+  #   y: -0.
+  #   z: 1.19
+  # orientation:
+  #   x: 0
+  #   y: 0
+  #   z: 0.996904
+  #   w: 0.0786335
+
+    #goal.target_pos.header.stamp.secs = 1564137356
+    goal.target_pos.header.frame_id = 'world'
+
+    goal.target_pos.pose.position.x = 0.801407
+    # goal.target_pos.pose.position.x = 1.439
+    goal.target_pos.pose.position.y = -0.60
+    # goal.target_pos.pose.position.y = 0.000127267
+    # goal.target_pos.pose.position.z = 0.304981
+    goal.target_pos.pose.position.z = 0.99
+
+    goal.target_pos.pose.orientation.x = 0#.000796316
+    goal.target_pos.pose.orientation.y = 0.
+    goal.target_pos.pose.orientation.z = 0.996904
+    goal.target_pos.pose.orientation.w = 0.0786335
+
+    #z: 0.304981
+    # 1.439
+    #     y: 0.000127557
+
+    return executeAction('baker_arm_module_interface/catch_trashcan', goal=goal, action_type=MoveToAction)
+
 if __name__ == '__main__':
     try:
         rospy.init_node('baker_arm_client')
@@ -74,8 +110,8 @@ if __name__ == '__main__':
         print('c: catch the trashcan')
         print('l: leave the trashcan')
         print('e: empty the trashcan')
-
-        while True:
+        test()
+        while False:#True:
             print('Please select an option (q to quit)')
             choice = raw_input()
             if choice == 'q':

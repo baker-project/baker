@@ -7,11 +7,12 @@ Panels:
         - /Global Options1
         - /Status1
         - /RobotModel1
-        - /RobotModel1/Status1
         - /MotionPlanning1
+        - /TF1
         - /TF1/Frames1
         - /TF1/Tree1
-        - /Map1
+        - /MarkerArray2
+        - /MarkerArray3
       Splitter Ratio: 0.403100789
     Tree Height: 775
   - Class: rviz/Selection
@@ -157,11 +158,13 @@ Visualization Manager:
         arm_link3:
           Value: false
         base_footprint:
-          Value: true
+          Value: false
         base_link:
           Value: true
+        camera2_optical_frame:
+          Value: true
         gripper:
-          Value: false
+          Value: true
         gripper_base_link:
           Value: false
         gripper_finger1_finger_link:
@@ -173,11 +176,11 @@ Visualization Manager:
         gripper_finger2_knuckle_link:
           Value: false
         map:
-          Value: true
-        odom:
-          Value: true
-        world:
           Value: false
+        odom:
+          Value: false
+        world:
+          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: true
@@ -186,6 +189,8 @@ Visualization Manager:
       Tree:
         map:
           base_link:
+            camera2_optical_frame:
+              {}
             world:
               arm_base_link:
                 arm_flange:
@@ -202,9 +207,6 @@ Visualization Manager:
                             gripper_finger2_knuckle_link:
                               gripper_finger2_finger_link:
                                 {}
-        odom:
-          base_footprint:
-            {}
       Update Interval: 0
       Value: true
     - Class: moveit_rviz_plugin/Trajectory
@@ -270,11 +272,27 @@ Visualization Manager:
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: false
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /trashcan_visualization_topic
+      Name: MarkerArray
+      Namespaces:
+        trashcan_detection: true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: false
+      Marker Topic: /dirt_detection_marker_array
+      Name: MarkerArray
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: base_link
+    Fixed Frame: map
     Frame Rate: 30
   Name: root
   Tools:
@@ -294,26 +312,26 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Class: rviz/Orbit
-      Distance: 5.7307539
+      Class: rviz/XYOrbit
+      Distance: 3.4264431
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.0603611246
-        Y: -0.297427148
-        Z: 0.680630028
+        X: -8.35667515
+        Y: -2.62604904
+        Z: 2.38418579e-06
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.184795335
+      Pitch: 0.0547952987
       Target Frame: <Fixed Frame>
-      Value: Orbit (rviz)
-      Yaw: 0.640429556
+      Value: XYOrbit (rviz)
+      Yaw: 4.45362186
     Saved: ~
 Window Geometry:
   Displays:

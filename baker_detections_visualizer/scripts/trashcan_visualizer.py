@@ -18,17 +18,20 @@ class TrashcanVisualizer:
         self.publisher_ = rospy.Publisher(visualizer_topic, MarkerArray, queue_size=10)
 
     def talker(self, detections):
-        print("talking talking")
         markers = MarkerArray()
+        index = 0
         for detection in detections.detections:
-            print(detection)
+            # print(detection)
             pose = detection.pose
             pose_in_map = projectToFrame(pose, targeted_frame='map')
+            if pose_in_map is None:
+                return
 
-            marker = Marker()
             # Publish a base
             for j in range(3):
+                marker = Marker()
                 marker.header.frame_id = 'map'
+                marker.id = index
                 marker.ns = 'trashcan_detection'
                 marker.type = Marker.ARROW
                 marker.action = Marker.ADD
@@ -40,16 +43,18 @@ class TrashcanVisualizer:
                 marker.scale.x = 0.01
                 marker.scale.y = 0.015
                 marker.scale.z = 0
+                print(j)
+                marker.pose = pose_in_map.pose
 
                 point_A = Point()
                 point_A.x = 0.
                 point_A.y = 0.
-                point_A.z = 0
+                point_A.z = 0.
 
                 point_B = Point()
-                point_B.x = 0
-                point_B.y = 0
-                point_B.z = 0
+                point_B.x = 0.
+                point_B.y = 0.
+                point_B.z = 0.
                 marker.points = [point_A, point_B]
                 if j == 0:
                     marker.points[1].x = 0.2
@@ -62,11 +67,14 @@ class TrashcanVisualizer:
                     marker.color.b = 255
 
                 markers.markers.append(marker)
+                index += 1
 
+            marker = Marker()
             marker.header.frame_id = 'map'
             marker.ns = "trashcan_detection"
             marker.type = Marker.CUBE
             marker.action = Marker.ADD
+            marker.id = index
             marker.color.a = 0.9
             marker.color.r = 255
             marker.color.g = 153
@@ -79,6 +87,7 @@ class TrashcanVisualizer:
             marker.scale.y = detection.bounding_box_lwh.y
             marker.scale.z = detection.bounding_box_lwh.z
             markers.markers.append(marker)
+            index += 1
 
         self.publisher_.publish(markers)
 
