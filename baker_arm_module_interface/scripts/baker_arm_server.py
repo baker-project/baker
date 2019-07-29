@@ -6,6 +6,7 @@ from simple_script_server import script
 from motion_planning import planTrajectoryInCartSpace,planTrajectoryInJointSpace, cartesianPlan, cartesianExecution
 from motion_planning import ikService
 from motion_planning import make_pose, make_pose_from_rpy, create_transformation_frame
+from tf.transformations import euler_from_quaternion
 
 from actionlib import SimpleActionServer, SimpleActionClient
 from ipa_manipulation_msgs.msg import MoveToAction, MoveToGoal, MoveToResult
@@ -14,14 +15,15 @@ from ipa_manipulation_msgs.msg import PlanToAction
 
 from canopen_chain_node.srv import SetObject, SetObjectRequest, SetObjectResponse
 from std_srvs.srv import Trigger, TriggerResponse
-from ipa_manipulation_msgs.srv import AddCollisionObject, RemoveCollisionObject
+from ipa_manipulation_msgs.srv import AddCollisionObject, RemoveCollisionObject, AddCollisionObjectResponse, AddCollisionObjectRequest
+from ipa_manipulation_msgs.msg import CollisionBox
 
-from geometry_msgs.msg import PoseStamped, Point, Pose
+from geometry_msgs.msg import PoseStamped, Point, Pose, Vector3
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Int32
 
 import random
-from math import pi
+from math import pi, cos, sin
 from threading import Thread, Lock
 import sys
 
@@ -51,15 +53,14 @@ class BakerArmServer(script):
         self.verbose_ = True
         self.confirm_ = False
         self.name_ = name
-        self.carries_trashcan_ = False
         self.status_ = status
         self.joint_values_ = [0.0]*self.DOF
         self.mutex_ = Lock()
 
         self.displayParameters()
+        self.initClients()
         self.initServices()
         self.initServers()
-        self.initClients()
         self.initSubscribers()
         self.initTopics()
 
@@ -82,12 +83,14 @@ class BakerArmServer(script):
     @log
     def initClients(self):
         self.plan_client_ = SimpleActionClient('/arm_planning_node/PlanTo', PlanToAction)
-        self.plan_client_.wait_for_server(rospy.Duration(5.0))
+        self.plan_client_.wait_for_server(timeout=rospy.Duration(5.0))
 
         self.execution_client_ = SimpleActionClient('/traj_exec', ExecuteTrajectoryAction)
         self.execution_client_.wait_for_server(timeout=rospy.Duration(5.0))
 
         self.small_gripper_finger_client_ = rospy.ServiceProxy("/gripper/driver/set_object", SetObject)
+
+        self.add_collision_object_client_ = rospy.ServiceProxy("/ipa_planning_scene_creator/add_collision_objects", AddCollisionObject)
 
     @log
     def initServers(self):
@@ -109,11 +112,10 @@ class BakerArmServer(script):
         self.empty_trashcan_server_ = SimpleActionServer(self.name_ + '/empty_trashcan', MoveToAction, self.emptyTrashcanCallback, False)
         self.empty_trashcan_server_.start()
 
-        self.accessibility_checker_ = SimpleActionServer(self.name_ + '/accessibility_checker', MoveToAction, self.accessibilityCheckerCallback, False)
-        self.accessibility_checker_.start()
-
     @log
     def initServices(self):
+        # rospy.Service(self.name_ + '/activate_detection', Trigger, self.handleStartService)
+        # rospy.Service(self.name_ + '/activate_detection', TriaddCollisiogger, self.handleStartService)
         pass
 
     @log
@@ -142,7 +144,7 @@ class BakerArmServer(script):
 
     def gripperHandler(self, finger_value=0.01, finger_open=False, finger_close=True):
         '''
-            Gripper handler function use to control gripper open/colse command,
+            Gripper handler function use to control gripper open/close command,
             move parallel part of gripper with give values (in cm)
             @param finger_value is the big parallel part move realtive to zero position
             @finger_open open the small finger
@@ -225,14 +227,12 @@ class BakerArmServer(script):
         (trajectory, is_planned) = planTrajectoryInJointSpace(client=self.plan_client_, object_pose=target_joints,  bdmp_goal=None, bdmp_action='')
         if not is_planned:
             rospy.logerr('Trajectory in joint spaces execution failed')
-            raise Exceptctioion('Trajectory in joint spaces execution failed')
-
+            raise Exception('Trajectory in joint spaces execution failed')
         self.confirm()
         is_execution_successful = self.executeTrajectory(trajectory=trajectory, server=server)
         if not is_execution_successful:
             rospy.logerr('Can not find valid trajectory at joint space')
             raise Exception('Trajectory Execution failed')
-
         return not server.is_preempt_requested()
 
     @log
@@ -264,10 +264,26 @@ class BakerArmServer(script):
         #The arm canot carry a new trashcan as it already carries one
         if self.status_ != ArmStatus.NO_TRASHCAN:
             self.catch_trashcan_server_.set_aborted(result)
+
+        object_pose = PoseStamped()
+        object_pose.header = goal.target_pos.header
+        object_pose.pose.orientation = goal.target_pos.pose.orientation
+        orientation = object_pose.pose.orientation
+        theta = euler_from_quaternion([orientation.x, orientation.y, orientation.z, orientation.w,])[2]
+        object_pose.pose.position.x = goal.target_pos.pose.position.x + cos(theta)*0.5
+        object_pose.pose.position.y = goal.target_pos.pose.position.y + sin(theta)*0.5
+        object_pose.pose.position.z = goal.target_pos.pose.position.z - 0.6/2.
+
+        bounding_box_lwh = Vector3()
+        bounding_box_lwh.x = 0.5
+        bounding_box_lwh.y = 0.5
+        bounding_box_lwh.z = 0.6
+        print(object_pose)
+        self.addCollisionObject(label='trash', id='0', pose=object_pose, bounding_box_lwh=bounding_box_lwh)
+
         try:
             self.planAndExecuteTrajectoryInCartesianSpace(goal.target_pos, self.catch_trashcan_server_)
         except Exception as e:
-            print(e.message)
             self.catch_trashcan_server_.set_aborted(result)
             return
 
@@ -364,7 +380,8 @@ class BakerArmServer(script):
 
         try:
             self.planAndExecuteTrajectoryInJointSpaces(self.DEFAULT_POSITION, self.to_rest_position_server_)
-        except:
+        except Exception as e:
+            rospy.logerr(e);
             result.arrived = False
             self.to_rest_position_server_.set_aborted(result)
             return
@@ -448,12 +465,24 @@ class BakerArmServer(script):
         self.to_joints_position_server_.set_succeeded()
 
     @log
-    def accessibilityCheckerCallback(self, goal):
-        # todo rmb-ma REMOVE
-        target_pose = goal.target_pose.pose
-        result = MoveToResult()
-        result.arrived = self.isPoseAccessible(target_pose)
-        return result
+    def addCollisionObject(self, label, id, pose, bounding_box_lwh):
+
+        collision_object = CollisionBox()
+        collision_object.object_id = label + id
+        collision_object.id = id
+        collision_object.label = label
+        collision_object.pose = pose
+        collision_object.bounding_box_lwh = bounding_box_lwh
+
+        # make request for loading environment
+        request = AddCollisionObjectRequest()
+        request.loading_method = 'primitive' # mesh
+        request.collision_objects.append(collision_object)
+
+        if not self.add_collision_object_client_.call(request):
+            rospy.logerr('Error while adding collision object (label: {}, id: {})'.format(label, id))
+            return
+
 
 if __name__ == "__main__":
 

@@ -67,17 +67,6 @@ def leaveTrashcan():
 def test():
     goal = MoveToGoal()
 
-  #   pose:
-  # position:
-  #   x: 0.801407
-  #   y: -0.
-  #   z: 1.19
-  # orientation:
-  #   x: 0
-  #   y: 0
-  #   z: 0.996904
-  #   w: 0.0786335
-
     #goal.target_pos.header.stamp.secs = 1564137356
     goal.target_pos.header.frame_id = 'world'
 
@@ -110,8 +99,8 @@ if __name__ == '__main__':
         print('c: catch the trashcan')
         print('l: leave the trashcan')
         print('e: empty the trashcan')
-        test()
-        while False:#True:
+        
+        while True:
             print('Please select an option (q to quit)')
             choice = raw_input()
             if choice == 'q':

@@ -291,7 +291,6 @@ def attachObject(client, label='', id= '', object_pose=PoseStamped()):
         else:
             rospy.logerr(response.msg)
 
-
 def detachObject(client, label='', id=''):
 
     # send request for adding collision environment
@@ -351,7 +350,6 @@ def planTrajectoryInJointSpace(client, bdmp_goal=None, bdmp_action='', object_po
 
     # send goal
     client.send_goal(goal)
-
     time = client.wait_for_result(rospy.Duration.from_sec(50.))
     state = client.get_state()
     result = client.get_result()
