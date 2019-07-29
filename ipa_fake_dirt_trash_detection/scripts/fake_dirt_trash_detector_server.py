@@ -47,18 +47,17 @@ class Detector:
             detection.pose.header.stamp = rospy.Time.now()
             # detection.pose.header.frame_id = 'camera2_optical_frame'
             detection.pose.header.frame_id = 'base_link'
-            detection.pose.pose.position.x = round(random.random() - 0.5, 2)
-            detection.pose.pose.position.y = round(random.random() - 0.5, 2)
-            detection.pose.pose.position.z = 0.9#round(random.random()*0.2 - 0.01, 2)
+            detection.pose.pose.position.x = round(2*random.random() - 1, 2)
+            detection.pose.pose.position.y = round(2*random.random() - 1, 2)
+            detection.pose.pose.position.z = 0.6#round(random.random()*0.2 - 0.01, 2)
 
             detection.pose.pose.orientation.x = 0.
             detection.pose.pose.orientation.y = 0.
             detection.pose.pose.orientation.z = 0.92521152
             detection.pose.pose.orientation.w = -0.37945176
 
-            detection.bounding_box_lwh.x = 0.1
-            detection.bounding_box_lwh.y = 0.1
-            detection.bounding_box_lwh.z = 0.1
+            detection.bounding_box_lwh.x = 0.50
+            detection.bounding_box_lwh.z = 0.60
 
             detections = DetectionArray()
             # detections.header.frame_id = 'camera2_optical_frame'
