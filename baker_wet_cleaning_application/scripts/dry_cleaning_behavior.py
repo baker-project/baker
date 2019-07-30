@@ -232,9 +232,9 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 
 			# start again on the current position
 			self.printMsg("Result is {}".format(path_follower.move_base_path_result_))
-			last_visited_index = path_follower.move_base_path_result_.last_visited_index
-			self.printMsg('Move stopped at position {}'.format(last_visited_index))
-			path = path[last_visited_index:]
+			last_planned_point_index = path_follower.move_base_path_result_.last_planned_point_index
+			self.printMsg('Move stopped at position {}'.format(last_planned_point_index))
+			path = path[last_planned_point_index:]
 
 			# move to last path point
 			self.move_base_handler_.setParameters(

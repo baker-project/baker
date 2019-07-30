@@ -46,6 +46,11 @@ class BehaviorContainer:
 	def printMsg(self, text):
 		print "[Behavior '" + str(self.behavior_name_) + "']: " + str(text)
 
+	# This function is ugly but is necessary to stop a specific behavior
+	# without stopping the whole application
+	# It's used in DryCleaningBehavior to stop the path follower once a dirt or
+	# a trashcan is detected
+	# This function is used with 'setInterruptVar'
 	def interruptExecution(self):
 		self.mutex_.acquire()
 		self.interrupt_var_ = [ApplicationContainer.STATUS['IS_CANCELLED']]
