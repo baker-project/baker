@@ -4,10 +4,11 @@ import rospy
 import actionlib
 from math import pi
 
-from ipa_manipulation_msgs.msg import MoveToAction, MoveToGoal, ExecuteTrajectoryGoal, ExecuteTrajectoryAction
+from ipa_manipulation_msgs.msg import MoveToAction, MoveToGoal, ExecuteTrajectoryGoal, ExecuteTrajectoryAction, CollisionBox
+from ipa_manipulation_msgs.srv import AddCollisionObject, RemoveCollisionObject, AddCollisionObjectResponse, AddCollisionObjectRequest
 
 from trajectory_msgs.msg import JointTrajectoryPoint
-from geometry_msgs.msg import Transform
+from geometry_msgs.msg import Transform, Pose, PoseStamped, Vector3
 from tf.transformations import quaternion_from_euler
 
 def executeAction(actionName, goal=MoveToGoal(), action_type=MoveToAction):
@@ -88,9 +89,71 @@ def test():
 
     return executeAction('baker_arm_module_interface/catch_trashcan', goal=goal, action_type=MoveToAction)
 
+def setCollisionObject(service_name, pose, bounding_box_lwh):
+    collision_object = CollisionBox()
+    collision_object.pose = pose
+    collision_object.bounding_box_lwh = bounding_box_lwh
+
+    # make request for loading environment
+    request = AddCollisionObjectRequest()
+    request.loading_method = 'primitive' # mesh
+    request.collision_objects.append(collision_object)
+
+    rospy.wait_for_service(service_name)
+    client = rospy.ServiceProxy(service_name, AddCollisionObject)
+    if not client.call(request):
+        rospy.logerr('Error while adding collision object (label: {}, id: {})'.format(label, id))
+        return
+
+def setTrolley():
+    # todo rmb-ma compute best testing trolley location
+    object_pose = PoseStamped()
+    object_pose.header.frame_id = 'world'
+
+    object_pose.pose.position.x = -0.2
+    object_pose.pose.position.y = 1
+    object_pose.pose.position.z = 0.45
+
+    orientation = quaternion_from_euler(0., 0., 2.7)
+    object_pose.pose.orientation.x = orientation[0]
+    object_pose.pose.orientation.y = orientation[1]
+    object_pose.pose.orientation.z = orientation[2]
+    object_pose.pose.orientation.w = orientation[3]
+
+    bounding_box_lwh = Vector3()
+    bounding_box_lwh.x = 2
+    bounding_box_lwh.y = 1
+    bounding_box_lwh.z = 0.9
+    setCollisionObject(service_name='baker_arm_module_interface/set_trolley', pose=object_pose, bounding_box_lwh=bounding_box_lwh)
+
+def setTrashcan():
+    object_pose = PoseStamped()
+    object_pose.header.frame_id = 'world'
+
+    object_pose.pose.position.x = 0.8
+    object_pose.pose.position.y = -0.7
+    object_pose.pose.position.z = 0.3
+
+    orientation = quaternion_from_euler(0., 0., 3.92)
+    object_pose.pose.orientation.x = orientation[0]
+    object_pose.pose.orientation.y = orientation[1]
+    object_pose.pose.orientation.z = orientation[2]
+    object_pose.pose.orientation.w = orientation[3]
+
+    bounding_box_lwh = Vector3()
+    bounding_box_lwh.x = 0.5
+    bounding_box_lwh.y = 0.5
+    bounding_box_lwh.z = 0.7
+    setCollisionObject(service_name='baker_arm_module_interface/set_trashcan', pose=object_pose, bounding_box_lwh=bounding_box_lwh)
+
+
 if __name__ == '__main__':
     try:
         rospy.init_node('baker_arm_client')
+
+        setTrashcan()
+        setTrolley()
+
         print('Instructions')
         print('q: quit')
         print('r: go to rest position')
@@ -99,7 +162,7 @@ if __name__ == '__main__':
         print('c: catch the trashcan')
         print('l: leave the trashcan')
         print('e: empty the trashcan')
-        
+
         while True:
             print('Please select an option (q to quit)')
             choice = raw_input()

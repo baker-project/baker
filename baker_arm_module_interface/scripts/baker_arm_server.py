@@ -114,8 +114,8 @@ class BakerArmServer(script):
 
     @log
     def initServices(self):
-        # rospy.Service(self.name_ + '/activate_detection', Trigger, self.handleStartService)
-        # rospy.Service(self.name_ + '/activate_detection', TriaddCollisiogger, self.handleStartService)
+        rospy.Service(self.name_ + '/set_trashcan', AddCollisionObject, self.setTrashcanService)
+        rospy.Service(self.name_ + '/set_trolley', AddCollisionObject, self.setTrolleyService)
         pass
 
     @log
@@ -261,25 +261,12 @@ class BakerArmServer(script):
         result = MoveToResult()
         result.arrived = False
 
+        target_pose = Pose()
+        
+
         #The arm canot carry a new trashcan as it already carries one
         if self.status_ != ArmStatus.NO_TRASHCAN:
             self.catch_trashcan_server_.set_aborted(result)
-
-        object_pose = PoseStamped()
-        object_pose.header = goal.target_pos.header
-        object_pose.pose.orientation = goal.target_pos.pose.orientation
-        orientation = object_pose.pose.orientation
-        theta = euler_from_quaternion([orientation.x, orientation.y, orientation.z, orientation.w,])[2]
-        object_pose.pose.position.x = goal.target_pos.pose.position.x + cos(theta)*0.5
-        object_pose.pose.position.y = goal.target_pos.pose.position.y + sin(theta)*0.5
-        object_pose.pose.position.z = goal.target_pos.pose.position.z - 0.6/2.
-
-        bounding_box_lwh = Vector3()
-        bounding_box_lwh.x = 0.5
-        bounding_box_lwh.y = 0.5
-        bounding_box_lwh.z = 0.6
-        print(object_pose)
-        self.addCollisionObject(label='trash', id='0', pose=object_pose, bounding_box_lwh=bounding_box_lwh)
 
         try:
             self.planAndExecuteTrajectoryInCartesianSpace(goal.target_pos, self.catch_trashcan_server_)
@@ -466,7 +453,7 @@ class BakerArmServer(script):
 
     @log
     def addCollisionObject(self, label, id, pose, bounding_box_lwh):
-
+        # pass
         collision_object = CollisionBox()
         collision_object.object_id = label + id
         collision_object.id = id
@@ -481,8 +468,22 @@ class BakerArmServer(script):
 
         if not self.add_collision_object_client_.call(request):
             rospy.logerr('Error while adding collision object (label: {}, id: {})'.format(label, id))
-            return
+            return False
+        return True
 
+    @log
+    def setTrolleyService(self, request):
+        response = AddCollisionObjectResponse()
+        trolley_box = request.collision_objects[0]
+        response.success = self.addCollisionObject(label='trolley', id='0', pose=trolley_box.pose, bounding_box_lwh=trolley_box.bounding_box_lwh)
+        return response
+
+    @log
+    def setTrashcanService(self, request):
+        response = AddCollisionObjectResponse()
+        trashcan_box = request.collision_objects[0]
+        response.success = self.addCollisionObject(label='trashcan', id='0', pose=trashcan_box.pose, bounding_box_lwh=trashcan_box.bounding_box_lwh)
+        return response
 
 if __name__ == "__main__":
 

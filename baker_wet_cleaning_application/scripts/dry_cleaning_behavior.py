@@ -2,7 +2,7 @@
 
 import rospy
 from cob_object_detection_msgs.msg import DetectionArray
-from geometry_msgs.msg import Pose2D, Quaternion
+from geometry_msgs.msg import Pose2D, Quaternion, Pose, Point
 from std_srvs.srv import Trigger
 
 from move_base_path_behavior import MoveBasePathBehavior
@@ -63,9 +63,22 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 		checkpoint_position = self.getCheckpointForRoomId(room_id).checkpoint_position_in_meter
 
 		traschan_pose = projectToFrame(detected_trash.pose, 'map').pose
-		print(getCurrentRobotPosition())
-		print("===========================================================")
-		trashcan_emptier.setParameters(trashcan_pose=traschan_pose, trolley_position=checkpoint_position)
+
+		trolley_pose = Pose()
+		trolley_pose.position = checkpoint_position
+		trolley_pose.orientation.x = 0
+		trolley_pose.orientation.y = 0
+		trolley_pose.orientation.z = 0
+		trolley_pose.orientation.w = 0
+
+		trolley_boundingbox = Point()
+		trolley_boundingbox.x = 2.
+		trolley_boundingbox.y = 1.
+		trolley_boundingbox.z = 1.
+
+		trashcan_emptier.setParameters(
+			trashcan_pose=traschan_pose, trashcan_boundingbox=detected_trash.bounding_box_lwh,
+			trolley_pose=trolley_pose, trolley_boundingbox=trolley_boundingbox)
 
 		trashcan_emptier.executeBehavior()
 

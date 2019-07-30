@@ -31,7 +31,8 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 	def __init__(self, behavior_name, interrupt_var, move_base_service_str):
 		super(TrashcanEmptyingBehavior, self).__init__(behavior_name, interrupt_var)
 		self.move_base_handler_ = MoveBaseBehavior("MoveBaseBehavior", self.interrupt_var_, move_base_service_str)
-		(self.trolley_position_, self.trashcan_position_) = (None, None)
+		(self.trolley_pose_, self.trashcan_pose_) = (None, None)
+		(self.trolley_boundingbox_, self.trashcan_boundingbox_) = (None, None)
 
 		self.catch_trashcan_service_str_ = srv.CATCH_TRASHCAN_SERVICE_STR
 		self.empty_trashcan_service_str_ = srv.EMPTY_TRASHCAN_SERVICE_STR
@@ -41,15 +42,11 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 		self.map_accessibility_service_str_ = srv.MAP_ACCESSIBILITY_SERVICE_STR
 
 	# Method for setting parameters for the behavior
-	def setParameters(self, trashcan_pose, trolley_position):
+	def setParameters(self, trashcan_pose, trashcan_boundingbox, trolley_pose, trolley_boundingbox):
 		self.trashcan_pose_ = trashcan_pose
-		self.trolley_position_ = trolley_position
-
-	# Method for returning to the standard pose of the robot
-	def returnToRobotStandardState(self):
-		# save current data if necessary
-		# undo or check whether everything has been undone
-		pass
+		self.trashcan_boundingbox_ = trashcan_boundingbox
+		self.trolley_pose_ = trolley_pose
+		self.trolley_boundingbox_ = trolley_boundingbox
 
 	def moveToGoalPosition(self, goal):
 		self.move_base_handler_.setParameters(
@@ -73,12 +70,12 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 
 	def emptyTrashcan(self):
 		target_pose = Pose()
-		target_pose.position = self.trolley_position_
+		target_pose.position = self.trolley_pose_.position
 		target_pose.position.z = 1.2
 
 		(robot_position, _, _) = getCurrentRobotPosition()
-		delta_x = robot_position[0] - self.trolley_position_.x
-		delta_y = robot_position[1] - self.trolley_position_.y
+		delta_x = robot_position[0] - self.trolley_pose_.position.x
+		delta_y = robot_position[1] - self.trolley_pose_.position.y
 
 		yaw = acos(delta_x / sqrt(delta_x**2 + delta_y**2))
 		if delta_y < 0:
@@ -154,6 +151,12 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 
 		return accessible_pose
 
+	def initEnvironnment(self):
+		pass
+
+	def returnToRobotStandardState(self):
+		pass
+
 	# Implemented Behavior
 	def executeCustomBehavior(self):
 		assert(self.trashcan_pose_ is not None and self.trolley_position_ is not None)
@@ -174,9 +177,9 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 
 		self.printMsg("> Catch the trashcan")
 		if not self.catchTrashcan().arrived:
-			raise RuntimeError('Error occured while catching the trashcan')
-			# print('error. error. error')
-			# return
+			#raise RuntimeError('Error occured while catching the trashcan')
+			print('error error error while doing something!')
+			return
 		if self.handleInterrupt() >= 1:
 			return
 
@@ -199,18 +202,18 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 
 		self.printMsg("> Todo. Empty the trashcan")
 		if not self.emptyTrashcan().arrived:
-			raise RuntimeError('Error while emptying the trashcan')
-			# print('error. error. error')
-			# return
+			#raise RuntimeError('Error while emptying the trashcan')
+			print('error error error while doing something!')
+			return
 
 		if self.handleInterrupt() >= 1:
 			return
 
 		self.printMsg("> Going to transport position")
 		if not  self.transportPosition().arrived:
-			raise RuntimeError('Error while moving to the transport position')
-			# print('error. error. error')
-			# return
+			#raise RuntimeError('Error while moving to the transport position')
+			print('error error error while doing something!')
+			return
 		if self.handleInterrupt() >= 1:
 			return
 
@@ -224,16 +227,16 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 
 		self.printMsg("> Todo. Leave the trashcan")
 		if not self.leaveTrashcan():
-			raise RuntimeError('Error while leaving the trashcan')
-			# print('error. error. error')
-			# return
+			#raise RuntimeError('Error while leaving the trashcan')
+			print('error error error while doing something!')
+			return
 		if self.handleInterrupt() >= 1:
 			return
 
 		self.printMsg("> Going to rest position")
 		if not self.restPosition():
-			raise RuntimeError('Error while moving to the rest position')
-			# print('error. error. error')
-			# return
+			#raise RuntimeError('Error while moving to the rest position')
+			print('error error error while doing something!')
+			return
 		if self.handleInterrupt() >= 1:
 			return

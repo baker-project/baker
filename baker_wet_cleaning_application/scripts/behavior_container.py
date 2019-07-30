@@ -89,7 +89,7 @@ class BehaviorContainer:
 		self.is_finished = False
 		self.printMsg("Waiting for action " + str(action_client.action_client.ns) + " to become available...")
 		action_client.wait_for_server()
-		
+
 		# loop --> ask for action finished and sleep for one second
 		# in loop check for interrupt --> if necessary stop action with self.executionInterrupted() == True and wait until action stopped
 		while not self.is_finished:
@@ -114,7 +114,7 @@ class BehaviorContainer:
 				if self.executionInterrupted() or rospy.is_shutdown():
 					action_client.cancel_goal()
 					while action_client.get_state() < 3 and not rospy.is_shutdown():
-						pass
+						rospy.sleep(self.sleep_time_)
 					action_client.wait_for_result()
 					self.is_finished = True
 
