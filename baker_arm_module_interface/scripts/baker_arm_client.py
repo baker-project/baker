@@ -2,7 +2,7 @@
 
 import rospy
 import actionlib
-from math import pi
+from math import pi, cos, sin
 
 from ipa_manipulation_msgs.msg import MoveToAction, MoveToGoal, ExecuteTrajectoryGoal, ExecuteTrajectoryAction, CollisionBox
 from ipa_manipulation_msgs.srv import AddCollisionObject, RemoveCollisionObject, AddCollisionObjectResponse, AddCollisionObjectRequest
@@ -124,25 +124,27 @@ def setTrolley():
     bounding_box_lwh.x = 2
     bounding_box_lwh.y = 1
     bounding_box_lwh.z = 0.9
-    setCollisionObject(service_name='baker_arm_module_interface/set_trolley', pose=object_pose, bounding_box_lwh=bounding_box_lwh)
+    print('nothing done')
+    # setCollisionObject(service_name='baker_arm_module_interface/set_trolley', pose=object_pose, bounding_box_lwh=bounding_box_lwh)
 
 def setTrashcan():
     object_pose = PoseStamped()
     object_pose.header.frame_id = 'world'
+    theta = 3.92
+    diameter = 0.5
+    object_pose.pose.position.x = 0.75 + cos(theta)*diameter/2.
+    object_pose.pose.position.y = -0.6 + sin(theta)*diameter/2.
+    object_pose.pose.position.z = 0.35
 
-    object_pose.pose.position.x = 0.8
-    object_pose.pose.position.y = -0.7
-    object_pose.pose.position.z = 0.3
-
-    orientation = quaternion_from_euler(0., 0., 3.92)
+    orientation = quaternion_from_euler(0., 0., theta)
     object_pose.pose.orientation.x = orientation[0]
     object_pose.pose.orientation.y = orientation[1]
     object_pose.pose.orientation.z = orientation[2]
     object_pose.pose.orientation.w = orientation[3]
 
     bounding_box_lwh = Vector3()
-    bounding_box_lwh.x = 0.5
-    bounding_box_lwh.y = 0.5
+    bounding_box_lwh.x = diameter
+    bounding_box_lwh.y = diameter
     bounding_box_lwh.z = 0.7
     setCollisionObject(service_name='baker_arm_module_interface/set_trashcan', pose=object_pose, bounding_box_lwh=bounding_box_lwh)
 

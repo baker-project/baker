@@ -4,10 +4,9 @@
 Last updated: _22th July 2019_
 Authors: _rmb-mf_, _rmb-ma_
 
-**Contents:**
-	- BakeR database documentation
-	- BakeR wet cleaning application: Getting started
-
+**Contents:** 
+  - BakeR database documentation
+  - BakeR wet cleaning application: Getting started
 ----
 
 ## BakeR database documentation

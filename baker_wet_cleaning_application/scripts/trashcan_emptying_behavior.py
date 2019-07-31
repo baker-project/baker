@@ -159,7 +159,7 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 
 	# Implemented Behavior
 	def executeCustomBehavior(self):
-		assert(self.trashcan_pose_ is not None and self.trolley_position_ is not None)
+		assert(self.trashcan_pose_ is not None and self.trolley_pose_ is not None)
 		self.printMsg("Executing trashcan behavior located on ({}, {})".format(self.trashcan_pose_.position.x, self.trashcan_pose_.position.y))
 
 		# todo (rmb-ma): see how we can go there + see the locations to clean it
@@ -169,7 +169,8 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 		self.printMsg("> Moving to the trashcan")
 		self.moveToGoalPosition(robot_pose_for_catching_trashcan)
 		if self.move_base_handler_.failed():
-			self.printMsg('Trashcan is not accessible. Failed to for emptying trashcan ({}, {})'.format(self.robot_pose_for_catching_trashcan.position.x, self.robot_pose_for_catching_trashcan.position.y))
+			position = robot_pose_for_catching_trashcan.position
+			self.printMsg('Trashcan is not accessible. Failed to for emptying trashcan ({}, {})'.format(position.x, position.y))
 			self.state_ = 4
 			return
 		if self.handleInterrupt() >= 1:
@@ -189,9 +190,9 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 			return
 
 		self.printMsg("> Computing robot goal position for trolley")
-		robot_pose_for_emptying_trashcan = self.computeRobotGoalPose(self.trolley_position_)
+		robot_pose_for_emptying_trashcan = self.computeRobotGoalPose(self.trolley_pose_.position)
 
-		self.printMsg("> Moving to the trolley located on ({}, {})".format(self.trolley_position_.x, self.trolley_position_.y))
+		self.printMsg("> Moving to the trolley located on ({}, {})".format(self.trolley_pose_.position.x, self.trolley_pose_.position.y))
 		self.moveToGoalPosition(robot_pose_for_emptying_trashcan)
 		if self.move_base_handler_.failed():
 			self.printMsg('Trolley is not accessible. Failed to for emptying trashcan ({}, {})'.format(robot_pose_for_emptying_trashcan.x, robot_pose_for_emptying_trashcan.y))

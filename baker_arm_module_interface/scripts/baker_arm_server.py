@@ -15,7 +15,7 @@ from ipa_manipulation_msgs.msg import PlanToAction
 
 from canopen_chain_node.srv import SetObject, SetObjectRequest, SetObjectResponse
 from std_srvs.srv import Trigger, TriggerResponse
-from ipa_manipulation_msgs.srv import AddCollisionObject, RemoveCollisionObject, AddCollisionObjectResponse, AddCollisionObjectRequest
+from ipa_manipulation_msgs.srv import AddCollisionObject, AddCollisionObjectResponse, AddCollisionObjectRequest, RemoveCollisionObject, RemoveCollisionObjectRequest, RemoveCollisionObjectResponse
 from ipa_manipulation_msgs.msg import CollisionBox
 
 from geometry_msgs.msg import PoseStamped, Point, Pose, Vector3
@@ -56,6 +56,7 @@ class BakerArmServer(script):
         self.status_ = status
         self.joint_values_ = [0.0]*self.DOF
         self.mutex_ = Lock()
+        (self.trashcan_pose_, self.trolley_pose_) = (None, None)
 
         self.displayParameters()
         self.initClients()
@@ -89,8 +90,16 @@ class BakerArmServer(script):
         self.execution_client_.wait_for_server(timeout=rospy.Duration(5.0))
 
         self.small_gripper_finger_client_ = rospy.ServiceProxy("/gripper/driver/set_object", SetObject)
+        self.small_gripper_finger_client_.wait_for_service(timeout=rospy.Duration(5.0))
 
         self.add_collision_object_client_ = rospy.ServiceProxy("/ipa_planning_scene_creator/add_collision_objects", AddCollisionObject)
+        self.add_collision_object_client_.wait_for_service(timeout=rospy.Duration(5.0))
+
+        self.attach_object_client_ = rospy.ServiceProxy("ipa_planning_scene_creator/attach_object", AddCollisionObject)
+        self.attach_object_client_.wait_for_service(timeout=rospy.Duration(5.0))
+
+        self.detach_object_client_ = rospy.ServiceProxy("ipa_planning_scene_creator/detach_object", RemoveCollisionObject)
+        self.detach_object_client_.wait_for_service(timeout=rospy.Duration(5.0))
 
     @log
     def initServers(self):
@@ -261,40 +270,26 @@ class BakerArmServer(script):
         result = MoveToResult()
         result.arrived = False
 
-        target_pose = Pose()
-        
+        # Ideally, should take the pose from the collision box object 'trashcan_0'
+        # But I didn't find a way for doing it
+        target_pose = self.trashcan_pose_
+        orientation = target_pose.pose.orientation
+        theta = euler_from_quaternion((orientation.x, orientation.y, orientation.z, orientation.w))[2]
 
         #The arm canot carry a new trashcan as it already carries one
         if self.status_ != ArmStatus.NO_TRASHCAN:
             self.catch_trashcan_server_.set_aborted(result)
 
+        initial_pose = PoseStamped()
+        initial_pose.header = self.trashcan_pose_.header
+        initial_pose.pose.position.x = self.trashcan_pose_.pose.position.x + 0.02*cos(theta)
+        initial_pose.pose.position.y = self.trashcan_pose_.pose.position.y + 0.02*sin(theta)
+        initial_pose.pose.position.z = self.trashcan_pose_.pose.position.z + 0.05 # safety margin
+        initial_pose.pose.orientation = self.trashcan_pose_.pose.orientation
         try:
-            self.planAndExecuteTrajectoryInCartesianSpace(goal.target_pos, self.catch_trashcan_server_)
+            self.planAndExecuteTrajectoryInCartesianSpace(initial_pose, self.catch_trashcan_server_)
         except Exception as e:
-            self.catch_trashcan_server_.set_aborted(result)
-            return
-
-        if self.catch_trashcan_server_.is_preempt_requested():
-            result.arrived = True
-            self.catch_trashcan_server_.set_preempted(result)
-            return
-
-        try:
-            target_pose = make_pose(position=[0.00,-0.00,-0.07], orientation=[0.0,0.0,0.0,1.0], frame_id='gripper')
-            self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.catch_trashcan_server_)
-        except:
-            self.catch_trashcan_server_.set_aborted(result)
-            return
-
-        if self.catch_trashcan_server_.is_preempt_requested():
-            result.arrived = True
-            self.catch_trashcan_server_.set_preempted(result)
-            return
-
-        try:
-            target_pose = make_pose(position=[0.020,-0.00,0.00], orientation=[0.0,0.0,0.0,1.0], frame_id='gripper')
-            self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.catch_trashcan_server_)
-        except:
+            print(e)
             self.catch_trashcan_server_.set_aborted(result)
             return
 
@@ -306,13 +301,39 @@ class BakerArmServer(script):
         self.closeGripper()
         self.status_ = ArmStatus.FULL_TRASHCAN
 
-        try:
-            target_pose = make_pose(position=[0.000,-0.00,0.030], orientation=[0.0,0.0,0.0,1.0], frame_id='gripper')
-            self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.catch_trashcan_server_)
-        except:
-            self.catch_trashcan_server_.set_aborted(result)
-            return
-
+        # todo setup the grapping move with a real trashcan
+        # Help:
+        # try:
+        #     target_pose = make_pose(position=[0.00,-0.00,-0.07], orientation=[0.0,0.0,0.0,1.0], frame_id='gripper')
+        #     self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.catch_trashcan_server_)
+        # except:
+        #     self.catch_trashcan_server_.set_aborted(result)
+        #     return
+        #
+        # if self.catch_trashcan_server_.is_preempt_requested():
+        #     result.arrived = True
+        #     self.catch_trashcan_server_.set_preempted(result)
+        #     return
+        #
+        # try:
+        #     target_pose = make_pose(position=[0.020,-0.00,0.00], orientation=[0.0,0.0,0.0,1.0], frame_id='gripper')
+        #     self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.catch_trashcan_server_)
+        # except:
+        #     self.catch_trashcan_server_.set_aborted(result)
+        #     return
+        #
+        # if self.catch_trashcan_server_.is_preempt_requested():
+        #     result.arrived = True
+        #     self.catch_trashcan_server_.set_preempted(result)
+        #     return
+        #
+        # try:
+        #     target_pose = make_pose(position=[0.000,-0.00,0.030], orientation=[0.0,0.0,0.0,1.0], frame_id='gripper')
+        #     self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.catch_trashcan_server_)
+        # except:
+        #     self.catch_trashcan_server_.set_aborted(result)
+        #     return
+        #
         result.arrived = True
         self.catch_trashcan_server_.set_succeeded(result)
 
@@ -476,6 +497,8 @@ class BakerArmServer(script):
         response = AddCollisionObjectResponse()
         trolley_box = request.collision_objects[0]
         response.success = self.addCollisionObject(label='trolley', id='0', pose=trolley_box.pose, bounding_box_lwh=trolley_box.bounding_box_lwh)
+        if response.success:
+            self.trolley_pose_ = trolley_box.pose
         return response
 
     @log
@@ -483,6 +506,16 @@ class BakerArmServer(script):
         response = AddCollisionObjectResponse()
         trashcan_box = request.collision_objects[0]
         response.success = self.addCollisionObject(label='trashcan', id='0', pose=trashcan_box.pose, bounding_box_lwh=trashcan_box.bounding_box_lwh)
+        if response.success:
+            self.trashcan_pose_ = PoseStamped()
+            self.trashcan_pose_.header = trashcan_box.pose.header
+            orientation = trashcan_box.pose.pose.orientation
+            theta = euler_from_quaternion((orientation.x, orientation.y, orientation.z, orientation.w))[2]
+            self.trashcan_pose_.pose.position.x = trashcan_box.pose.pose.position.x - cos(theta)*trashcan_box.bounding_box_lwh.x / 2.
+            self.trashcan_pose_.pose.position.y = trashcan_box.pose.pose.position.y - sin(theta)*trashcan_box.bounding_box_lwh.x / 2.
+            self.trashcan_pose_.pose.position.z = trashcan_box.pose.pose.position.z + trashcan_box.bounding_box_lwh.z / 2.
+
+            self.trashcan_pose_.pose.orientation = trashcan_box.pose.pose.orientation
         return response
 
 if __name__ == "__main__":
