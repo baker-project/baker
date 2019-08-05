@@ -8,12 +8,24 @@ from geometry_msgs.msg import Quaternion
 from move_base_behavior import MoveBaseBehavior
 from ipa_manipulation_msgs.msg import MoveToAction, MoveToGoal
 from cob_map_accessibility_analysis.srv import CheckPerimeterAccessibility, CheckPerimeterAccessibilityRequest
+from ipa_manipulation_msgs.msg import MoveToAction, MoveToGoal, ExecuteTrajectoryGoal, ExecuteTrajectoryAction, CollisionBox
+from ipa_manipulation_msgs.srv import AddCollisionObject, RemoveCollisionObject, AddCollisionObjectResponse, AddCollisionObjectRequest
+from std_srvs.srv import Trigger, TriggerRequest
 
 import services_params as srv
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
-from geometry_msgs.msg import Pose2D, Pose, Quaternion, Point
+from geometry_msgs.msg import Pose2D, Pose, Quaternion, Point, PoseStamped, Vector3
 from utils import projectToFrame, getCurrentRobotPosition
-from math import cos, acos, sqrt
+from math import cos, acos, sqrt, sin
+
+
+def withEnvironnment(funct):
+    def funct_wrapper(self, *args, **kwargs):
+		self.loadEnvironment()
+		results = funct(self, *args, **kwargs)
+		self.unloadEnvironment()
+		return results
+    return funct_wrapper
 
 class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 
@@ -68,6 +80,7 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 		client.wait_for_result()
 		return client.get_result()
 
+	@withEnvironnment
 	def emptyTrashcan(self):
 		target_pose = Pose()
 		target_pose.position = self.trolley_pose_.position
@@ -88,19 +101,23 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 
 		return self.executeAction(self.empty_trashcan_service_str_, target_pose) # todo rmb-ma (not trashcan position)
 
+	@withEnvironnment
 	def leaveTrashcan(self):
 		return self.executeAction(self.leave_trashcan_service_str_, self.trashcan_pose_)
 
+	@withEnvironnment
 	def transportPosition(self):
 		return self.executeAction(self.transport_position_service_str_)
 
+	@withEnvironnment
 	def restPosition(self):
 		return self.executeAction(self.rest_position_service_str_)
 
+	@withEnvironnment
 	def catchTrashcan(self):
 		return self.executeAction(self.catch_trashcan_service_str_, self.trashcan_pose_)
 
-	def computeAccessiblePosesAround(self, position):
+	def computeAccessiblePosesAround(self, position, radius):
 		accessibility_checker = rospy.ServiceProxy(self.map_accessibility_service_str_, CheckPerimeterAccessibility)
 
 		request = CheckPerimeterAccessibilityRequest()
@@ -126,13 +143,13 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 
 		return cos(trashcan_pose_theta - robot_pose_theta) > 0.85 # todo rmb-ma fit the parameter
 
-	def computeRobotGoalPose(self, position, orientation=None):
+	def computeRobotGoalPose(self, position, orientation=None, radius=1.):
 
 		position_in_map = Point()
 		position_in_map.x = position.x
 		position_in_map.y = position.y
 		position_in_map.z = 0
-		accessible_poses = self.computeAccessiblePosesAround(position_in_map)
+		accessible_poses = self.computeAccessiblePosesAround(position_in_map, radius)
 		if orientation is not None:
 			accessible_poses = list(filter(lambda pose: self.armCanAccessTrashcan(pose, orientation), accessible_poses))
 
@@ -151,8 +168,62 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 
 		return accessible_pose
 
-	def initEnvironnment(self):
-		pass
+	def setCollisionObject(self, service_name, pose, bounding_box_lwh, label, id='0'):
+		collision_object = CollisionBox()
+		collision_object.object_id = label + id
+		collision_object.label = label
+		collision_object.id = id
+		collision_object.pose = pose
+		collision_object.bounding_box_lwh = bounding_box_lwh
+
+		# make request for loading environment
+		request = AddCollisionObjectRequest()
+		request.loading_method = 'primitive' # mesh
+		request.collision_objects.append(collision_object)
+
+		rospy.wait_for_service(service_name)
+		client = rospy.ServiceProxy(service_name, AddCollisionObject)
+		if not client.call(request):
+		    rospy.logerr('Error while adding collision object (label: {}, id: {})'.format(label, id))
+		    return
+
+	def setTrolley(self):
+		if self.trolley_pose_ is None or self.trolley_boundingbox_ is None:
+			return
+	    # todo rmb-ma compute best testing trolley location
+		object_pose = PoseStamped()
+		object_pose.header.frame_id = 'map'
+
+		object_pose.pose.position = self.trolley_pose_.position
+		object_pose.pose.orientation = self.trolley_pose_.orientation
+
+		self.setCollisionObject(service_name='/ipa_planning_scene_creator/add_collision_objects', pose=object_pose,
+			bounding_box_lwh=self.trolley_boundingbox_, label='trolley')
+
+	def setTrashcan(self):
+		if self.trashcan_pose_ is None or self.trashcan_boundingbox_ is None:
+			return
+		object_pose = PoseStamped()
+		object_pose.header.frame_id = 'map'
+		orientation = self.trashcan_pose_.orientation
+		theta = euler_from_quaternion((orientation.x, orientation.y, orientation.z, orientation.w))[2]
+		object_pose.pose.position.x = self.trashcan_pose_.position.x + cos(theta)*self.trashcan_boundingbox_.x/2.
+		object_pose.pose.position.y = self.trashcan_pose_.position.y + sin(theta)*self.trashcan_boundingbox_.x/2.
+		object_pose.pose.position.z = self.trashcan_boundingbox_.z/2.
+		object_pose.pose.orientation = self.trashcan_pose_.orientation
+		self.setCollisionObject(service_name='/ipa_planning_scene_creator/add_collision_objects', pose=object_pose,
+			bounding_box_lwh=self.trashcan_boundingbox_, label='trashcan')
+
+	def loadEnvironment(self):
+		self.setTrashcan() # todo rmb-ma depending on the step
+		self.setTrolley()
+
+	def unloadEnvironment(self):
+		service_name = '/ipa_planning_scene_creator/remove_all_collision_objects'
+		rospy.wait_for_service(service_name)
+		client = rospy.ServiceProxy(service_name, Trigger)
+		request = TriggerRequest()
+		return not client.call(request)
 
 	def returnToRobotStandardState(self):
 		pass
@@ -160,11 +231,12 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 	# Implemented Behavior
 	def executeCustomBehavior(self):
 		assert(self.trashcan_pose_ is not None and self.trolley_pose_ is not None)
+
 		self.printMsg("Executing trashcan behavior located on ({}, {})".format(self.trashcan_pose_.position.x, self.trashcan_pose_.position.y))
 
 		# todo (rmb-ma): see how we can go there + see the locations to clean it
 		print("> Computing robot goal position")
-		robot_pose_for_catching_trashcan = self.computeRobotGoalPose(self.trashcan_pose_.position, orientation=self.trashcan_pose_.orientation)
+		robot_pose_for_catching_trashcan = self.computeRobotGoalPose(self.trashcan_pose_.position, orientation=self.trashcan_pose_.orientation, radius=1.5)
 
 		self.printMsg("> Moving to the trashcan")
 		self.moveToGoalPosition(robot_pose_for_catching_trashcan)
@@ -190,7 +262,7 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 			return
 
 		self.printMsg("> Computing robot goal position for trolley")
-		robot_pose_for_emptying_trashcan = self.computeRobotGoalPose(self.trolley_pose_.position)
+		robot_pose_for_emptying_trashcan = self.computeRobotGoalPose(self.trolley_pose_.position, radius=1.5)
 
 		self.printMsg("> Moving to the trolley located on ({}, {})".format(self.trolley_pose_.position.x, self.trolley_pose_.position.y))
 		self.moveToGoalPosition(robot_pose_for_emptying_trashcan)

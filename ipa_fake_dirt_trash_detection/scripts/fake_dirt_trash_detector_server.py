@@ -57,6 +57,7 @@ class Detector:
             detection.pose.pose.orientation.w = -0.37945176
 
             detection.bounding_box_lwh.x = 0.50
+            detection.bounding_box_lwh.y = 0.50
             detection.bounding_box_lwh.z = 0.60
 
             detections = DetectionArray()

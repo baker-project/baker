@@ -13,6 +13,7 @@ from trashcan_emptying_behavior import TrashcanEmptyingBehavior
 from threading import Lock, Thread
 from utils import projectToCamera, projectToFrame, getCurrentRobotPosition
 import services_params as srv
+from tf.transformations import quaternion_from_euler
 from math import pi
 
 class DryCleaningBehavior(AbstractCleaningBehavior):
@@ -66,15 +67,17 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 
 		trolley_pose = Pose()
 		trolley_pose.position = checkpoint_position
-		trolley_pose.orientation.x = 0
-		trolley_pose.orientation.y = 0
-		trolley_pose.orientation.z = 0
-		trolley_pose.orientation.w = 0
+		orientation = quaternion_from_euler(0, 0, 1.5)
+		trolley_pose.orientation.x = orientation[0]
+		trolley_pose.orientation.y = orientation[1]
+		trolley_pose.orientation.z = orientation[2]
+		trolley_pose.orientation.w = orientation[3]
 
 		trolley_boundingbox = Point()
-		trolley_boundingbox.x = 2.
+		trolley_boundingbox.x = 0.8
 		trolley_boundingbox.y = 1.
-		trolley_boundingbox.z = 1.
+		trolley_boundingbox.z = 0.6
+		trolley_pose.position.z = trolley_boundingbox.z / 2.
 
 		trashcan_emptier.setParameters(
 			trashcan_pose=traschan_pose, trashcan_boundingbox=detected_trash.bounding_box_lwh,

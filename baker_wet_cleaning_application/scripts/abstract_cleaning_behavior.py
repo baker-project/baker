@@ -167,7 +167,7 @@ class AbstractCleaningBehavior(BehaviorContainer):
 			field_of_view_origin=self.field_of_view_origin_,
 			starting_position=Pose2D(x=starting_position[0], y=starting_position[1], theta=0.),
 			# todo: determine theta
-			planning_mode=2
+			planning_mode=2 # 1 means robot view, 2 fov
 		)
 		room_explorer.executeBehavior()
 		self.printMsg('Coverage path of room ID {} computed.'.format(room_id))

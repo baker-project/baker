@@ -83,6 +83,9 @@ class BakerArmServer(script):
 
     @log
     def initClients(self):
+        # Warning: wait_for_server and wait_for_service are not the same function.
+        # * rospy.duration expected for wait_for_server
+        # * float expected for wait_for_service
         self.plan_client_ = SimpleActionClient('/arm_planning_node/PlanTo', PlanToAction)
         self.plan_client_.wait_for_server(timeout=rospy.Duration(5.0))
 
@@ -90,16 +93,17 @@ class BakerArmServer(script):
         self.execution_client_.wait_for_server(timeout=rospy.Duration(5.0))
 
         self.small_gripper_finger_client_ = rospy.ServiceProxy("/gripper/driver/set_object", SetObject)
-        self.small_gripper_finger_client_.wait_for_service(timeout=rospy.Duration(5.0))
+        # rmb-ma. keep commented
+        # self.small_gripper_finger_client_.wait_for_service(timeout=5.0)
 
         self.add_collision_object_client_ = rospy.ServiceProxy("/ipa_planning_scene_creator/add_collision_objects", AddCollisionObject)
-        self.add_collision_object_client_.wait_for_service(timeout=rospy.Duration(5.0))
+        self.add_collision_object_client_.wait_for_service(timeout=5.0)
 
         self.attach_object_client_ = rospy.ServiceProxy("ipa_planning_scene_creator/attach_object", AddCollisionObject)
-        self.attach_object_client_.wait_for_service(timeout=rospy.Duration(5.0))
+        self.attach_object_client_.wait_for_service(timeout=5.0)
 
         self.detach_object_client_ = rospy.ServiceProxy("ipa_planning_scene_creator/detach_object", RemoveCollisionObject)
-        self.detach_object_client_.wait_for_service(timeout=rospy.Duration(5.0))
+        self.detach_object_client_.wait_for_service(timeout=5.0)
 
     @log
     def initServers(self):
@@ -123,8 +127,6 @@ class BakerArmServer(script):
 
     @log
     def initServices(self):
-        rospy.Service(self.name_ + '/set_trashcan', AddCollisionObject, self.setTrashcanService)
-        rospy.Service(self.name_ + '/set_trolley', AddCollisionObject, self.setTrolleyService)
         pass
 
     @log
@@ -265,29 +267,22 @@ class BakerArmServer(script):
         orientation = [pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w]
         return (position, orientation)
 
+
     @log
     def catchTrashcanCallback(self, goal):
+        rospy.sleep(3)
         result = MoveToResult()
         result.arrived = False
 
-        # Ideally, should take the pose from the collision box object 'trashcan_0'
-        # But I didn't find a way for doing it
-        target_pose = self.trashcan_pose_
-        orientation = target_pose.pose.orientation
-        theta = euler_from_quaternion((orientation.x, orientation.y, orientation.z, orientation.w))[2]
+        target_pose = goal.target_pos
+        target_pose.pose.position.z *= 1.1
 
         #The arm canot carry a new trashcan as it already carries one
         if self.status_ != ArmStatus.NO_TRASHCAN:
             self.catch_trashcan_server_.set_aborted(result)
 
-        initial_pose = PoseStamped()
-        initial_pose.header = self.trashcan_pose_.header
-        initial_pose.pose.position.x = self.trashcan_pose_.pose.position.x + 0.02*cos(theta)
-        initial_pose.pose.position.y = self.trashcan_pose_.pose.position.y + 0.02*sin(theta)
-        initial_pose.pose.position.z = self.trashcan_pose_.pose.position.z + 0.05 # safety margin
-        initial_pose.pose.orientation = self.trashcan_pose_.pose.orientation
         try:
-            self.planAndExecuteTrajectoryInCartesianSpace(initial_pose, self.catch_trashcan_server_)
+            self.planAndExecuteTrajectoryInCartesianSpace(target_pose, self.catch_trashcan_server_)
         except Exception as e:
             print(e)
             self.catch_trashcan_server_.set_aborted(result)
@@ -299,9 +294,10 @@ class BakerArmServer(script):
             return
 
         self.closeGripper()
+        #self.fixTrashCanToRobot()
         self.status_ = ArmStatus.FULL_TRASHCAN
 
-        # todo setup the grapping move with a real trashcan
+        # todo rmb-ma setup the grapping move with a real trashcan
         # Help:
         # try:
         #     target_pose = make_pose(position=[0.00,-0.00,-0.07], orientation=[0.0,0.0,0.0,1.0], frame_id='gripper')
@@ -471,52 +467,6 @@ class BakerArmServer(script):
             return
 
         self.to_joints_position_server_.set_succeeded()
-
-    @log
-    def addCollisionObject(self, label, id, pose, bounding_box_lwh):
-        # pass
-        collision_object = CollisionBox()
-        collision_object.object_id = label + id
-        collision_object.id = id
-        collision_object.label = label
-        collision_object.pose = pose
-        collision_object.bounding_box_lwh = bounding_box_lwh
-
-        # make request for loading environment
-        request = AddCollisionObjectRequest()
-        request.loading_method = 'primitive' # mesh
-        request.collision_objects.append(collision_object)
-
-        if not self.add_collision_object_client_.call(request):
-            rospy.logerr('Error while adding collision object (label: {}, id: {})'.format(label, id))
-            return False
-        return True
-
-    @log
-    def setTrolleyService(self, request):
-        response = AddCollisionObjectResponse()
-        trolley_box = request.collision_objects[0]
-        response.success = self.addCollisionObject(label='trolley', id='0', pose=trolley_box.pose, bounding_box_lwh=trolley_box.bounding_box_lwh)
-        if response.success:
-            self.trolley_pose_ = trolley_box.pose
-        return response
-
-    @log
-    def setTrashcanService(self, request):
-        response = AddCollisionObjectResponse()
-        trashcan_box = request.collision_objects[0]
-        response.success = self.addCollisionObject(label='trashcan', id='0', pose=trashcan_box.pose, bounding_box_lwh=trashcan_box.bounding_box_lwh)
-        if response.success:
-            self.trashcan_pose_ = PoseStamped()
-            self.trashcan_pose_.header = trashcan_box.pose.header
-            orientation = trashcan_box.pose.pose.orientation
-            theta = euler_from_quaternion((orientation.x, orientation.y, orientation.z, orientation.w))[2]
-            self.trashcan_pose_.pose.position.x = trashcan_box.pose.pose.position.x - cos(theta)*trashcan_box.bounding_box_lwh.x / 2.
-            self.trashcan_pose_.pose.position.y = trashcan_box.pose.pose.position.y - sin(theta)*trashcan_box.bounding_box_lwh.x / 2.
-            self.trashcan_pose_.pose.position.z = trashcan_box.pose.pose.position.z + trashcan_box.bounding_box_lwh.z / 2.
-
-            self.trashcan_pose_.pose.orientation = trashcan_box.pose.pose.orientation
-        return response
 
 if __name__ == "__main__":
 

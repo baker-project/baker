@@ -153,8 +153,8 @@ if __name__ == '__main__':
     try:
         rospy.init_node('baker_arm_client')
 
-        setTrashcan()
-        setTrolley()
+        # setTrashcan()
+        # setTrolley()
 
         print('Instructions')
         print('q: quit')
