@@ -61,9 +61,9 @@ def getRoomIds(database_location=DATABASE_LOCATION):
 
 def readOffset(database_location):
 	data = loadJsonDatabase(database_location + 'application_data.json')
-	if data['planning_offset'] is None:
+	if 'planning_offset' not in data.keys() or data['planning_offset'] is None:
 		data['planning_offset'] = 0
-		saveJsonDatabase(database_location - 'application_data.json', data)
+		saveJsonDatabase(database_location + 'application_data.json', data)
 	return data['planning_offset']
 
 
