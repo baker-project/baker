@@ -119,10 +119,14 @@ class BehaviorContainer:
 				if self.executionInterrupted() or rospy.is_shutdown():
 					action_client.cancel_goal()
 					while action_client.get_state() < 3 and not rospy.is_shutdown():
-						pass
+						rospy.sleep(self.sleep_time_)
 					action_client.wait_for_result()
 					self.is_finished = True
-
+					self.state_ = action_client.get_state()
+					print(self.state_)
+					print(self.state_)
+					print(self.state_)
+					print(self.state_)
 					return {'interrupt_var': self.handleInterrupt(), 'result': action_client.get_result()}
 				rospy.sleep(self.sleep_time_)
 
