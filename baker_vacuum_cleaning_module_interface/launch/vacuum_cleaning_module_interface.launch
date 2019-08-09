@@ -4,9 +4,12 @@
 
 	<arg name="vacuum_cleaning_module_interface_args" default="-k127.0.0.1:1234"/>
 
-	<node pkg="baker_vacuum_cleaning_module_interface" type="vacuum_cleaning_module_interface" name="vacuum_cleaning_module_interface" output="screen" respawn="true" args="$(arg vacuum_cleaning_module_interface_args)">
+	<node pkg="baker_vacuum_cleaning_module_interface" type="vacuum_cleaning_module_interface" name="vacuum_cleaning_module_interface"
+		output="screen" respawn="true" args="$(arg vacuum_cleaning_module_interface_args)">
 		<param name="config_file" value="$(arg config_file_arg)" type="string"/>
 	</node>
 
-</launch>
+	<node pkg="baker_vacuum_cleaning_module_interface" type="tf_publisher_vacuum_cleaner.py" name="tf_publisher_vacuum_cleaner"
+		output="screen" respawn="true" args="$(arg vacuum_cleaning_module_interface_args)"/>
 
+</launch>

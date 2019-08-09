@@ -5,13 +5,15 @@
 	<arg name="brush_cleaning_module_interface_args" default="-k127.0.0.1:1234"/>
 	<arg name="vacuum_cleaning_module_interface_args" default="-k127.0.0.1:1234"/>
 	<arg name="obstacle_map_channel" default="/navigation/laser/Map"/>	<!-- /3d/MergedMap or /navigation/laser/Map -->
-	<arg name="spectral_dirt_detection" default="True"/>
+	<arg name="spectral_dirt_detection" default="true"/>
+	<arg name="robotic_arm" default="true"/>
+	<arg name="robotic_arm_simulation" default="true"/>
 
 	<!-- ROS-MIRA communication -->
 	<include file="$(find scitos_mira)/launch/scitos_mira.launch">
 		<arg name="scitos_node_args" value="$(arg scitos_node_args) --using /ObstacleMap=$(arg obstacle_map_channel)"/>
 	</include>
-	
+
 	<!-- include ROS_MIRA communication module to brush cleaner -->
 	<!--include file="$(find baker_brush_cleaning_module_interface)/launch/brush_cleaning_module_interface.launch">
 		<arg name="brush_cleaning_module_interface_args" value="$(arg brush_cleaning_module_interface_args)"/>
@@ -30,7 +32,7 @@
 
 	<!-- include room exploration -->
 	<include file="$(find ipa_room_exploration)/ros/launch/room_exploration_action_server.launch"/>
-	
+
 	<!-- include coverage monitor -->
 	<include file="$(find ipa_room_exploration)/ros/launch/coverage_monitor_server.launch"/>
 
@@ -42,25 +44,39 @@
 
 	<!-- include map accessibility analysis -->
 	<include file="$(find cob_map_accessibility_analysis)/ros/launch/map_accessibility_analysis.launch"/>
-	
-	<!-- dirt and trash fake detector -->
-	<node unless="$(arg spectral_dirt_detection)" pkg="baker_wet_cleaning_application" type="fake_trash_dirt_detector_server.py"
-	name="fake_trash_dirt_detector" output="screen" respawn="true" respawn_delay="2" args="--dirt --trash"/>
 
-    <!-- If using real dirt_detection -->
-    <group  if="$(arg spectral_dirt_detection)">
-        <!-- only trash fake detector (if real_robot) -->
-        <node pkg="baker_wet_cleaning_application" type="fake_trash_dirt_detector_server.py"
-        name="fake_trash_dirt_detector" output="screen" respawn="true" respawn_delay="2" args="--trash"/>
+ <!-- If using real dirt_detection -->
+  <group  if="$(arg spectral_dirt_detection)">
+      <!--start real dirt detector -->
+      <include file="$(find ipa_dirt_detection)/ros/launch/dirt_detection_spectral.launch">
+          <arg name="colored_point_cloud_topic" value="/camera2_pcl"/>
+      </include>
 
-        <!--start real dirt detector -->
-        <include file="$(find ipa_dirt_detection)/ros/launch/dirt_detection_spectral.launch">
-            <arg name="colored_point_cloud_topic" value="/camera2_pcl"/>
-        </include>
-    </group>
+			<!-- Only trash fake detector -->
+			<include file="$(find ipa_fake_dirt_trash_detection)/launch/fake_dirt_trash_detector.launch">
+				<arg name="dirt_detection" value="false" />
+				<arg name="trashcan_detection" value="true"/>
+			</include>
+	</group>
 
+	<group unless="$(arg spectral_dirt_detection)">
+		<!-- Dirt and trash fake detector -->
+		<include file="$(find ipa_fake_dirt_trash_detection)/launch/fake_dirt_trash_detector.launch">
+			<arg name="dirt_detection" value="true" />
+			<arg name="trashcan_detection" value="true"/>
+		</include>
+	</group>
+
+	<!-- Display detections -->
+	<include file="$(find baker_wet_cleaning_application)/launch/detections_visualizer.launch"/>
+
+	<!-- Start the robotic arm -->
+	<!-- <include if="$(arg robotic_arm)" file="$(find baker_wet_cleaning_application)/launch/robotic_arm.launch">
+		<arg name="robotic_arm_simulation" value="$(arg robotic_arm_simulation)"/>
+	</include> -->
 
 	<!-- application script -->
 	<node pkg="baker_wet_cleaning_application" type="application_wet_cleaning.py" name="application_wet_cleaning" output="screen" respawn="true" respawn_delay="2"/>
+	<!-- <node pkg="baker_wet_cleaning_application" type="test_bug.py" name="test_bug" output="screen" respawn="true" respawn_delay="2"/> -->
 
 </launch>

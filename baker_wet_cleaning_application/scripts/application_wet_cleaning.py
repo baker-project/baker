@@ -7,6 +7,10 @@ import application_container
 from map_handling_behavior import MapHandlingBehavior
 from dry_cleaning_behavior import DryCleaningBehavior
 from wet_cleaning_behavior import WetCleaningBehavior
+from trashcan_emptying_behavior import TrashcanEmptyingBehavior
+from threading import Thread
+import services_params as srv
+
 import database
 import database_handler
 
@@ -147,6 +151,10 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		# todo (rmb-ma)
 		pass
 
+	def initializeArm(self):
+		trashcan_emptier = TrashcanEmptyingBehavior("TrashcanEmptyingBehavior", self.application_status_, srv.MOVE_BASE_SERVICE_STR)
+		trashcan_emptier.restPosition()
+
 	# Implement application procedures of inherited classes here.
 	def executeCustomBehavior(self, last_execution_date_override=None):
 
@@ -192,7 +200,6 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		# self.field_of_view_ = [Point32(x=0.080, y=0.7), Point32(x=0.080, y=-0.7),
 		# 					   Point32(x=2.30, y=-0.7), Point32(x=2.30, y=0.7)]	# todo: read from MIRA
 
-		# rmb-ma. Fake fov to get nice trajectory
 		self.field_of_view_ = [Point32(x=-0.5, y=0.5), Point32(x=-0.5, y=-0.7),
 							   Point32(x=0.5, y=-0.7), Point32(x=0.5, y=0.7)]	# todo: read from MIRA
 		self.field_of_view_origin_ = Point32(x=0.0, y=0.0) # todo: read from MIRA
@@ -202,6 +209,9 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		if rospy.has_param('use_cleaning_device'):
 			self.use_cleaning_device_ = rospy.get_param("use_cleaning_device")
 			self.printMsg("Imported parameter use_cleaning_device = " + str(self.use_cleaning_device_))
+
+		# arm_initializer = Thread(target=self.initializeArm)
+		# arm_initializer.start()
 
 		# Load database, initialize database handler
 		# ==========================================
@@ -249,6 +259,8 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 
 		if self.handleInterrupt() >= 1:
 			return
+
+		# arm_initializer.join()
 
 		# Dry cleaning of the due rooms
 		# =============================
@@ -331,7 +343,7 @@ if __name__ == '__main__':
 	try:
 		# Initialize node
 		rospy.init_node('application_wet_cleaning')
-		
+
 		# Initialize application
 		app = WetCleaningApplication("application_wet_cleaning", "set_application_status_application_wet_cleaning")
 		# Execute application

@@ -1,6 +1,6 @@
 <root>
 	<var rosVersion="kinetic"/>
-	<var mapEnvironment="lab_ipa"/> <!-- lab_ipa -->
+	<var mapEnvironment="MLWeimarerStrasse"/> <!-- lab_ipa -->
 	<var MCFFile="/home/rmb/git/care-o-bot-${rosVersion}/src/baker/mira-simulation-config/maps/${mapEnvironment}/map.mcf"/>
 	<var cleaningMap="/home/rmb/git/care-o-bot-${rosVersion}/src/baker/mira-simulation-config/maps/${mapEnvironment}/map-static.xml"/>
 	<var segmentationMap="/home/rmb/git/care-o-bot-${rosVersion}/src/baker/mira-simulation-config/maps/${mapEnvironment}/map-segmentation.xml"/>
@@ -58,14 +58,19 @@
 	</namespace>
 
 	<namespace name="modules">
-		<namespace name="brushcleaning">
+		<unit id="BakeRVacuumCleaningModule" class="mira::actors::BakeRVacuumCleaningModule">
+			<CycleTimeTolerance>2000</CycleTimeTolerance>
+			<Address>10.234.16.175:5005</Address> <!-- 5000 is the correct port. We want another port for the simulation -->
+		</unit>
+		<!--<namespace name="brushcleaning">
 			<using name="../../robot/RobotFrame"/>
 			<using name="../../robot/OdometryFrame"/>
 			<include file="${findpkg BakeRCleaningModule}/etc/BakeRCleaningModule.xml"/>
 			<parameter name="BakeRCleaningModule">
 				<Simulation>true</Simulation>
 			</parameter>
-		</namespace>
+		</namespace>-->
+		
 		<!--namespace name="bay">
 			<include file="${findpkg BakeRModuleBay}/etc/BakeRModuleBay.xml"/>
 			<parameter name="ModuleBay">

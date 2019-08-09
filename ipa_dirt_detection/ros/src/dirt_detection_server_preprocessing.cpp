@@ -216,7 +216,8 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 
 		if (is_warp_image_bird_perspective_enabled_)
 		{
-			bool transformSuccessful = computeBirdsEyePerspective(input_cloud, plane_color_image, plane_mask, plane_model, H, R, t, camera_image_plane_offset, plane_color_image_warped, plane_mask_warped);
+			bool transformSuccessful = computeBirdsEyePerspective(input_cloud, plane_color_image, plane_mask, plane_model, H, R, t,
+				 camera_image_plane_offset, plane_color_image_warped, plane_mask_warped);
 			if (!transformSuccessful)
 			{
 				std::cout << "Transform to bird's eye perspective failed!" << std::endl;
@@ -357,14 +358,17 @@ void IpaDirtDetectionPreprocessing::ClientPreprocessing::preprocessingCallback(c
 			// todo warning frame_id (just for simulation)
 //			detection_msg.pose.header.frame_id = "camera1_optical_frame";
 //			detection_msg.header.frame_id = "camera1_optical_frame";
+
 			detection_msg.label = "dirt_spots_found";
 			detection_msg.pose.header = point_cloud2_rgb_msg->header;
 			detection_msg.pose.pose.position.x = centroid.x();
 			detection_msg.pose.pose.position.y = centroid.y();
 			detection_msg.pose.pose.position.z = centroid.z();
+
 			detection_msg.bounding_box_lwh.x = maxPoint.x() - minPoint.x();
 			detection_msg.bounding_box_lwh.y = maxPoint.y() - minPoint.y();
 			detection_msg.bounding_box_lwh.z = maxPoint.z() - minPoint.z();
+
 
 			detected_dirts_to_publish.detections.push_back(detection_msg);
 		}
