@@ -32,7 +32,9 @@ if __name__ == '__main__':
     mover.setParameters(
         goal_position=best_pose3d.position,
         goal_orientation=best_pose3d.orientation,
-        header_frame_id='map'
+        header_frame_id='map',
+        goal_position_tolerance=0.1,
+        goal_angle_tolerance=0.1
     )
     mover.executeBehavior()
 

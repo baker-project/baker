@@ -245,7 +245,7 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 			self.move_base_handler_.setParameters(
 				goal_position=path[max(0, last_planned_point_index - 1)].pose.position,
 				goal_orientation=path[max(0, last_planned_point_index - 1)].pose.orientation,
-				header_frame_id='base_link',
+				header_frame_id='map',
 				goal_position_tolerance=0.2,
 				goal_angle_tolerance=0.17
 			)

@@ -8,6 +8,8 @@ roslaunch ipa_fake_dirt_trash_detection ipa_fake_dirt_trash_detector.launch
   trashcan_detection:=[false / true]
 ```
 
+The detector can use absolute coordinates or random ones. It has to be edited directly into the code.
+
 ## Services
 
 * For the **dirt detector** _(compatible with ipa_dirt_detection)_:
@@ -40,3 +42,7 @@ trash_detector_topic cob_object_detection_msgs::DetectionArray
 ```
 
 Detections are published on `frame_id="camera2_optical_frame"`
+
+## Visualization in RViz
+
+**only for trashcan** (could be easily done for dirt) - see `baker_detections_visualizer` module
