@@ -17,19 +17,27 @@ def getTransformListener():
 			_tl = tf.TransformListener(interpolate=True, cache_time=rospy.Duration(40.0))
 		return _tl
 
+def projectToFrame(pose, targeted_frame):
+	frame_id = pose.header.frame_id
+	try:
+		listener = getTransformListener()
+		listener.waitForTransform(targeted_frame, frame_id, pose.header.stamp, rospy.Duration(10))
+		pose = listener.transformPose(targeted_frame, pose)
+		return pose
+	except (tf.Exception, tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException,), e:
+		print("Could not lookup robot pose: %s" % e)
+		return None
 
+# todo rmb-ma : merge with project to frame
 def projectToCamera(detection):
-
-	time = detection.header.stamp
 	camera_frame = detection.header.frame_id
 	try:
 		listener = getTransformListener()
-		listener.waitForTransform('/map', camera_frame, time, rospy.Duration(10))
+		listener.waitForTransform('/map', camera_frame, detection.header.stamp, rospy.Duration(10))
 		detection.pose = listener.transformPose('/map', detection.pose)
-		#detection.header.frame_id = '/map'
 		return detection
 	except (tf.Exception, tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException,), e:
-		print "Could not lookup robot pose: %s" % e
+		print("Could not lookup robot pose: %s" % e)
 		return None
 
 # retrieves the current robot pose
@@ -41,7 +49,7 @@ def getCurrentRobotPosition():
 		listener.waitForTransform('/map', '/base_link', t, rospy.Duration(10))
 		(robot_pose_translation, robot_pose_rotation) = listener.lookupTransform('/map', '/base_link', t)
 	except (tf.Exception, tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException,), e:
-		print "Could not lookup robot pose: %s" % e
+		print("Could not lookup robot pose: %s" % e)
 		return None, None, None
 	robot_pose_rotation_euler = tf.transformations.euler_from_quaternion(robot_pose_rotation,
 																		 'rzyx')  # yields yaw, pitch, roll

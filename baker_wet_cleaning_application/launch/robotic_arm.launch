@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<launch>
+	<arg name="robotic_arm_simulation" default="true"/>
+
+  <!-- Start the simulation or the real robot -->
+  <include if="$(arg robotic_arm_simulation)" file="$(find cob_bringup_sim)/launch/robot.launch">
+    <arg name="robot" value="baker"/>
+    <arg name="gui" value="false"/>
+		<arg name="use_sim_time" value="false"/>
+  </include>
+
+  <!-- Start the planning -->
+  <include file="$(find ipa_arm_planning_demo)/launch/baker/baker_arm_planning.launch">
+    <arg name="rviz" value="false"/>
+    <arg name="pipeline" value="stomp_linear_interp"/>
+    <arg name="base_link" value="base_link"/>
+  </include>
+
+  <!-- visualization -->
+  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find baker_arm_module_interface)/rviz-config/arm_with_map.rviz" />
+
+  <!-- Start the trajectory execution -->
+  <include file="$(find ipa_execute_trajectory)/launch/trajectory_execution.launch"/>
+
+  <!-- Start the baker module interface -->
+  <!-- Commented during development -->
+  <node pkg="baker_arm_module_interface" type="baker_arm_server.py" name="baker_arm_server" output="screen" respawn="true" respawn_delay="2"/>
+
+
+  <!-- Tf transform: robotic arm on the baker arm -->
+  <node pkg="baker_arm_module_interface" type="tf_publisher.py" name="tf_publisher" output="screen" respawn="true" respawn_delay="2"/>
+</launch>

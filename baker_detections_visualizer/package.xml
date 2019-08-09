@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>baker_detections_visualizer</name>
+  <version>0.0.0</version>
+  <description>
+    Allow to display in rviz both trashcan and dirt detections
+  </description>
+
+  <maintainer email="richard.bormann@ipa.fraunhofer.de">Richard Bormann</maintainer>
+  <license>LGPL</license>
+  <author email="richard.bormann@ipa.fraunhofer.de">Richard Bormann</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>actionlib</depend>
+  <depend>cob_object_detection_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>roslib</depend>
+  <depend>rospy</depend>
+  <depend>std_msgs</depend>
+  <depend>tf</depend>
+  <depend>visualization_msgs</depend>
+
+  <export>
+  </export>
+
+</package>

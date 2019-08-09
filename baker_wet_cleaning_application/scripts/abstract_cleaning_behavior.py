@@ -17,6 +17,7 @@ import dynamic_reconfigure.client
 from cv_bridge import CvBridge, CvBridgeError
 import cv2
 import numpy as np
+from threading import Thread
 
 class AbstractCleaningBehavior(BehaviorContainer):
 
@@ -39,6 +40,8 @@ class AbstractCleaningBehavior(BehaviorContainer):
 		self.reset_coverage_monitoring_service_str_ = srv.RESET_COVERAGE_MONITORING_SERVICE_STR
 
 		self.coverage_map_ = None
+
+		self.thread_move_to_the_room = None
 
 	def setCommonParameters(self, database_handler, sequencing_result, mapping, coverage_radius, field_of_view,
 					   field_of_view_origin, room_information_in_meter, robot_radius, robot_frame_id):
@@ -164,7 +167,7 @@ class AbstractCleaningBehavior(BehaviorContainer):
 			field_of_view_origin=self.field_of_view_origin_,
 			starting_position=Pose2D(x=starting_position[0], y=starting_position[1], theta=0.),
 			# todo: determine theta
-			planning_mode=2
+			planning_mode=2 # 1 means robot view, 2 fov
 		)
 		room_explorer.executeBehavior()
 		self.printMsg('Coverage path of room ID {} computed.'.format(room_id))
@@ -205,6 +208,22 @@ class AbstractCleaningBehavior(BehaviorContainer):
 	def executeCustomBehaviorInRoomId(self, room_id):
 		pass
 
+	def startMoveToTheRoom(self, room_id):
+		starting_position = self.room_information_in_meter_[room_id].room_center
+		self.move_base_handler_.setParameters(
+			goal_position=starting_position,
+			goal_orientation=Quaternion(x=0., y=0., z=0., w=1.),
+			goal_angle_tolerance=2*pi,
+			goal_position_tolerance=0.5
+		)
+
+		self.thread_move_to_the_room = Thread(target=self.move_base_handler_.executeBehavior)
+		self.thread_move_to_the_room.start()
+
+	def waitMoveToTheRoom(self):
+		assert self.thread_move_to_the_room is not None
+		self.thread_move_to_the_room.join()
+
 	# Implemented Behavior
 	def executeCustomBehavior(self):
 		self.move_base_handler_ = MoveBaseBehavior("MoveBaseBehavior", self.interrupt_var_,	srv.MOVE_BASE_SERVICE_STR)
@@ -223,7 +242,6 @@ class AbstractCleaningBehavior(BehaviorContainer):
 			self.move_base_handler_.setParameters(
 				goal_position=checkpoint.checkpoint_position_in_meter,
 				goal_orientation=Quaternion(x=0., y=0., z=0., w=1.),
-				header_frame_id='base_link',
 				goal_position_tolerance=0.5,
 				goal_angle_tolerance=2*pi
 			)

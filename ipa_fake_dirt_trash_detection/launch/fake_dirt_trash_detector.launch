@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<launch>
+
+	<arg name="trashcan_detection" default="true"/>
+	<arg name="dirt_detection" default="true"/>
+
+	<node pkg="ipa_fake_dirt_trash_detection" type="fake_3d_camera_server.py" name="fake_3d_camera" output="screen"
+		respawn="true" respawn_delay="2"/>
+
+  <node if="$(arg dirt_detection)" pkg="ipa_fake_dirt_trash_detection" type="fake_dirt_trash_detector_server.py"
+	  name="fake_dirt_detector" output="screen" respawn="true" respawn_delay="2" args="--dirt">
+	</node>
+
+  <node if="$(arg trashcan_detection)" pkg="ipa_fake_dirt_trash_detection" type="fake_dirt_trash_detector_server.py"
+    name="fake_trashcan_detector" output="screen" respawn="true" respawn_delay="2" args="--trash">
+	</node>
+
+</launch>
