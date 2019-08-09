@@ -105,7 +105,11 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		)
 
 		path_follower.setInterruptVar(self.interrupt_var_)
-		#path_follower.executeBehavior()
+		path_follower.executeBehavior()
+
+		if path_follower.failed():
+			self.printMsg('Error in path following. Failed to clean room {}'.format(room_id))
+			return
 		if self.handleInterrupt() >= 1:
 			return
 
@@ -130,6 +134,8 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 			field_of_view=self.field_of_view_,
 			coverage_radius=self.coverage_radius_
 		)
+
+		print('wall_follower.executeBehavior ...')
 
 		wall_follower.executeBehavior()
 

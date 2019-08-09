@@ -1,0 +1,82 @@
+{
+    "2019-06-27_14:39": {
+        "battery_usage": 0, 
+        "cleaned_surface_area": 0, 
+        "cleaning_task": -1, 
+        "date_and_time": "2019-06-27_14:39", 
+        "found_dirtspots": 0, 
+        "found_trashcans": 0, 
+        "room_id": 9, 
+        "status": 0, 
+        "trolley_capacity": 0, 
+        "used_water_amount": 0, 
+        "week_and_day": [
+            0, 
+            3
+        ]
+    }, 
+    "2019-06-27_14:43": {
+        "battery_usage": 0, 
+        "cleaned_surface_area": 0, 
+        "cleaning_task": -1, 
+        "date_and_time": "2019-06-27_14:43", 
+        "found_dirtspots": 0, 
+        "found_trashcans": 0, 
+        "room_id": 9, 
+        "status": 0, 
+        "trolley_capacity": 0, 
+        "used_water_amount": 0, 
+        "week_and_day": [
+            0, 
+            3
+        ]
+    }, 
+    "2019-06-27_14:46": {
+        "battery_usage": 0, 
+        "cleaned_surface_area": 0, 
+        "cleaning_task": -1, 
+        "date_and_time": "2019-06-27_14:46", 
+        "found_dirtspots": 0, 
+        "found_trashcans": 0, 
+        "room_id": 9, 
+        "status": 0, 
+        "trolley_capacity": 0, 
+        "used_water_amount": 0, 
+        "week_and_day": [
+            0, 
+            3
+        ]
+    }, 
+    "2019-06-27_14:50": {
+        "battery_usage": 0, 
+        "cleaned_surface_area": 0, 
+        "cleaning_task": 2, 
+        "date_and_time": "2019-06-27_14:50", 
+        "found_dirtspots": 0, 
+        "found_trashcans": 0, 
+        "room_id": 9, 
+        "status": 1, 
+        "trolley_capacity": 0, 
+        "used_water_amount": 0, 
+        "week_and_day": [
+            0, 
+            3
+        ]
+    }, 
+    "2019-06-27_15:06": {
+        "battery_usage": 0, 
+        "cleaned_surface_area": 7219305, 
+        "cleaning_task": 2, 
+        "date_and_time": "2019-06-27_15:06", 
+        "found_dirtspots": 0, 
+        "found_trashcans": 0, 
+        "room_id": 1, 
+        "status": 1, 
+        "trolley_capacity": 0, 
+        "used_water_amount": 0, 
+        "week_and_day": [
+            0, 
+            3
+        ]
+    }
+}

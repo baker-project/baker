@@ -92,7 +92,7 @@ class ApplicationContainer:
 		if self.getStatus() == self.STATUS['IS_PAUSED']:
 			self.prePauseProcedure()
 			while self.getStatus() == self.STATUS['IS_PAUSED']:
-				pass
+				rospy.sleep(.1)
 			if self.getStatus() == self.STATUS['IS_RUNNING']:
 				self.application_resumed_after_pause = True
 				self.postPauseProcedure()
