@@ -223,6 +223,9 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 				rospy.sleep(2)
 
 			explorer_thread.join()
+			if path_follower.failed():
+				self.printMsg('Error in path following. Failed to clean room {}'.format(room_id))
+				return
 			self.stopCoverageMonitoring()
 
 			if self.handleInterrupt() >= 1:
@@ -237,16 +240,18 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 			self.printMsg("Result is {}".format(path_follower.move_base_path_result_))
 			last_planned_point_index = path_follower.move_base_path_result_.last_planned_point_index
 			self.printMsg('Move stopped at position {}'.format(last_planned_point_index))
-			path = path[last_planned_point_index:]
 
 			# move to last path point
 			self.move_base_handler_.setParameters(
-				goal_position=path[0].pose.position,
-				goal_orientation=path[0].pose.orientation,
+				goal_position=path[max(0, last_planned_point_index - 1)].pose.position,
+				goal_orientation=path[max(0, last_planned_point_index - 1)].pose.orientation,
+				header_frame_id='base_link',
 				goal_position_tolerance=0.2,
 				goal_angle_tolerance=0.17
 			)
 			self.move_base_handler_.executeBehavior()
+
+			path = path[last_planned_point_index:]
 
 
 		if self.dirt_topic_subscriber_ is not None:

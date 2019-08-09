@@ -1,0 +1,167 @@
+{
+    "2019-06-06_13:39": {
+        "battery_usage": 0, 
+        "cleaned_surface_area": 0, 
+        "cleaning_task": 0, 
+        "date_and_time": "2019-06-06_13:39", 
+        "found_dirtspots": 0, 
+        "found_trashcans": 0, 
+        "room_id": 10, 
+        "status": 1, 
+        "used_water_amount": 0, 
+        "week_and_day": [
+            1, 
+            3
+        ]
+    }, 
+    "2019-06-06_13:52": {
+        "battery_usage": 0, 
+        "cleaned_surface_area": 0, 
+        "cleaning_task": 0, 
+        "date_and_time": "2019-06-06_13:52", 
+        "found_dirtspots": 0, 
+        "found_trashcans": 0, 
+        "room_id": 6, 
+        "status": 1, 
+        "used_water_amount": 0, 
+        "week_and_day": [
+            1, 
+            3
+        ]
+    }, 
+    "2019-06-06_14:08": {
+        "battery_usage": 0, 
+        "cleaned_surface_area": 0, 
+        "cleaning_task": 0, 
+        "date_and_time": "2019-06-06_14:08", 
+        "found_dirtspots": 0, 
+        "found_trashcans": 0, 
+        "room_id": 6, 
+        "status": 1, 
+        "used_water_amount": 0, 
+        "week_and_day": [
+            1, 
+            3
+        ]
+    }, 
+    "2019-06-06_14:11": {
+        "battery_usage": 0, 
+        "cleaned_surface_area": 0, 
+        "cleaning_task": 0, 
+        "date_and_time": "2019-06-06_14:11", 
+        "found_dirtspots": 0, 
+        "found_trashcans": 0, 
+        "room_id": 10, 
+        "status": 1, 
+        "used_water_amount": 0, 
+        "week_and_day": [
+            1, 
+            3
+        ]
+    }, 
+    "2019-06-06_14:13": {
+        "battery_usage": 0, 
+        "cleaned_surface_area": 0, 
+        "cleaning_task": 0, 
+        "date_and_time": "2019-06-06_14:13", 
+        "found_dirtspots": 0, 
+        "found_trashcans": 0, 
+        "room_id": 10, 
+        "status": 1, 
+        "used_water_amount": 0, 
+        "week_and_day": [
+            1, 
+            3
+        ]
+    }, 
+    "2019-06-06_14:15": {
+        "battery_usage": 0, 
+        "cleaned_surface_area": 0, 
+        "cleaning_task": 0, 
+        "date_and_time": "2019-06-06_14:15", 
+        "found_dirtspots": 0, 
+        "found_trashcans": 0, 
+        "room_id": 10, 
+        "status": 1, 
+        "used_water_amount": 0, 
+        "week_and_day": [
+            1, 
+            3
+        ]
+    }, 
+    "2019-06-06_14:16": {
+        "battery_usage": 0, 
+        "cleaned_surface_area": 0, 
+        "cleaning_task": 0, 
+        "date_and_time": "2019-06-06_14:16", 
+        "found_dirtspots": 0, 
+        "found_trashcans": 0, 
+        "room_id": 10, 
+        "status": 1, 
+        "used_water_amount": 0, 
+        "week_and_day": [
+            1, 
+            3
+        ]
+    }, 
+    "2019-06-06_14:18": {
+        "battery_usage": 0, 
+        "cleaned_surface_area": 0, 
+        "cleaning_task": 0, 
+        "date_and_time": "2019-06-06_14:18", 
+        "found_dirtspots": 0, 
+        "found_trashcans": 0, 
+        "room_id": 10, 
+        "status": 1, 
+        "used_water_amount": 0, 
+        "week_and_day": [
+            1, 
+            3
+        ]
+    }, 
+    "2019-06-06_14:24": {
+        "battery_usage": 0, 
+        "cleaned_surface_area": 0, 
+        "cleaning_task": 0, 
+        "date_and_time": "2019-06-06_14:24", 
+        "found_dirtspots": 0, 
+        "found_trashcans": 0, 
+        "room_id": 10, 
+        "status": 1, 
+        "used_water_amount": 0, 
+        "week_and_day": [
+            1, 
+            3
+        ]
+    }, 
+    "2019-06-06_14:31": {
+        "battery_usage": 0, 
+        "cleaned_surface_area": 0, 
+        "cleaning_task": 0, 
+        "date_and_time": "2019-06-06_14:31", 
+        "found_dirtspots": 0, 
+        "found_trashcans": 0, 
+        "room_id": 10, 
+        "status": 1, 
+        "used_water_amount": 0, 
+        "week_and_day": [
+            1, 
+            3
+        ]
+    }, 
+    "2019-06-06_14:32": {
+        "battery_usage": 0, 
+        "cleaned_surface_area": 0, 
+        "cleaning_task": 0, 
+        "date_and_time": "2019-06-06_14:32", 
+        "found_dirtspots": 0, 
+        "found_trashcans": 0, 
+        "room_id": 10, 
+        "status": 1, 
+        "used_water_amount": 0, 
+        "week_and_day": [
+            1, 
+            3
+        ]
+    }
+}

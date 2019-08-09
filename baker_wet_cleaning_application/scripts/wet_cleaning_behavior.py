@@ -93,13 +93,14 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		)
 
 		path_follower.setInterruptVar(self.interrupt_var_)
-		# path_follower.executeBehavior()
-		# if self.handleInterrupt() >= 1:
-		# 	return
-		#
-		# if path_follower.failed():
-		# 	self.printMsg('Error in path following. Failed to clean room {}'.format(room_id))
-		# 	return
+		# To don't execute the path follower, don't forget to comment the if path_follower.failed()
+		path_follower.executeBehavior()
+
+		if path_follower.failed():
+			self.printMsg('Error in path following. Failed to clean room {}'.format(room_id))
+			return
+		if self.handleInterrupt() >= 1:
+			return
 
 		coverage_map = self.requestCoverageMapResponse(room_id)
 		coverage_map = CvBridge().imgmsg_to_cv2(coverage_map, desired_encoding="passthrough")
@@ -122,6 +123,8 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 			field_of_view=self.field_of_view_,
 			coverage_radius=self.coverage_radius_
 		)
+
+		print('wall_follower.executeBehavior ...')
 
 		wall_follower.executeBehavior()
 

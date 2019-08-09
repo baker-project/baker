@@ -36,10 +36,13 @@ class TestDetector:
 			print("Service call to {} failed: {}".format(service_name, e))
 
     def dirtDetectionCallback(self, detections):
+
+        detections = detections.detections
+	if len(detections) == 0:
+		return
         print('dirts detected')
         self.callTriggerService(srv.STOP_DIRT_DETECTOR_SERVICE_STR)
 
-        detections = detections.detections
 
 		# todo rmb-ma temporary solution. Keep camera, robot or room coordinates?
         print('Project positions to camera')

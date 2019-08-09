@@ -122,7 +122,7 @@ class BehaviorContainer:
 						rospy.sleep(self.sleep_time_)
 					action_client.wait_for_result()
 					self.is_finished = True
-
+					self.state_ = action_client.get_state()
 					return {'interrupt_var': self.handleInterrupt(), 'result': action_client.get_result()}
 				rospy.sleep(self.sleep_time_)
 

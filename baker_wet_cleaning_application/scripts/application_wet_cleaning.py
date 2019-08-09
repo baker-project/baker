@@ -200,7 +200,6 @@ class WetCleaningApplication(application_container.ApplicationContainer):
 		# self.field_of_view_ = [Point32(x=0.080, y=0.7), Point32(x=0.080, y=-0.7),
 		# 					   Point32(x=2.30, y=-0.7), Point32(x=2.30, y=0.7)]	# todo: read from MIRA
 
-		# rmb-ma. Fake fov to get nice trajectory 
 		self.field_of_view_ = [Point32(x=-0.5, y=0.5), Point32(x=-0.5, y=-0.7),
 							   Point32(x=0.5, y=-0.7), Point32(x=0.5, y=0.7)]	# todo: read from MIRA
 		self.field_of_view_origin_ = Point32(x=0.0, y=0.0) # todo: read from MIRA
