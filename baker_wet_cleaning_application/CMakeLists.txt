@@ -11,6 +11,7 @@ set(catkin_RUN_PACKAGES
 	eigen_conversions
 	geometry_msgs
 	ipa_building_msgs
+	ipa_fake_dirt_trash_detection
 	move_base_msgs
 	nav_msgs
 	roscpp
@@ -45,7 +46,7 @@ find_package(OpenCV REQUIRED)
 ## Add the Files for actionlib
 add_action_files(
 	DIRECTORY action
-	FILES 
+	FILES
 		InterruptAction.action
 )
 
@@ -90,10 +91,10 @@ add_executable(map_management_client
 	src/map_management_client.cpp
 )
 target_link_libraries(map_management_client
-	${catkin_LIBRARIES} 
+	${catkin_LIBRARIES}
 	${OpenCV_LIBS}
 )
-add_dependencies(map_management_client 
+add_dependencies(map_management_client
 	${catkin_EXPORTED_TARGETS}
 #	${${PROJECT_NAME}_EXPORTED_TARGETS}
 )

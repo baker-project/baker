@@ -20,9 +20,9 @@
 	</include-->
 
 	<!-- include ROS_MIRA communication module to vacuum cleaner -->
-	<!--<include file="$(find baker_vacuum_cleaning_module_interface)/launch/vacuum_cleaning_module_interface.launch">
+	<include file="$(find baker_vacuum_cleaning_module_interface)/launch/vacuum_cleaning_module_interface.launch">
 		<arg name="vacuum_cleaning_module_interface_args" value="$(arg vacuum_cleaning_module_interface_args)"/>
-	</include>-->
+	</include>
 
 	<!-- map management system -->
 	<node pkg="baker_wet_cleaning_application" type="map_management_client" name="map_management_client" output="screen" respawn="true" respawn_delay="2">
@@ -77,5 +77,6 @@
 
 	<!-- application script -->
 	<node pkg="baker_wet_cleaning_application" type="application_wet_cleaning.py" name="application_wet_cleaning" output="screen" respawn="true" respawn_delay="2"/>
+	<!-- <node pkg="baker_wet_cleaning_application" type="test_bug.py" name="test_bug" output="screen" respawn="true" respawn_delay="2"/> -->
 
 </launch>

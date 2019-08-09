@@ -28,7 +28,7 @@ import tf
 
 
 if __name__ == '__main__':
-    rospy.init_node('tf_publisher')
+    rospy.init_node('tf_arm_publisher')
     br = tf.TransformBroadcaster()
     rate = rospy.Rate(10.0)
     while not rospy.is_shutdown():

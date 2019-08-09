@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <MapConfigurationFile version="2">
+    <Maps>
+      <key>map</key>
+      <item version="2">
+        <MapName>map</MapName>
+        <StaticMap>map-static.xml</StaticMap>
+        <NogoMap>map-nogo.xml</NogoMap>
+        <SpeedMap/>
+        <OnewayMap/>
+        <NoGoAreas>
+          <RectAreas/>
+          <PolygonAreas>
+            <item>
+              <Data>
+                <key>criticality</key>
+                <item>0</item>
+              </Data>
+              <Rotation>0</Rotation>
+              <Polygon>
+                <item>
+                  <X>3.89849996567</X>
+                  <Y>0.963625013828</Y>
+                </item>
+                <item>
+                  <X>3.59325003624</X>
+                  <Y>-2.24150013924</Y>
+                </item>
+                <item>
+                  <X>5.01775026321</X>
+                  <Y>-3.10637497902</Y>
+                </item>
+                <item>
+                  <X>5.42474985123</X>
+                  <Y>1.16712498665</Y>
+                </item>
+                <item>
+                  <X>4.10200023651</X>
+                  <Y>1.37062501907</Y>
+                </item>
+              </Polygon>
+              <Text/>
+            </item>
+          </PolygonAreas>
+          <EllipseAreas/>
+        </NoGoAreas>
+        <SpeedAreas>
+          <RectAreas/>
+          <PolygonAreas/>
+          <EllipseAreas/>
+        </SpeedAreas>
+        <OnewayAreas>
+          <RectAreas/>
+        </OnewayAreas>
+        <ReferencePoints/>
+        <Offset>
+          <X>0</X>
+          <Y>0</Y>
+          <Phi>0</Phi>
+        </Offset>
+      </item>
+    </Maps>
+  </MapConfigurationFile>
+</root>

@@ -18,11 +18,10 @@ def getTransformListener():
 		return _tl
 
 def projectToFrame(pose, targeted_frame):
-	time = pose.header.stamp
 	frame_id = pose.header.frame_id
 	try:
 		listener = getTransformListener()
-		listener.waitForTransform(targeted_frame, frame_id, time, rospy.Duration(10))
+		listener.waitForTransform(targeted_frame, frame_id, pose.header.stamp, rospy.Duration(10))
 		pose = listener.transformPose(targeted_frame, pose)
 		return pose
 	except (tf.Exception, tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException,), e:
@@ -31,13 +30,11 @@ def projectToFrame(pose, targeted_frame):
 
 # todo rmb-ma : merge with project to frame
 def projectToCamera(detection):
-	time = detection.header.stamp
 	camera_frame = detection.header.frame_id
 	try:
 		listener = getTransformListener()
-		listener.waitForTransform('/map', camera_frame, time, rospy.Duration(20))
+		listener.waitForTransform('/map', camera_frame, detection.header.stamp, rospy.Duration(10))
 		detection.pose = listener.transformPose('/map', detection.pose)
-		#detection.header.frame_id = '/map'
 		return detection
 	except (tf.Exception, tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException,), e:
 		print("Could not lookup robot pose: %s" % e)

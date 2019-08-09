@@ -99,7 +99,7 @@ class TrashcanEmptyingBehavior(behavior_container.BehaviorContainer):
 		target_pose.orientation.z = orientation[2]
 		target_pose.orientation.w = orientation[3]
 
-		return self.executeAction(self.empty_trashcan_service_str_, target_pose) # todo rmb-ma (not trashcan position)
+		return self.executeAction(self.empty_trashcan_service_str_, target_pose)
 
 	@withEnvironnment
 	def leaveTrashcan(self):

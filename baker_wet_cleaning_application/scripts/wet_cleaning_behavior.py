@@ -60,7 +60,6 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		self.callTriggerService(self.stop_cleaning_service_str_)
 
 	def executeCustomBehaviorInRoomId(self, room_id):
-		# todo (rmb-ma) create a abstract_cleaning common method go to the room and compute path
 		self.printMsg('Starting Wet Cleaning of room ID {}'.format(room_id))
 		self.startMoveToTheRoom(room_id)
 
@@ -94,9 +93,13 @@ class WetCleaningBehavior(AbstractCleaningBehavior):
 		)
 
 		path_follower.setInterruptVar(self.interrupt_var_)
-		path_follower.executeBehavior()
-		if self.handleInterrupt() >= 1:
-			return
+		# path_follower.executeBehavior()
+		# if self.handleInterrupt() >= 1:
+		# 	return
+		#
+		# if path_follower.failed():
+		# 	self.printMsg('Error in path following. Failed to clean room {}'.format(room_id))
+		# 	return
 
 		coverage_map = self.requestCoverageMapResponse(room_id)
 		coverage_map = CvBridge().imgmsg_to_cv2(coverage_map, desired_encoding="passthrough")
