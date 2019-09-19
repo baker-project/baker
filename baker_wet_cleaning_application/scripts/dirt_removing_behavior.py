@@ -36,7 +36,7 @@ class DirtRemovingBehavior(behavior_container.BehaviorContainer):
 		self.dirt_position_ = dirt_position
 
 
-	# Method for retcomputeBestAccessiblePoseurning to the standard pose of the robot
+	# Method for returning to the standard pose of the robot
 	def returnToRobotStandardState(self):
 		# save current data if necessary
 		# undo or check whether everything has been undone
