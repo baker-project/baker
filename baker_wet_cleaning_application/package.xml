@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package format="2">
 	<name>baker_wet_cleaning_application</name>
-	
+
 	<description>Contains abstract classes for application implementation.</description>
-	
+
 	<version>0.0.0</version>
 	<license>LGPL for academic and non-commercial use; for commercial use, please contact Fraunhofer IPA, Nobelstr. 12, 70569 Stuttgart, Germany</license>
 
@@ -32,5 +32,7 @@
 	<depend>std_msgs</depend>
 	<depend>std_srvs</depend>
 	<depend>tf</depend>
-
+	<depend>ipa_fake_dirt_trash_detection</depend>
+	<depend>baker_detections_visualizer</depend>
+	<depend>baker_arm_module_interface</depend>
 </package>

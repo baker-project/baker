@@ -46,6 +46,11 @@ class BehaviorContainer:
 	def printMsg(self, text):
 		print "[Behavior '" + str(self.behavior_name_) + "']: " + str(text)
 
+	# This function is ugly but is necessary to stop a specific behavior
+	# without stopping the whole application
+	# It's used in DryCleaningBehavior to stop the path follower once a dirt or
+	# a trashcan is detected
+	# This function is used with 'setInterruptVar'
 	def interruptExecution(self):
 		self.mutex_.acquire()
 		self.interrupt_var_ = [ApplicationContainer.STATUS['IS_CANCELLED']]
@@ -89,7 +94,7 @@ class BehaviorContainer:
 		self.is_finished = False
 		self.printMsg("Waiting for action " + str(action_client.action_client.ns) + " to become available...")
 		action_client.wait_for_server()
-		
+
 		# loop --> ask for action finished and sleep for one second
 		# in loop check for interrupt --> if necessary stop action with self.executionInterrupted() == True and wait until action stopped
 		while not self.is_finished:
@@ -114,10 +119,10 @@ class BehaviorContainer:
 				if self.executionInterrupted() or rospy.is_shutdown():
 					action_client.cancel_goal()
 					while action_client.get_state() < 3 and not rospy.is_shutdown():
-						pass
+						rospy.sleep(self.sleep_time_)
 					action_client.wait_for_result()
 					self.is_finished = True
-
+					self.state_ = action_client.get_state()
 					return {'interrupt_var': self.handleInterrupt(), 'result': action_client.get_result()}
 				rospy.sleep(self.sleep_time_)
 

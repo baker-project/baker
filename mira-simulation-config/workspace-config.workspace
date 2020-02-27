@@ -31,6 +31,8 @@
                 <ShowType>true</ShowType>
                 <!--Show if channel is typed-->
                 <ShowIsTyped>false</ShowIsTyped>
+                <!--Show type meta-->
+                <ShowTypeMeta>false</ShowTypeMeta>
                 <!--Show update count-->
                 <ShowUpdateCount>false</ShowUpdateCount>
                 <!--Show slot count-->
@@ -44,7 +46,7 @@
               </Part>
             </item>
             <item>
-              <Name>Properties</Name>
+              <Name>Properties [DriveView]</Name>
               <Part class="mira::PropertyView">
                 <HideFilterBarAct>false</HideFilterBarAct>
               </Part>
@@ -54,6 +56,8 @@
               <Part class="mira::AuthorityView">
                 <!--Should hidden authorities be displayed-->
                 <ShowHidden>false</ShowHidden>
+                <!--Should channels be displayed with relative names-->
+                <ShowRelative>false</ShowRelative>
                 <!--Automatically hide the filter bar-->
                 <HideFilterBarAct>false</HideFilterBarAct>
               </Part>
@@ -71,9 +75,7 @@
               <Name>RPC Console</Name>
               <Part class="mira::RPCConsole">
                 <!--The command history-->
-                <History>
-                  <item>/robot/Robot.getRobotModel</item>
-                </History>
+                <History/>
               </Part>
             </item>
             <item>
@@ -95,7 +97,7 @@
                   <!--Channels to record-->
                   <Channels/>
                   <!--Record transform frames to tape-->
-                  <RecordTransforms>false</RecordTransforms>
+                  <RecordTransforms>true</RecordTransforms>
                   <!--Save transform tree to extra file-->
                   <SaveTransformsFile>false</SaveTransformsFile>
                 </RecordingConfig>
@@ -109,7 +111,17 @@
                 <!--Watchdog for stopping when no commands are signaled for a given time-->
                 <WatchdogTimeout>5000</WatchdogTimeout>
                 <!--Service used for driving-->
-                <DriveService/>
+                <DriveService>
+                  <!--The concrete service that is used-->
+                  <Service/>
+                  <!--The interface that is required-->
+                  <Interface>IDrive</Interface>
+                </DriveService>
+                <!--The channel used to check motorstop status-->
+                <MotorStopChannel>
+                  <!--The ID of the channel-->
+                  <Channel>/robot/Bumper</Channel>
+                </MotorStopChannel>
               </Part>
             </item>
           </Views>
@@ -117,6 +129,8 @@
             <item>
               <Name>3D</Name>
               <Part class="mira::Visualization3DView">
+                <!--Keep window always on top of other windows?-->
+                <onTop>false</onTop>
                 <!--The assigned visualizations-->
                 <Visualizations>
                   <item class="mira::AxesVisualization">
@@ -157,7 +171,12 @@
                     <!--The name that is shown to the user-->
                     <Name>Rigid Model</Name>
                     <!--The service that provides us with a rigid model-->
-                    <ModelProvider/>
+                    <ModelProvider>
+                      <!--The concrete service that is used-->
+                      <Service/>
+                      <!--The interface that is required-->
+                      <Interface/>
+                    </ModelProvider>
                     <!--Enable/disable visualization of collision links-->
                     <Show_Collision>false</Show_Collision>
                     <!--Enable/disable visualization of visual links-->
@@ -351,6 +370,10 @@
                     </Color>
                     <!--The width of the line-->
                     <Line_Width>0.10000000149</Line_Width>
+                    <!--First index to be drawn-->
+                    <DrawFrom>0</DrawFrom>
+                    <!--Last index to be drawn (-1 for unlimited)-->
+                    <DrawTo>-1</DrawTo>
                   </item>
                   <item class="mira::navigation::TaskVisualization">
                     <!--Is true if the visualization is enabled and visible-->
@@ -403,8 +426,10 @@
                     <Hide_not_reachable>true</Hide_not_reachable>
                     <!--Hide not admissible trajectories-->
                     <Hide_not_admissible>true</Hide_not_admissible>
-                    <!--raise trajectories above map-->
+                    <!--Raise trajectories above map-->
                     <ZOffset>0.00999999977648</ZOffset>
+                    <!--Size of marker for trajectory end point (improve visibility of trajectory swarm)-->
+                    <EndPoint_Marker_Size>0.00999999977648</EndPoint_Marker_Size>
                     <!--Select a single trajectory to highlight-->
                     <Highlight>
                       <!--Activate selection of an element-->
@@ -450,8 +475,41 @@ Background only = always select background, regardless of objects hit-->
                     <!--The smallest allowed orientation variance.-->
                     <MinOrientationVariance>0.25</MinOrientationVariance>
                     <!--Service used for localization-->
-                    <LocalizationService/>
+                    <LocalizationService>
+                      <!--The concrete service that is used-->
+                      <Service/>
+                      <!--The interface that is required-->
+                      <Interface/>
+                    </LocalizationService>
                   </Localize>
+                  <PlaceRobot class="mira::simulation::PlaceRobotTool">
+                    <!--Objects only = select first object hit or nothing
+Prefer objects = select background if no object hit
+Background only = always select background, regardless of objects hit-->
+                    <Background_mode>0</Background_mode>
+                    <!--Height of (virtual) background plane to assume for determining coordinates clicked on background-->
+                    <Background_height>0</Background_height>
+                    <!--The smallest allowed position variance.-->
+                    <MinPositionVariance>0.10000000149</MinPositionVariance>
+                    <!--The smallest allowed orientation variance.-->
+                    <MinOrientationVariance>0.25</MinOrientationVariance>
+                    <!--Service used for simulating robot-->
+                    <SimulationService>
+                      <!--The concrete service that is used-->
+                      <Service/>
+                      <!--The interface that is required-->
+                      <Interface>IRobotSimulation</Interface>
+                    </SimulationService>
+                    <!--Service used for localization (optional)-->
+                    <LocalizationService>
+                      <!--The concrete service that is used-->
+                      <Service/>
+                      <!--The interface that is required-->
+                      <Interface>ILocalization</Interface>
+                    </LocalizationService>
+                    <!--Whether to automatically update localization when setting robot position-->
+                    <Localize>true</Localize>
+                  </PlaceRobot>
                   <Goal class="mira::navigation::BasicGoalTool">
                     <!--Objects only = select first object hit or nothing
 Prefer objects = select background if no object hit
@@ -464,7 +522,12 @@ Background only = always select background, regardless of objects hit-->
                     <!--The smallest allowed orientation variance.-->
                     <MinOrientationVariance>0.25</MinOrientationVariance>
                     <!--Service used for sending task to-->
-                    <NavigationService/>
+                    <NavigationService>
+                      <!--The concrete service that is used-->
+                      <Service/>
+                      <!--The interface that is required-->
+                      <Interface/>
+                    </NavigationService>
                     <!--The task where only the PositionTask and OrientationTask is added as subtask-->
                     <BaseTask>{"SubTasks" : [ { "@class" : "mira::navigation::PreferredDirectionTask", "Direction" : 1, "WrongDirectionCost" : 0.5 } ] }</BaseTask>
                   </Goal>
@@ -509,19 +572,19 @@ Background only = always select background, regardless of objects hit-->
                 <!--Camera view-->
                 <Camera>
                   <!--the position of the camera-->
-                  <X>24.6130046844</X>
+                  <X>-5.13127088547</X>
                   <!--the position of the camera-->
-                  <Y>10.4417896271</Y>
+                  <Y>-7.30627727509</Y>
                   <!--the position of the camera-->
-                  <Z>14.9301042557</Z>
+                  <Z>6.67597675323</Z>
                   <!--the orientation of the camera-->
-                  <Yaw>90.1122665405</Yaw>
+                  <Yaw>85.904510498</Yaw>
                   <!--the orientation of the camera-->
-                  <Pitch>66.539276123</Pitch>
+                  <Pitch>81.2723312378</Pitch>
                   <!--the orientation of the camera-->
                   <Roll>0</Roll>
                   <!--the zoom or distance-->
-                  <Distance>16.4557170868</Distance>
+                  <Distance>6.92139816284</Distance>
                 </Camera>
                 <!--Background mode-->
                 <Background>1</Background>
@@ -572,6 +635,8 @@ Background only = always select background, regardless of objects hit-->
                 <Light_Height>45</Light_Height>
                 <!--The strength of the ambient light-->
                 <Ambient_Light>0.300000011921</Ambient_Light>
+                <!--Minimum width or height of the image saved by rendering the viewport at an appropriate resolution.-->
+                <SaveContentMinPictureSize>2048</SaveContentMinPictureSize>
               </Part>
               <Geometry>
                 <!--The minimum corner-->
@@ -589,7 +654,7 @@ Background only = always select background, regardless of objects hit-->
                   <Y>697</Y>
                 </MaxCorner>
               </Geometry>
-              <Activated>true</Activated>
+              <Activated>false</Activated>
               <Minimized>false</Minimized>
               <Maximized>true</Maximized>
               <Docked>true</Docked>
@@ -597,6 +662,8 @@ Background only = always select background, regardless of objects hit-->
             <item>
               <Name>Text View</Name>
               <Part class="mira::VisualizationTextView">
+                <!--Keep window always on top of other windows?-->
+                <onTop>false</onTop>
                 <!--The assigned visualizations-->
                 <Visualizations>
                   <item class="mira::DefaultTextVisualization">
@@ -663,6 +730,8 @@ Background only = always select background, regardless of objects hit-->
                 <Fixed_Frame>/GlobalFrame</Fixed_Frame>
                 <!--The frame where all other frames are transformed to for displaying the data-->
                 <Camera_Frame>/GlobalFrame</Camera_Frame>
+                <!--Precision for text output of float numbers.-->
+                <Precision>3</Precision>
               </Part>
               <Geometry>
                 <!--The minimum corner-->
@@ -688,6 +757,8 @@ Background only = always select background, regardless of objects hit-->
             <item>
               <Name>Text Trace View</Name>
               <Part class="mira::VisualizationTextTraceView">
+                <!--Keep window always on top of other windows?-->
+                <onTop>false</onTop>
                 <!--The assigned visualizations-->
                 <Visualizations>
                   <item class="mira::DefaultTextTraceVisualization">
@@ -728,6 +799,11 @@ Background only = always select background, regardless of objects hit-->
                 <Resize_All_Rows>true</Resize_All_Rows>
                 <!--Maximum history of the trace in milliseconds (0 means infinite)-->
                 <MaxHistory>0</MaxHistory>
+                <!--Precision for text output of float numbers.-->
+                <Precision>3</Precision>
+                <!--If true, add items to the table at their correct place in time
+(instead of always at end, even if timestamp is older)-->
+                <Enforce_Time_Order>false</Enforce_Time_Order>
               </Part>
               <Geometry>
                 <!--The minimum corner-->
@@ -751,13 +827,13 @@ Background only = always select background, regardless of objects hit-->
               <Docked>true</Docked>
             </item>
           </Editors>
-          <State>AAAA/wAAAAD9AAAAAwAAAAAAAAEtAAAD8fwCAAAAA/sAAAAQAEMAaABhAG4AbgBlAGwAcwEAAAAZAAABbgAAAHYA////+wAAACoAVgBpAHMAdQBhAGwAaQB6AGEAdABpAG8AbgAgAEMAbwBuAHQAcgBvAGwBAAABjQAAAWcAAACVAP////sAAAASAEQAcgBpAHYAZQBWAGkAZQB3AQAAAvoAAAEQAAABEAD///8AAAABAAABoQAAA/H8AgAAAAL7AAAAFgBBAHUAdABoAG8AcgBpAHQAaQBlAHMBAAAAGQAAAgwAAACRAP////sAAAAUAFAAcgBvAHAAZQByAHQAaQBlAHMBAAACKwAAAd8AAAB6AP///wAAAAMAAARlAAABDPwBAAAAAfwAAAEzAAAEZQAAAeIA////+gAAAAABAAAABPsAAAAWAFIAUABDACAAQwBvAG4AcwBvAGwAZQEAAAAA/////wAAAE4A////+wAAAA4ATABvAGcAVgBpAGUAdwEAAAAA/////wAAAXQA////+wAAAAwAUABsAGEAeQBlAHIBAAAAAP////8AAAETAP////sAAAAQAFIAZQBjAG8AcgBkAGUAcgEAAAAA/////wAAAeIA////AAAEZQAAAt8AAAABAAAAAgAAAAEAAAAC/AAAAAA=</State>
+          <State>AAAA/wAAAAD9AAAAAwAAAAAAAAEtAAAD8fwCAAAAA/sAAAAQAEMAaABhAG4AbgBlAGwAcwEAAAAZAAAB0AAAAHMA////+wAAACoAVgBpAHMAdQBhAGwAaQB6AGEAdABpAG8AbgAgAEMAbwBuAHQAcgBvAGwBAAAB7wAAAQIAAACSAP////sAAAASAEQAcgBpAHYAZQBWAGkAZQB3AQAAAvcAAAETAAABEAD///8AAAABAAABoQAAA/H8AgAAAAL7AAAAFgBBAHUAdABoAG8AcgBpAHQAaQBlAHMBAAAAGQAAAgwAAACOAP////sAAAAUAFAAcgBvAHAAZQByAHQAaQBlAHMBAAACKwAAAd8AAAB3AP///wAAAAMAAARlAAABDPwBAAAAAfwAAAEzAAAEZQAAAegA////+gAAAAABAAAABPsAAAAWAFIAUABDACAAQwBvAG4AcwBvAGwAZQEAAAAA/////wAAAEsA////+wAAAA4ATABvAGcAVgBpAGUAdwEAAAAA/////wAAAXQA////+wAAAAwAUABsAGEAeQBlAHIBAAAAAP////8AAAETAP////sAAAAQAFIAZQBjAG8AcgBkAGUAcgEAAAAA/////wAAAegA////AAAEZQAAAt8AAAABAAAAAgAAAAEAAAAC/AAAAAA=</State>
         </State>
       </item>
     </Perspectives>
     <CurrentPerspective>0</CurrentPerspective>
     <!--Binary Qt state, do not edit!-->
-    <Geometry>AdnQywABAAAAAABBAAAAGAAAB38AAAQ3AAAE8QAAACwAAAd/AAABGgAAAAACAA==</Geometry>
+    <Geometry>AdnQywACAAAAAABBAAAAGAAAB38AAAQ3AAAE8QAAACwAAAd/AAABGgAAAAACAAAAB4A=</Geometry>
     <RemoteFrameworkHistory/>
   </MIRACenter>
 </root>

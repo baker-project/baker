@@ -35,7 +35,7 @@ floor_search_iterations: 3  #3
 
 # accepted distance of 3d points to the plane model to be considered inliers, in [m]
 # float
-floor_plane_inlier_distance: 0.05
+floor_plane_inlier_distance: 0.10 # previously 0.05
 
 # minimum number of points that are necessary to find the floor plane
 # int

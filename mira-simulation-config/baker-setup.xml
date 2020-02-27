@@ -1,0 +1,18 @@
+<root>
+	<var rosVersion="indigo"/>
+	<var mapEnvironment="lab_ipa"/> <!-- lab_ipa -->
+	<var MCFFile="/home/rmb/git/care-o-bot-${rosVersion}/src/baker/mira-simulation-config/maps/${mapEnvironment}/map.mcf"/>
+
+	<!--var robot="SCITOS-G5"/-->
+	<var robot="BakeR-Simulation"/>
+	<!--var robot="BakeR-model"/-->
+	<var robotConfigFile="${findpkg BakeRConfig}/etc/${robot}.xml"/>
+	<var frontLaser="SickS300"/>
+	<var rearLaser="SickS300"/>
+
+	<include file="${findpkg SCITOSSimulator}/etc/SCITOS-mapping.xml"/>
+
+	<include file="${findpkg ApolloSlam}/etc/ApolloSlam.xml"/>
+
+</root>
+

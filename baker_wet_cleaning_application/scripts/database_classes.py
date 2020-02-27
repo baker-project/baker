@@ -190,7 +190,7 @@ class RoomItem():
 	# Territory the room belongs to
 	# (STRING)
 	room_territory_id_ = ""
-	# Room surfcae type [0=?, ..., n=?]
+	# Room surface type [0=?, ..., n=?]
 	# (INTEGER)
 	room_surface_type_ = 0
 	# Room cleaning method [0=dry, 1=wet, 2=both]

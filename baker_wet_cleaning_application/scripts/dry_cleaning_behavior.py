@@ -2,7 +2,7 @@
 
 import rospy
 from cob_object_detection_msgs.msg import DetectionArray
-from geometry_msgs.msg import Pose2D, Quaternion
+from geometry_msgs.msg import Pose2D, Quaternion, Pose, Point
 from std_srvs.srv import Trigger
 
 from move_base_path_behavior import MoveBasePathBehavior
@@ -11,8 +11,9 @@ from abstract_cleaning_behavior import AbstractCleaningBehavior
 from trashcan_emptying_behavior import TrashcanEmptyingBehavior
 
 from threading import Lock, Thread
-from utils import projectToCamera
+from utils import projectToCamera, projectToFrame, getCurrentRobotPosition
 import services_params as srv
+from tf.transformations import quaternion_from_euler
 from math import pi
 
 class DryCleaningBehavior(AbstractCleaningBehavior):
@@ -60,11 +61,27 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 
 		self.found_trashcans_.append(detected_trash)
 		trashcan_emptier = TrashcanEmptyingBehavior("TrashcanEmptyingBehavior", self.interrupt_var_, srv.MOVE_BASE_SERVICE_STR)
-
-		position = detected_trash.pose.pose.position
 		checkpoint_position = self.getCheckpointForRoomId(room_id).checkpoint_position_in_meter
 
-		trashcan_emptier.setParameters(trashcan_position=position, trolley_position=checkpoint_position)
+		traschan_pose = projectToFrame(detected_trash.pose, 'map').pose
+
+		trolley_pose = Pose()
+		trolley_pose.position = checkpoint_position
+		orientation = quaternion_from_euler(0, 0, 1.5)
+		trolley_pose.orientation.x = orientation[0]
+		trolley_pose.orientation.y = orientation[1]
+		trolley_pose.orientation.z = orientation[2]
+		trolley_pose.orientation.w = orientation[3]
+
+		trolley_boundingbox = Point()
+		trolley_boundingbox.x = 0.8
+		trolley_boundingbox.y = 1.
+		trolley_boundingbox.z = 0.6
+		trolley_pose.position.z = trolley_boundingbox.z / 2.
+
+		trashcan_emptier.setParameters(
+			trashcan_pose=traschan_pose, trashcan_boundingbox=detected_trash.bounding_box_lwh,
+			trolley_pose=trolley_pose, trolley_boundingbox=trolley_boundingbox)
 
 		trashcan_emptier.executeBehavior()
 
@@ -135,7 +152,7 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 		if len(detections) == 0:
 			return
 		self.printMsg("Trash(S) DETECTED!!")
-
+		print(detections)
 		# 1. Stop the dirt and the trash detections
 		self.stopDetections()
 
@@ -152,18 +169,7 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 		assert(DryCleaningBehavior.containsTrashcanTask(cleaning_tasks) or DryCleaningBehavior.containsDirtTask(cleaning_tasks))
 
 		self.printMsg('Starting Dry Cleaning of room ID {}'.format(room_id))
-
-		starting_position = self.room_information_in_meter_[room_id].room_center
-		self.move_base_handler_.setParameters(
-			goal_position=starting_position,
-			goal_orientation=Quaternion(x=0., y=0., z=0., w=1.),
-			header_frame_id='base_link',
-			goal_position_tolerance=2.0,
-			goal_angle_tolerance=2 * pi
-		)
-
-		thread_move_to_the_room = Thread(target=self.move_base_handler_.executeBehavior)
-		thread_move_to_the_room.start()
+		self.startMoveToTheRoom(room_id)
 
 		path = self.computeCoveragePath(room_id=room_id)
 
@@ -179,14 +185,15 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 		if DryCleaningBehavior.containsDirtTask(cleaning_tasks):
 			self.dirt_topic_subscriber_ = rospy.Subscriber('/dirt_detection_server_preprocessing/dirt_detector_topic', DetectionArray, self.dirtDetectionCallback)
 
-		thread_move_to_the_room.join()  # don't start the detections before
+		self.waitMoveToTheRoom()
 		if self.move_base_handler_.failed():
 			self.printMsg('Room center is not accessible. Failed to clean room {}'.format(room_id))
 			return
 
-		self.initAndStartCoverageMonitoring() # todo rmb-ma stop the coverage monitoring during detection
+		self.initAndStartCoverageMonitoring()
 
 		while len(path) > 0:
+			self.startCoverageMonitoring()
 			(self.detected_trashs_, self.detected_dirts_) = ([], [])
 
 			if DryCleaningBehavior.containsTrashcanTask(cleaning_tasks):
@@ -216,6 +223,10 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 				rospy.sleep(2)
 
 			explorer_thread.join()
+			if path_follower.failed():
+				self.printMsg('Error in path following. Failed to clean room {}'.format(room_id))
+				return
+			self.stopCoverageMonitoring()
 
 			if self.handleInterrupt() >= 1:
 				return
@@ -227,20 +238,21 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 
 			# start again on the current position
 			self.printMsg("Result is {}".format(path_follower.move_base_path_result_))
-			last_visited_index = path_follower.move_base_path_result_.last_visited_index
-			self.printMsg('Move stopped at position {}'.format(last_visited_index))
-			path = path[last_visited_index:]
-			
+			last_planned_point_index = path_follower.move_base_path_result_.last_planned_point_index
+			self.printMsg('Move stopped at position {}'.format(last_planned_point_index))
+
 			# move to last path point
 			self.move_base_handler_.setParameters(
-				goal_position=path[0].pose.position,
-				goal_orientation=path[0].pose.orientation,
-				header_frame_id='base_link',
+				goal_position=path[max(0, last_planned_point_index - 1)].pose.position,
+				goal_orientation=path[max(0, last_planned_point_index - 1)].pose.orientation,
+				header_frame_id='map',
 				goal_position_tolerance=0.2,
 				goal_angle_tolerance=0.17
 			)
 			self.move_base_handler_.executeBehavior()
-			
+
+			path = path[last_planned_point_index:]
+
 
 		if self.dirt_topic_subscriber_ is not None:
 			self.dirt_topic_subscriber_.unregister()
@@ -251,7 +263,7 @@ class DryCleaningBehavior(AbstractCleaningBehavior):
 		assert (self.containsDirtTask(cleaning_tasks) and self.containsTrashcanTask(cleaning_tasks)) or self.containsTrashcanTask(cleaning_tasks)
 		cleaning_method = 1 if DryCleaningBehavior.containsDirtTask(cleaning_tasks) else 0
 
-		coverage_area = self.checkAndComputeCoverage(room_id)
+		coverage_area = self.checkAndComputeCoverageRatio(room_id)
 		self.stopCoverageMonitoring()
-		self.checkoutRoom(room_id=room_id, cleaning_method=cleaning_method, coverage_area=coverage_area,
+		self.checkoutRoom(room_id=room_id, cleaning_method=cleaning_method, coverage_ratio=coverage_area,
 						  nb_found_dirtspots=len(self.found_dirtspots_), nb_found_trashcans=len(self.found_trashcans_))

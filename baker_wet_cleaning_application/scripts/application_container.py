@@ -23,7 +23,7 @@ class ApplicationContainer:
 
 	# Status of the application. 0=OK, 1=Paused, 2=Cancelled, 3=Terminate application server
 	# Starts with 2=Cancelled and waits for an action call to start the application
-	# using a vector because a single int number cannot be passed by reference, 
+	# using a vector because a single int number cannot be passed by reference,
 	# but this apparently works to automatically get the changed number also into the client behaviors
 	STATUS = {'IS_RUNNING': 0, 'IS_PAUSED': 1, 'IS_CANCELLED': 2, 'IS_FINISHED': 3}
 	application_status_ = [STATUS['IS_CANCELLED']]
@@ -92,7 +92,7 @@ class ApplicationContainer:
 		if self.getStatus() == self.STATUS['IS_PAUSED']:
 			self.prePauseProcedure()
 			while self.getStatus() == self.STATUS['IS_PAUSED']:
-				pass
+				rospy.sleep(.1)
 			if self.getStatus() == self.STATUS['IS_RUNNING']:
 				self.application_resumed_after_pause = True
 				self.postPauseProcedure()
@@ -129,7 +129,7 @@ class ApplicationContainer:
 
 			elif self.getStatus() == self.STATUS['IS_FINISHED']:
 				break
-			
+
 			rate.sleep()
 
 	def setStatus(self, status):
@@ -137,4 +137,3 @@ class ApplicationContainer:
 
 	def getStatus(self):
 		return self.application_status_[0]
-

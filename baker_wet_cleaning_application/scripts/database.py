@@ -243,6 +243,7 @@ class Database:
 			current_room.room_cleaning_method_ = dict_settings.get(room_key).get("room_cleaning_method")
 			# Get the room surface area
 			current_room.room_surface_area_ = dict_settings.get(room_key).get("room_surface_area")
+			assert(current_room.room_surface_area_ > 0)
 			# Get the room trashcan count
 			current_room.room_trashcan_count_ = dict_settings.get(room_key).get("room_trashcan_count")
 			# Get the days where the room has to be cleaned in a specified way

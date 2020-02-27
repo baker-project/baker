@@ -17,6 +17,7 @@ import dynamic_reconfigure.client
 from cv_bridge import CvBridge, CvBridgeError
 import cv2
 import numpy as np
+from threading import Thread
 
 class AbstractCleaningBehavior(BehaviorContainer):
 
@@ -39,6 +40,8 @@ class AbstractCleaningBehavior(BehaviorContainer):
 		self.reset_coverage_monitoring_service_str_ = srv.RESET_COVERAGE_MONITORING_SERVICE_STR
 
 		self.coverage_map_ = None
+
+		self.thread_move_to_the_room = None
 
 	def setCommonParameters(self, database_handler, sequencing_result, mapping, coverage_radius, field_of_view,
 					   field_of_view_origin, room_information_in_meter, robot_radius, robot_frame_id):
@@ -120,7 +123,7 @@ class AbstractCleaningBehavior(BehaviorContainer):
 		except rospy.ServiceException, e:
 			print ("Service call to " + self.coverage_map_service_ + " failed: %s" % e)
 
-	def checkAndComputeCoverage(self, room_id, coverage_map=None):
+	def checkAndComputeCoverageRatio(self, room_id, coverage_map=None):
 		map_image = self.database_handler_.database_.getRoomById(room_id).room_map_data_
 		map_image = CvBridge().imgmsg_to_cv2(map_image, desired_encoding="passthrough")
 
@@ -131,14 +134,11 @@ class AbstractCleaningBehavior(BehaviorContainer):
 		ratio_cleaned = float(np.sum(coverage_map))/np.sum(map_image)
 
 		print("CLEANED {}".format(ratio_cleaned))
+		assert(ratio_cleaned <= 1)
+		#  if ratio_cleaned < 0.9:
+		#     raise RuntimeWarning('Only {}% of room {} cleaned'.format(100*ratio_cleaned, room_id))
 
-		#if 0.9 < ratio_cleaned < 0.5:
-		#	raise RuntimeWarning('Only {}% of room {} cleaned'.format(100*ratio_cleaned, room_id))
-		#if ratio_cleaned < 0.9:
-		#	raise RuntimeError('Only {}% of room {} cleaned'.format(100*ratio_cleaned, room_id))
-
-		# todo (rmb-ma) compute coverage in m
-		return int(np.sum(coverage_map))
+		return ratio_cleaned
 
 	# Method for returning to the standard state of the robot
 	def returnToRobotStandardState(self):
@@ -167,33 +167,29 @@ class AbstractCleaningBehavior(BehaviorContainer):
 			field_of_view_origin=self.field_of_view_origin_,
 			starting_position=Pose2D(x=starting_position[0], y=starting_position[1], theta=0.),
 			# todo: determine theta
-			planning_mode=2
+			planning_mode=2 # 1 means robot view, 2 fov
 		)
 		room_explorer.executeBehavior()
 		self.printMsg('Coverage path of room ID {} computed.'.format(room_id))
 
 		return room_explorer.exploration_result_.coverage_path_pose_stamped
 
-	def checkoutRoom(self, room_id, cleaning_method, nb_found_dirtspots=0, nb_found_trashcans=0, coverage_area=0):
+	def checkoutRoom(self, room_id, cleaning_method, nb_found_dirtspots=0, nb_found_trashcans=0, coverage_ratio=0):
 
-		self.database_handler_.checkoutCompletedRoom(
-			self.database_handler_.database_.getRoomById(room_id),
-			assignment_type=cleaning_method - 1)
+		room = self.database_handler_.database_.getRoomById(room_id)
 
-		if -1 in self.database_handler_.database_.getRoomById(room_id).open_cleaning_tasks_\
-				and cleaning_method == 1:  # trash
-			self.database_handler_.checkoutCompletedRoom(
-				self.database_handler_.database_.getRoomById(room_id),
-				assignment_type=-1)
+		self.database_handler_.checkoutCompletedRoom(room, assignment_type=cleaning_method - 1)
 
-		# Adding log entry for dry cleaning + todo (rmb-ma) for wet cleaning
+		if -1 in room.open_cleaning_tasks_ and cleaning_method == 1:  # trash
+			self.database_handler_.checkoutCompletedRoom(room, assignment_type=-1)
+
 		self.database_handler_.addLogEntry(
 			room_id=room_id,
 			status=1,  # 1=Completed
-			cleaning_task=cleaning_method,  # 1=wet only
+			cleaning_task=cleaning_method,
 			found_dirtspots=nb_found_dirtspots,
 			found_trashcans=nb_found_trashcans,
-			cleaned_surface_area=coverage_area,
+			cleaned_surface_area=coverage_ratio*room.room_surface_area_,
 			room_issues=[],
 			used_water_amount=0,
 			battery_usage=0
@@ -211,6 +207,22 @@ class AbstractCleaningBehavior(BehaviorContainer):
 
 	def executeCustomBehaviorInRoomId(self, room_id):
 		pass
+
+	def startMoveToTheRoom(self, room_id):
+		starting_position = self.room_information_in_meter_[room_id].room_center
+		self.move_base_handler_.setParameters(
+			goal_position=starting_position,
+			goal_orientation=Quaternion(x=0., y=0., z=0., w=1.),
+			goal_angle_tolerance=2*pi,
+			goal_position_tolerance=0.5
+		)
+
+		self.thread_move_to_the_room = Thread(target=self.move_base_handler_.executeBehavior)
+		self.thread_move_to_the_room.start()
+
+	def waitMoveToTheRoom(self):
+		assert self.thread_move_to_the_room is not None
+		self.thread_move_to_the_room.join()
 
 	# Implemented Behavior
 	def executeCustomBehavior(self):
@@ -230,7 +242,6 @@ class AbstractCleaningBehavior(BehaviorContainer):
 			self.move_base_handler_.setParameters(
 				goal_position=checkpoint.checkpoint_position_in_meter,
 				goal_orientation=Quaternion(x=0., y=0., z=0., w=1.),
-				header_frame_id='base_link',
 				goal_position_tolerance=0.5,
 				goal_angle_tolerance=2*pi
 			)

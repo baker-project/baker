@@ -1,9 +1,9 @@
 <root>
-	<!--<var mapEnvironment="MLWeimarerStrasse"/>-->
-	<var mapEnvironment="lab_ipa"/>
-	<var MCFFile="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/${mapEnvironment}/map.mcf"/>
-	<var cleaningMap="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/${mapEnvironment}/map-static.xml"/>
-	<var segmentationMap="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/maps/${mapEnvironment}/map-segmentation.xml"/>
+	<var rosVersion="kinetic"/>
+	<var mapEnvironment="MLWeimarerStrasse"/> <!-- lab_ipa -->
+	<var MCFFile="/home/rmb/git/care-o-bot-${rosVersion}/src/baker/mira-simulation-config/maps/${mapEnvironment}/map.mcf"/>
+	<var cleaningMap="/home/rmb/git/care-o-bot-${rosVersion}/src/baker/mira-simulation-config/maps/${mapEnvironment}/map-static.xml"/>
+	<var segmentationMap="/home/rmb/git/care-o-bot-${rosVersion}/src/baker/mira-simulation-config/maps/${mapEnvironment}/map-segmentation.xml"/>
 
 	<var useDocking="false"/>
 
@@ -14,7 +14,7 @@
 	<var frontLaser="SickS300"/>
 	<var rearLaser="SickS300"/>
 
-	<var pathPlanner="/home/rmb/git/care-o-bot-indigo/src/baker/mira-simulation-config/SmoothPathPlanner.xml"/>
+	<var pathPlanner="/home/rmb/git/care-o-bot-${rosVersion}/src/baker/mira-simulation-config/SmoothPathPlanner.xml"/>
 
 	<include file="${findpkg SCITOSSimulator}/etc/SCITOS-application.xml"/>
 
@@ -53,19 +53,24 @@
 		<namespace name="cost">
 			<parameter name="CostMapper.CostMaps[0].item.Mappers[0].item">
 				<MaxObstacleDistance>0.2</MaxObstacleDistance>
-			</parameter>	
+			</parameter>
 		</namespace>
 	</namespace>
 
 	<namespace name="modules">
-		<namespace name="brushcleaning">
+		<unit id="BakeRVacuumCleaningModule" class="mira::actors::BakeRVacuumCleaningModule">
+			<CycleTimeTolerance>2000</CycleTimeTolerance>
+			<Address>10.234.16.175:5005</Address> <!-- 5000 is the correct port. We want another port for the simulation -->
+		</unit>
+		<!--<namespace name="brushcleaning">
 			<using name="../../robot/RobotFrame"/>
 			<using name="../../robot/OdometryFrame"/>
 			<include file="${findpkg BakeRCleaningModule}/etc/BakeRCleaningModule.xml"/>
 			<parameter name="BakeRCleaningModule">
 				<Simulation>true</Simulation>
 			</parameter>
-		</namespace>
+		</namespace>-->
+		
 		<!--namespace name="bay">
 			<include file="${findpkg BakeRModuleBay}/etc/BakeRModuleBay.xml"/>
 			<parameter name="ModuleBay">
@@ -96,4 +101,3 @@
 	</if_exists>
 
 </root>
-
